@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -21,7 +21,7 @@ serve(async (req) => {
     // Verify caller is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No auth" }), {
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -35,7 +35,7 @@ serve(async (req) => {
 
     const { data: { user: caller } } = await supabaseClient.auth.getUser();
     if (!caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -50,7 +50,7 @@ serve(async (req) => {
       .single();
 
     if (!roleData) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
+      return new Response(JSON.stringify({ error: "Acesso de administrador necessário" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -60,7 +60,7 @@ serve(async (req) => {
 
     if (!email || !password || !display_name) {
       return new Response(
-        JSON.stringify({ error: "email, password, and display_name are required" }),
+        JSON.stringify({ error: "Email, senha e nome são obrigatórios" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -74,28 +74,59 @@ serve(async (req) => {
     });
 
     if (createError) {
+      console.error("Create user error:", createError);
       return new Response(JSON.stringify({ error: createError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Update job_title on profile
-    if (job_title) {
-      await supabaseAdmin.from("profiles").update({ job_title }).eq("user_id", newUser.user.id);
+    const userId = newUser.user.id;
+
+    // Wait a moment for the trigger to create the profile
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Check if profile was created by trigger, if not create it
+    const { data: existingProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (!existingProfile) {
+      const { error: profileError } = await supabaseAdmin.from("profiles").insert({
+        user_id: userId,
+        display_name,
+        job_title: job_title || "",
+      });
+      if (profileError) {
+        console.error("Profile insert error:", profileError);
+      }
+    } else if (job_title) {
+      const { error: updateError } = await supabaseAdmin
+        .from("profiles")
+        .update({ job_title, display_name })
+        .eq("user_id", userId);
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+      }
     }
 
     // Assign employee role
-    await supabaseAdmin.from("user_roles").insert({
-      user_id: newUser.user.id,
+    const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
+      user_id: userId,
       role: "employee",
     });
+    if (roleError) {
+      console.error("Role insert error:", roleError);
+    }
 
     return new Response(
-      JSON.stringify({ user: { id: newUser.user.id, email: newUser.user.email } }),
+      JSON.stringify({ user: { id: userId, email: newUser.user.email } }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("Unexpected error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
