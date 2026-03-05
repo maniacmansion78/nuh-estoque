@@ -21,7 +21,8 @@ export interface Ingredient {
   price: number;
   expiry_date: string;
   supplier_id: string;
-  alert_days: number; // dias antes do vencimento para alertar
+  alert_days: number;
+  lote: string;
 }
 
 export interface Movement {
@@ -44,18 +45,18 @@ export const suppliers: Supplier[] = [
 ];
 
 export const ingredients: Ingredient[] = [
-  { id: "i1", name: "Leite de Coco", category: "Bebidas", quantity: 12, unit: "L", min_quantity: 5, price: 14.9, expiry_date: addDays(today, 15).toISOString(), supplier_id: "s1", alert_days: 7 },
-  { id: "i2", name: "Manjericão Thai", category: "Vegetais", quantity: 2, unit: "kg", min_quantity: 3, price: 28.0, expiry_date: addDays(today, 2).toISOString(), supplier_id: "s2", alert_days: 3 },
-  { id: "i3", name: "Camarão Fresco", category: "Proteínas", quantity: 1.5, unit: "kg", min_quantity: 5, price: 89.9, expiry_date: addDays(today, 1).toISOString(), supplier_id: "s1", alert_days: 2 },
-  { id: "i4", name: "Pasta de Curry Vermelho", category: "Temperos", quantity: 8, unit: "un", min_quantity: 4, price: 22.5, expiry_date: addDays(today, 60).toISOString(), supplier_id: "s3", alert_days: 14 },
-  { id: "i5", name: "Broto de Feijão", category: "Vegetais", quantity: 0.8, unit: "kg", min_quantity: 2, price: 12.0, expiry_date: addDays(today, 1).toISOString(), supplier_id: "s2", alert_days: 2 },
-  { id: "i6", name: "Frango Desossado", category: "Proteínas", quantity: 10, unit: "kg", min_quantity: 8, price: 24.9, expiry_date: addDays(today, 4).toISOString(), supplier_id: "s1", alert_days: 3 },
-  { id: "i7", name: "Molho de Peixe", category: "Temperos", quantity: 6, unit: "L", min_quantity: 3, price: 18.5, expiry_date: addDays(today, 90).toISOString(), supplier_id: "s3", alert_days: 30 },
-  { id: "i8", name: "Água de Coco", category: "Bebidas", quantity: 20, unit: "un", min_quantity: 10, price: 6.9, expiry_date: addDays(today, 30).toISOString(), supplier_id: "s4", alert_days: 7 },
-  { id: "i9", name: "Pimenta Bird's Eye", category: "Temperos", quantity: 0.3, unit: "kg", min_quantity: 1, price: 45.0, expiry_date: addDays(today, 10).toISOString(), supplier_id: "s3", alert_days: 5 },
-  { id: "i10", name: "Tofu Firme", category: "Proteínas", quantity: 4, unit: "kg", min_quantity: 3, price: 15.0, expiry_date: addDays(today, 5).toISOString(), supplier_id: "s2", alert_days: 3 },
-  { id: "i11", name: "Lemongrass", category: "Vegetais", quantity: 1, unit: "kg", min_quantity: 2, price: 32.0, expiry_date: addDays(today, 3).toISOString(), supplier_id: "s2", alert_days: 3 },
-  { id: "i12", name: "Cerveja Thai Singha", category: "Bebidas", quantity: 48, unit: "un", min_quantity: 24, price: 12.5, expiry_date: addDays(today, 180).toISOString(), supplier_id: "s4", alert_days: 30 },
+  { id: "i1", name: "Leite de Coco", category: "Bebidas", quantity: 12, unit: "L", min_quantity: 5, price: 14.9, expiry_date: addDays(today, 15).toISOString(), supplier_id: "s1", alert_days: 7, lote: "LC-2026-001" },
+  { id: "i2", name: "Manjericão Thai", category: "Vegetais", quantity: 2, unit: "kg", min_quantity: 3, price: 28.0, expiry_date: addDays(today, 2).toISOString(), supplier_id: "s2", alert_days: 3, lote: "MT-2026-001" },
+  { id: "i3", name: "Camarão Fresco", category: "Proteínas", quantity: 1.5, unit: "kg", min_quantity: 5, price: 89.9, expiry_date: addDays(today, 1).toISOString(), supplier_id: "s1", alert_days: 2, lote: "CF-2026-001" },
+  { id: "i4", name: "Pasta de Curry Vermelho", category: "Temperos", quantity: 8, unit: "un", min_quantity: 4, price: 22.5, expiry_date: addDays(today, 60).toISOString(), supplier_id: "s3", alert_days: 14, lote: "PCV-2026-001" },
+  { id: "i5", name: "Broto de Feijão", category: "Vegetais", quantity: 0.8, unit: "kg", min_quantity: 2, price: 12.0, expiry_date: addDays(today, 1).toISOString(), supplier_id: "s2", alert_days: 2, lote: "BF-2026-001" },
+  { id: "i6", name: "Frango Desossado", category: "Proteínas", quantity: 10, unit: "kg", min_quantity: 8, price: 24.9, expiry_date: addDays(today, 4).toISOString(), supplier_id: "s1", alert_days: 3, lote: "FD-2026-001" },
+  { id: "i7", name: "Molho de Peixe", category: "Temperos", quantity: 6, unit: "L", min_quantity: 3, price: 18.5, expiry_date: addDays(today, 90).toISOString(), supplier_id: "s3", alert_days: 30, lote: "MP-2026-001" },
+  { id: "i8", name: "Água de Coco", category: "Bebidas", quantity: 20, unit: "un", min_quantity: 10, price: 6.9, expiry_date: addDays(today, 30).toISOString(), supplier_id: "s4", alert_days: 7, lote: "AC-2026-001" },
+  { id: "i9", name: "Pimenta Bird's Eye", category: "Temperos", quantity: 0.3, unit: "kg", min_quantity: 1, price: 45.0, expiry_date: addDays(today, 10).toISOString(), supplier_id: "s3", alert_days: 5, lote: "PBE-2026-001" },
+  { id: "i10", name: "Tofu Firme", category: "Proteínas", quantity: 4, unit: "kg", min_quantity: 3, price: 15.0, expiry_date: addDays(today, 5).toISOString(), supplier_id: "s2", alert_days: 3, lote: "TF-2026-001" },
+  { id: "i11", name: "Lemongrass", category: "Vegetais", quantity: 1, unit: "kg", min_quantity: 2, price: 32.0, expiry_date: addDays(today, 3).toISOString(), supplier_id: "s2", alert_days: 3, lote: "LG-2026-001" },
+  { id: "i12", name: "Cerveja Thai Singha", category: "Bebidas", quantity: 48, unit: "un", min_quantity: 24, price: 12.5, expiry_date: addDays(today, 180).toISOString(), supplier_id: "s4", alert_days: 30, lote: "CTS-2026-001" },
 ];
 
 export const movements: Movement[] = [
