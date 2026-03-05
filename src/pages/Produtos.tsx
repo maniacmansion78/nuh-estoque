@@ -215,7 +215,7 @@ const Produtos = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex w-full flex-col gap-4">
           {filtered.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
             return (
@@ -246,7 +246,7 @@ const Produtos = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm lg:grid-cols-4">
                     <div>
                       <p className="text-muted-foreground">Quantidade</p>
                       <p className="font-semibold">
