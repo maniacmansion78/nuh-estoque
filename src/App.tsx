@@ -10,6 +10,7 @@ import Produtos from "@/pages/Produtos";
 import Fornecedores from "@/pages/Fornecedores";
 import Movimentacoes from "@/pages/Movimentacoes";
 import Funcionarios from "@/pages/Funcionarios";
+import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +67,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <Movimentacoes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nao-conformidades"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <NaoConformidadesPage />
             </AppLayout>
           </ProtectedRoute>
         }

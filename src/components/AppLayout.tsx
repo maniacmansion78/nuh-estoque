@@ -9,6 +9,7 @@ import {
   X,
   Users,
   LogOut,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const baseNavItems = [
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+  { to: "/nao-conformidades", label: "Não Conformidades", icon: AlertTriangle },
 ];
 
 const adminNavItems = [
