@@ -31,29 +31,56 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route
-        path="/*"
+        path="/"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/ingredientes" element={<Ingredientes />} />
-                <Route path="/fornecedores" element={<Fornecedores />} />
-                <Route path="/movimentacoes" element={<Movimentacoes />} />
-                <Route
-                  path="/funcionarios"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <Funcionarios />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Dashboard />
             </AppLayout>
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/ingredientes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Ingredientes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/fornecedores"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Fornecedores />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/movimentacoes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Movimentacoes />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/funcionarios"
+        element={
+          <ProtectedRoute adminOnly>
+            <AppLayout>
+              <Funcionarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

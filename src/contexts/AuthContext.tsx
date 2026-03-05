@@ -21,58 +21,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserMeta = async (userId: string) => {
     try {
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
         .eq("role", "admin")
         .maybeSingle();
+
+      if (roleError) throw roleError;
       setIsAdmin(!!roleData);
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("display_name")
         .eq("user_id", userId)
         .maybeSingle();
+
+      if (profileError) throw profileError;
       setDisplayName(profile?.display_name || "");
     } catch (err) {
       console.error("Error fetching user meta:", err);
+      setIsAdmin(false);
+      setDisplayName("");
     }
   };
 
   useEffect(() => {
-    let initialized = false;
+    let mounted = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    const hydrateAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
         const u = session?.user ?? null;
         setUser(u);
+
         if (u) {
-          setTimeout(() => fetchUserMeta(u.id), 0);
+          await fetchUserMeta(u.id);
         } else {
           setIsAdmin(false);
           setDisplayName("");
         }
-        if (!initialized) {
-          initialized = true;
+      } catch (err) {
+        console.error("Error restoring session:", err);
+        if (mounted) {
+          setUser(null);
+          setIsAdmin(false);
+          setDisplayName("");
         }
-        setLoading(false);
+      } finally {
+        if (mounted) setLoading(false);
       }
-    );
+    };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!initialized) {
-        const u = session?.user ?? null;
-        setUser(u);
-        if (u) {
-          fetchUserMeta(u.id);
-        }
-        setLoading(false);
-        initialized = true;
+    hydrateAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+
+      if (u) {
+        void fetchUserMeta(u.id);
+      } else {
+        setIsAdmin(false);
+        setDisplayName("");
       }
+
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
