@@ -215,11 +215,11 @@ const Produtos = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex w-full flex-col gap-4">
+        <div className="w-full space-y-4">
           {filtered.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
             return (
-              <Card key={item.id} className="group transition-shadow hover:shadow-md">
+              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
