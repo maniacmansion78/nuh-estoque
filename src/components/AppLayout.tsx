@@ -25,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -34,7 +34,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - desktop only */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:static lg:translate-x-0",
@@ -98,9 +98,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <header className="flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-8">
+        <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-4 lg:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -109,12 +109,36 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </Button>
+          <div className="flex items-center gap-2 lg:hidden">
+            <img src={logoNuh} alt="NUH" className="h-7 w-7 rounded-md object-cover" />
+            <span className="font-bold">NUH</span>
+          </div>
           <div className="flex-1" />
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto pb-20 p-4 lg:p-8 lg:pb-8">{children}</main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card lg:hidden">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.to;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
