@@ -126,28 +126,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto overscroll-contain p-4 pb-24 lg:p-8 lg:pb-8">{children}</main>
+        <main className="flex-1 overflow-y-auto overscroll-contain p-4 lg:p-8">{children}</main>
       </div>
-
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card lg:hidden">
-        {navItems.slice(0, 5).map((item) => {
-          const isActive = location.pathname === item.to;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 }
