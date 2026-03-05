@@ -34,7 +34,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
 
   return (
-    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
+    <div className="flex h-screen w-full max-w-full overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
@@ -109,8 +109,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-4 lg:px-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-4 lg:px-8">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
@@ -124,7 +124,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 pb-20 lg:p-8 lg:pb-8">{children}</main>
+        <main className="flex-1 overflow-y-auto overscroll-contain p-4 pb-24 lg:p-8 lg:pb-8">{children}</main>
       </div>
 
       {/* Mobile bottom nav */}
