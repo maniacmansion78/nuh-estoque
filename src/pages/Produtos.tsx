@@ -220,58 +220,34 @@ const Produtos = () => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
             return (
               <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
-                <CardContent className="px-5 py-3">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    {/* Nome e categoria */}
-                    <div className="flex items-center gap-3 min-w-0 lg:w-48 lg:shrink-0">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{item.name}</p>
-                        <Badge variant="outline" className="mt-0.5 text-[10px]">
-                          {item.category}
-                        </Badge>
-                      </div>
+                <CardContent className="px-4 py-2.5">
+                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
+                    {/* Nome + categoria inline */}
+                    <div className="flex items-center gap-2 min-w-0 lg:w-44 lg:shrink-0">
+                      <p className="truncate text-sm font-semibold">{item.name}</p>
+                      <Badge variant="outline" className="shrink-0 text-[10px]">{item.category}</Badge>
                     </div>
 
-                    {/* Infos horizontais */}
-                    <div className="flex flex-wrap items-center gap-6 text-sm lg:flex-1 lg:justify-center">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Quantidade</p>
-                        <p className="font-semibold">{item.quantity} {item.unit}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Mínimo</p>
-                        <p className="font-semibold">{item.min_quantity} {item.unit}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Preço Médio</p>
-                        <p className="font-semibold">R$ {item.price.toFixed(2)}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Validade</p>
-                        <p className="font-semibold">{format(new Date(item.expiry_date), "dd/MM/yy")}</p>
-                      </div>
+                    {/* Infos inline */}
+                    <div className="flex flex-wrap items-center gap-4 text-xs lg:flex-1">
+                      <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
+                      <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
+                      <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {item.price.toFixed(2)}</strong></span>
+                      <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
 
-                    {/* Status, fornecedor e ações */}
-                    <div className="flex items-center justify-between gap-3 lg:w-56 lg:shrink-0 lg:justify-end">
+                    {/* Status + fornecedor + ações */}
+                    <div className="flex items-center gap-2 lg:shrink-0">
                       {statusBadge(item)}
                       {supplier && (
-                        <span className="truncate text-xs text-muted-foreground max-w-[120px]">{supplier.name}</span>
+                        <span className="truncate text-[11px] text-muted-foreground max-w-[100px]">{supplier.name}</span>
                       )}
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(item)}>
-                          <Edit className="h-3.5 w-3.5" />
+                      <div className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(item)}>
+                          <Edit className="h-3 w-3" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => {
-                            setDeletingItem(item);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
+                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
