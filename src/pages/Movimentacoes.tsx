@@ -36,19 +36,45 @@ import {
 } from "@/components/ui/table";
 import {
   movements as mockMovements,
-  ingredients,
+  ingredients as mockIngredients,
   type Movement,
 } from "@/data/mockData";
 import { format } from "date-fns";
+import { useProducts } from "@/hooks/useProducts";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const Movimentacoes = () => {
+  const { items: dbProducts, loading: productsLoading } = useProducts();
+  
+  // Merge mock ingredients with database products for the selector
+  const allProducts = useMemo(() => {
+    const dbMapped = dbProducts.map((p) => ({
+      id: p.id,
+      name: p.name,
+      quantity: Number(p.quantity),
+      unit: p.unit,
+      price: Number(p.price),
+      expiry_date: p.expiry_date,
+    }));
+    // Include mock ingredients that aren't in the DB
+    const dbIds = new Set(dbProducts.map((p) => p.id));
+    const mockOnly = mockIngredients.filter((i) => !dbIds.has(i.id)).map((i) => ({
+      id: i.id,
+      name: i.name,
+      quantity: i.quantity,
+      unit: i.unit,
+      price: i.price,
+      expiry_date: i.expiry_date,
+    }));
+    return [...dbMapped, ...mockOnly];
+  }, [dbProducts]);
+
   const [items, setItems] = useState<Movement[]>(mockMovements);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
-    ingredient_id: ingredients[0]?.id || "",
+    ingredient_id: "",
     type: "in" as "in" | "out",
     quantity: 0,
     expiry_date: undefined as Date | undefined,
@@ -72,7 +98,7 @@ const Movimentacoes = () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
     if (form.type === "in" && !form.expiry_date) { toast.error("Informe a data de validade"); return; }
 
-    const product = ingredients.find((i) => i.id === form.ingredient_id);
+    const product = allProducts.find((i) => i.id === form.ingredient_id);
     if (!product) { toast.error("Produto não encontrado"); return; }
 
     if (form.type === "out" && product.quantity < form.quantity) {
@@ -115,7 +141,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ ingredient_id: ingredients[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
+          setForm({ ingredient_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
@@ -133,7 +159,7 @@ const Movimentacoes = () => {
       ) : (
         <div className="w-full space-y-6">
           {Object.entries(groupedByProduct).map(([ingredientId, movs]) => {
-            const ing = ingredients.find((i) => i.id === ingredientId);
+            const ing = allProducts.find((i) => i.id === ingredientId);
             if (!ing) return null;
 
             // Group entries by expiry_date (each entry = separate "lote")
@@ -226,7 +252,7 @@ const Movimentacoes = () => {
               <Select value={form.ingredient_id} onValueChange={(v) => setForm({ ...form, ingredient_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent position="popper" side="bottom" className="max-h-[200px] overflow-y-auto">
-                  {ingredients.map((i) => (
+                  {allProducts.map((i) => (
                     <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                   ))}
                 </SelectContent>
