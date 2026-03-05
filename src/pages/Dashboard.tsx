@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import {
   Package,
@@ -33,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const totalItems = ingredients.length;
   const lowStock = ingredients.filter((i) => getIngredientStatus(i) !== "ok").length;
   const expiringSoon = ingredients.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
@@ -80,11 +82,11 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Visão geral do estoque do NUH Thai Restaurant</p>
         </div>
         <div className="flex gap-3">
-          <Button size="lg" className="gap-2">
+          <Button size="lg" className="gap-2" onClick={() => navigate("/movimentacoes")}>
             <Plus className="h-5 w-5" />
             Nova Entrada
           </Button>
-          <Button size="lg" variant="outline" className="gap-2">
+          <Button size="lg" variant="outline" className="gap-2" onClick={() => navigate("/movimentacoes")}>
             <Minus className="h-5 w-5" />
             Nova Saída
           </Button>
