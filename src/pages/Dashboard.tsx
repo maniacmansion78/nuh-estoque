@@ -34,9 +34,9 @@ import { cn } from "@/lib/utils";
 const Dashboard = () => {
   const totalItems = ingredients.length;
   const lowStock = ingredients.filter((i) => getIngredientStatus(i) !== "ok").length;
-  const expiringSoon = ingredients.filter((i) => getExpiryStatus(i.expiry_date) !== "ok").length;
+  const expiringSoon = ingredients.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
   const criticalItems = ingredients.filter(
-    (i) => getIngredientStatus(i) === "critical" || getExpiryStatus(i.expiry_date) === "critical"
+    (i) => getIngredientStatus(i) === "critical" || getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
   );
 
   const statsCards = [
@@ -145,12 +145,12 @@ const Dashboard = () => {
             {ingredients
               .filter(
                 (i) =>
-                  getIngredientStatus(i) !== "ok" || getExpiryStatus(i.expiry_date) !== "ok"
+                  getIngredientStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
               )
               .slice(0, 6)
               .map((item) => {
                 const stockStatus = getIngredientStatus(item);
-                const expiryStatus = getExpiryStatus(item.expiry_date);
+                const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
                 return (
                   <div

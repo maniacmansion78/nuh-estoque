@@ -62,6 +62,7 @@ const Ingredientes = () => {
     price: 0,
     expiry_date: "",
     supplier_id: "s1",
+    alert_days: 3,
   });
 
   const filtered = useMemo(() => {
@@ -83,6 +84,7 @@ const Ingredientes = () => {
       price: 0,
       expiry_date: new Date().toISOString().split("T")[0],
       supplier_id: "s1",
+      alert_days: 3,
     });
     setDialogOpen(true);
   };
@@ -98,6 +100,7 @@ const Ingredientes = () => {
       price: item.price,
       expiry_date: item.expiry_date.split("T")[0],
       supplier_id: item.supplier_id,
+      alert_days: item.alert_days,
     });
     setDialogOpen(true);
   };
@@ -121,6 +124,7 @@ const Ingredientes = () => {
         id: `i${Date.now()}`,
         ...form,
         expiry_date: new Date(form.expiry_date).toISOString(),
+        alert_days: form.alert_days,
       };
       setItems((prev) => [...prev, newItem]);
       toast.success("Ingrediente adicionado!");
@@ -138,7 +142,7 @@ const Ingredientes = () => {
 
   const statusBadge = (item: Ingredient) => {
     const status = getIngredientStatus(item);
-    const expiryStatus = getExpiryStatus(item.expiry_date);
+    const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
     const days = getDaysUntilExpiry(item.expiry_date);
     const worst = status === "critical" || expiryStatus === "critical" ? "critical" : status === "warning" || expiryStatus === "warning" ? "warning" : "ok";
 
@@ -347,6 +351,19 @@ const Ingredientes = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Dias de alerta antes do vencimento</Label>
+              <Input
+                type="number"
+                min={1}
+                value={form.alert_days}
+                onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) })}
+                placeholder="Ex: 3 dias"
+              />
+              <p className="text-xs text-muted-foreground">
+                Alerta será exibido quando faltar esse número de dias para vencer
+              </p>
             </div>
           </div>
           <DialogFooter>
