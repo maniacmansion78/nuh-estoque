@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,31 +26,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  movements as mockMovements,
-  ingredients as mockIngredients,
-  type Movement,
-} from "@/data/mockData";
 import { format } from "date-fns";
-import { useProducts } from "@/hooks/useProducts";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useProducts } from "@/hooks/useProducts";
+import { useMovements } from "@/hooks/useMovements";
 
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading } = useProducts();
-  
-  // Merge mock ingredients with database products for the selector
+  const { items: dbMovements, loading: movementsLoading, addMovement } = useMovements();
+
   const allProducts = useMemo(() => {
-    const dbMapped = dbProducts.map((p) => ({
+    return dbProducts.map((p) => ({
       id: p.id,
       name: p.name,
       quantity: Number(p.quantity),
@@ -58,47 +46,35 @@ const Movimentacoes = () => {
       price: Number(p.price),
       expiry_date: p.expiry_date,
     }));
-    // Include mock ingredients that aren't in the DB
-    const dbIds = new Set(dbProducts.map((p) => p.id));
-    const mockOnly = mockIngredients.filter((i) => !dbIds.has(i.id)).map((i) => ({
-      id: i.id,
-      name: i.name,
-      quantity: i.quantity,
-      unit: i.unit,
-      price: i.price,
-      expiry_date: i.expiry_date,
-    }));
-    return [...dbMapped, ...mockOnly];
   }, [dbProducts]);
 
-  const [items, setItems] = useState<Movement[]>(mockMovements);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    ingredient_id: "",
+    product_id: "",
     type: "in" as "in" | "out",
     quantity: 0,
     expiry_date: undefined as Date | undefined,
   });
 
-  // Group movements by product
+  // Group movements by product, newest first
   const groupedByProduct = useMemo(() => {
-    const groups: Record<string, Movement[]> = {};
-    for (const mov of items) {
-      if (!groups[mov.ingredient_id]) groups[mov.ingredient_id] = [];
-      groups[mov.ingredient_id].push(mov);
+    const groups: Record<string, typeof dbMovements> = {};
+    for (const mov of dbMovements) {
+      if (!groups[mov.product_id]) groups[mov.product_id] = [];
+      groups[mov.product_id].push(mov);
     }
-    // Sort each group by date descending
     for (const key of Object.keys(groups)) {
       groups[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
     return groups;
-  }, [items]);
+  }, [dbMovements]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
     if (form.type === "in" && !form.expiry_date) { toast.error("Informe a data de validade"); return; }
 
-    const product = allProducts.find((i) => i.id === form.ingredient_id);
+    const product = allProducts.find((i) => i.id === form.product_id);
     if (!product) { toast.error("Produto não encontrado"); return; }
 
     if (form.type === "out" && product.quantity < form.quantity) {
@@ -106,32 +82,35 @@ const Movimentacoes = () => {
       return;
     }
 
-    if (form.type === "in") {
-      product.quantity = Math.round((product.quantity + form.quantity) * 100) / 100;
-      if (form.expiry_date) {
-        product.expiry_date = form.expiry_date.toISOString();
-      }
-    } else {
-      product.quantity = Math.round((product.quantity - form.quantity) * 100) / 100;
-    }
+    setSaving(true);
+    try {
+      const success = await addMovement({
+        product_id: form.product_id,
+        type: form.type,
+        quantity: form.quantity,
+        expiry_date: form.type === "in" && form.expiry_date ? form.expiry_date.toISOString() : null,
+      });
 
-    const newMov: Movement = {
-      id: `m${Date.now()}`,
-      ingredient_id: form.ingredient_id,
-      type: form.type,
-      quantity: form.quantity,
-      date: new Date().toISOString(),
-      user_id: "u1",
-      expiry_date: form.type === "in" && form.expiry_date ? form.expiry_date.toISOString() : undefined,
-    };
-    setItems((prev) => [newMov, ...prev]);
-    toast.success(
-      form.type === "in"
-        ? `Entrada registrada! ${product.name}: ${product.quantity} ${product.unit}`
-        : `Saída registrada! ${product.name}: ${product.quantity} ${product.unit}`
-    );
-    setDialogOpen(false);
+      if (success) {
+        toast.success(
+          form.type === "in"
+            ? `Entrada registrada! ${product.name}`
+            : `Saída registrada! ${product.name}`
+        );
+        setDialogOpen(false);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (productsLoading || movementsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Carregando movimentações...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,7 +120,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ ingredient_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
+          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
@@ -149,7 +128,7 @@ const Movimentacoes = () => {
         </Button>
       </div>
 
-      {items.length === 0 ? (
+      {dbMovements.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <ArrowLeftRight className="mb-4 h-16 w-16 text-muted-foreground/30" />
@@ -158,19 +137,17 @@ const Movimentacoes = () => {
         </Card>
       ) : (
         <div className="w-full space-y-6">
-          {Object.entries(groupedByProduct).map(([ingredientId, movs]) => {
-            const ing = allProducts.find((i) => i.id === ingredientId);
+          {Object.entries(groupedByProduct).map(([productId, movs]) => {
+            const ing = allProducts.find((i) => i.id === productId);
             if (!ing) return null;
 
-            // Group entries by expiry_date (each entry = separate "lote")
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const newEntries = movs.filter((m) => new Date(m.date) >= today);
             const previousEntries = movs.filter((m) => new Date(m.date) < today);
 
             return (
-              <div key={ingredientId}>
-                {/* Product header */}
+              <div key={productId}>
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="h-4 w-4 text-primary" />
                   <h3 className="text-sm font-semibold">{ing.name}</h3>
@@ -179,7 +156,6 @@ const Movimentacoes = () => {
                   </span>
                 </div>
 
-                {/* Cards lado a lado: cada entrada é um card separado */}
                 <div className="flex flex-wrap gap-3">
                   {newEntries.map((mov) => (
                     <Card key={mov.id} className="min-w-[200px] flex-1 max-w-xs border-success/30">
@@ -249,7 +225,7 @@ const Movimentacoes = () => {
             </div>
             <div className="grid gap-2">
               <Label>Produto</Label>
-              <Select value={form.ingredient_id} onValueChange={(v) => setForm({ ...form, ingredient_id: v })}>
+              <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent position="popper" side="bottom" className="max-h-[200px] overflow-y-auto">
                   {allProducts.map((i) => (
@@ -293,8 +269,8 @@ const Movimentacoes = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave}>Registrar</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Registrar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
