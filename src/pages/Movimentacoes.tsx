@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +42,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const Movimentacoes = () => {
   const [items, setItems] = useState<Movement[]>(mockMovements);
@@ -44,10 +51,12 @@ const Movimentacoes = () => {
     ingredient_id: ingredients[0]?.id || "",
     type: "in" as "in" | "out",
     quantity: 0,
+    expiry_date: undefined as Date | undefined,
   });
 
   const handleSave = () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
+    if (form.type === "in" && !form.expiry_date) { toast.error("Informe a data de validade"); return; }
 
     // Find the product and validate
     const product = ingredients.find((i) => i.id === form.ingredient_id);
@@ -58,9 +67,12 @@ const Movimentacoes = () => {
       return;
     }
 
-    // Update the product quantity directly in the shared data
+    // Update the product quantity and expiry date directly in the shared data
     if (form.type === "in") {
       product.quantity = Math.round((product.quantity + form.quantity) * 100) / 100;
+      if (form.expiry_date) {
+        product.expiry_date = form.expiry_date.toISOString();
+      }
     } else {
       product.quantity = Math.round((product.quantity - form.quantity) * 100) / 100;
     }
@@ -90,7 +102,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ ingredient_id: ingredients[0]?.id || "", type: "in", quantity: 0 });
+          setForm({ ingredient_id: ingredients[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
@@ -182,6 +194,35 @@ const Movimentacoes = () => {
               <Label>Quantidade</Label>
               <Input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
             </div>
+            {form.type === "in" && (
+              <div className="grid gap-2">
+                <Label>Data de Validade</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !form.expiry_date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.expiry_date ? format(form.expiry_date, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a validade"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={form.expiry_date}
+                      onSelect={(date) => setForm({ ...form, expiry_date: date })}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
