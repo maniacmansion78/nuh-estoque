@@ -143,96 +143,103 @@ const Movimentacoes = () => {
             const previousEntries = movs.filter((m) => new Date(m.date) < today);
 
             return (
-              <Card key={ingredientId} className="overflow-hidden">
-                <CardHeader className="pb-3">
+              <Card key={ingredientId} className="w-full overflow-hidden">
+                <CardHeader className="pb-3 lg:flex lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-center gap-2">
                     <Package className="h-4 w-4 text-primary" />
                     <CardTitle className="text-base">{ing.name}</CardTitle>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>Estoque: {ing.quantity} {ing.unit}</span>
                     <span>·</span>
                     <span>R$ {ing.price.toFixed(2)}/{ing.unit}</span>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  {newEntries.length > 0 && (
-                    <>
-                      <div className="px-4 py-1.5 bg-success/10">
-                        <span className="text-xs font-semibold text-success">Novas Entradas — Hoje</span>
-                      </div>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs h-8">Tipo</TableHead>
-                            <TableHead className="text-xs h-8">Qtd</TableHead>
-                            <TableHead className="text-xs h-8">Entrada</TableHead>
-                            <TableHead className="text-xs h-8">Validade</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {newEntries.map((mov) => (
-                            <TableRow key={mov.id}>
-                              <TableCell className="py-1.5">
-                                <Badge
-                                  variant={mov.type === "in" ? "default" : "destructive"}
-                                  className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
-                                >
-                                  {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
-                              <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
-                              </TableCell>
+                  <div
+                    className={cn(
+                      "grid grid-cols-1",
+                      newEntries.length > 0 && previousEntries.length > 0 && "lg:grid-cols-2 lg:divide-x"
+                    )}
+                  >
+                    {newEntries.length > 0 && (
+                      <div>
+                        <div className="px-4 py-1.5 bg-success/10">
+                          <span className="text-xs font-semibold text-success">Novas Entradas — Hoje</span>
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs h-8">Tipo</TableHead>
+                              <TableHead className="text-xs h-8">Qtd</TableHead>
+                              <TableHead className="text-xs h-8">Entrada</TableHead>
+                              <TableHead className="text-xs h-8">Validade</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
+                          </TableHeader>
+                          <TableBody>
+                            {newEntries.map((mov) => (
+                              <TableRow key={mov.id}>
+                                <TableCell className="py-1.5">
+                                  <Badge
+                                    variant={mov.type === "in" ? "default" : "destructive"}
+                                    className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                                  >
+                                    {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
+                                <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                  {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                                </TableCell>
+                                <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                  {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
 
-                  {previousEntries.length > 0 && (
-                    <>
-                      <div className="px-4 py-1.5 bg-muted/50 border-t">
-                        <span className="text-xs font-semibold text-muted-foreground">Anteriores</span>
-                      </div>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs h-8">Tipo</TableHead>
-                            <TableHead className="text-xs h-8">Qtd</TableHead>
-                            <TableHead className="text-xs h-8">Entrada</TableHead>
-                            <TableHead className="text-xs h-8">Validade</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {previousEntries.map((mov) => (
-                            <TableRow key={mov.id}>
-                              <TableCell className="py-1.5">
-                                <Badge
-                                  variant={mov.type === "in" ? "default" : "destructive"}
-                                  className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
-                                >
-                                  {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
-                              <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
-                              </TableCell>
+                    {previousEntries.length > 0 && (
+                      <div className={cn(!newEntries.length && "border-t")}>
+                        <div className={cn("px-4 py-1.5 bg-muted/50", newEntries.length && "border-t lg:border-t-0")}>
+                          <span className="text-xs font-semibold text-muted-foreground">Anteriores</span>
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs h-8">Tipo</TableHead>
+                              <TableHead className="text-xs h-8">Qtd</TableHead>
+                              <TableHead className="text-xs h-8">Entrada</TableHead>
+                              <TableHead className="text-xs h-8">Validade</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
+                          </TableHeader>
+                          <TableBody>
+                            {previousEntries.map((mov) => (
+                              <TableRow key={mov.id}>
+                                <TableCell className="py-1.5">
+                                  <Badge
+                                    variant={mov.type === "in" ? "default" : "destructive"}
+                                    className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                                  >
+                                    {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
+                                <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                  {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                                </TableCell>
+                                <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                  {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
