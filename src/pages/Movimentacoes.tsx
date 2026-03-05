@@ -91,7 +91,7 @@ const Movimentacoes = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Ingrediente</TableHead>
+                  <TableHead>Produto</TableHead>
                   <TableHead>Quantidade</TableHead>
                   <TableHead>Data</TableHead>
                 </TableRow>
@@ -130,7 +130,7 @@ const Movimentacoes = () => {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nova Movimentação</DialogTitle>
             <DialogDescription>Registre uma entrada ou saída de estoque.</DialogDescription>
@@ -147,10 +147,10 @@ const Movimentacoes = () => {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Ingrediente</Label>
+              <Label>Produto</Label>
               <Select value={form.ingredient_id} onValueChange={(v) => setForm({ ...form, ingredient_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" side="bottom" className="max-h-[200px] overflow-y-auto">
                   {ingredients.map((i) => (
                     <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                   ))}
