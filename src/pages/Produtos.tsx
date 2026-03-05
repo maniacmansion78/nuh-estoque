@@ -8,6 +8,8 @@ import {
   TrendingDown,
   Edit,
   Trash2,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import {
   ingredients as mockIngredients,
   suppliers,
+  movements,
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
@@ -218,25 +221,24 @@ const Produtos = () => {
         <div className="w-full space-y-4">
           {filtered.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
+            const productMovements = movements.filter((m) => m.ingredient_id === item.id && m.type === "in")
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
             return (
               <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
                 <CardContent className="px-4 py-2.5">
+                  {/* Header do produto */}
                   <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
-                    {/* Nome + categoria inline */}
                     <div className="flex items-center gap-2 min-w-0 lg:w-44 lg:shrink-0">
                       <p className="truncate text-sm font-semibold">{item.name}</p>
                       <Badge variant="outline" className="shrink-0 text-[10px]">{item.category}</Badge>
                     </div>
-
-                    {/* Infos inline */}
                     <div className="flex flex-wrap items-center gap-4 text-xs lg:flex-1">
-                      <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
+                      <span><span className="text-muted-foreground">Qtd Total:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {item.price.toFixed(2)}</strong></span>
                       <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
-
-                    {/* Status + fornecedor + ações */}
                     <div className="flex items-center gap-2 lg:shrink-0">
                       {statusBadge(item)}
                       {supplier && (
@@ -252,6 +254,23 @@ const Produtos = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Entradas do produto - cada uma separada */}
+                  {productMovements.length > 0 && (
+                    <div className="mt-2 border-t pt-2 space-y-1">
+                      {productMovements.map((mov) => (
+                        <div key={mov.id} className="flex items-center gap-4 text-xs py-1 px-2 rounded bg-muted/30">
+                          <Badge className="gap-1 text-[10px] px-1.5 py-0.5 bg-success/10 text-success shrink-0">
+                            <ArrowUpRight className="h-3 w-3" />Entrada
+                          </Badge>
+                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {item.unit}</strong></span>
+                          <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM/yy HH:mm")}</strong></span>
+                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
+                          <span><span className="text-muted-foreground">R$:</span> <strong>{item.price.toFixed(2)}</strong></span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
