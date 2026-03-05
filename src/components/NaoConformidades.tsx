@@ -51,12 +51,16 @@ export function NaoConformidades() {
   });
 
   const fetchItems = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("non_conformities")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(10);
-    if (data) setItems(data as NonConformity[]);
+    if (error) {
+      console.error("Erro ao buscar não conformidades:", error);
+      return;
+    }
+    if (data) setItems(data);
   };
 
   useEffect(() => {
