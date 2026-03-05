@@ -131,7 +131,7 @@ const Movimentacoes = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex w-full flex-col gap-4">
           {Object.entries(groupedByProduct).map(([ingredientId, movs]) => {
             const ing = ingredients.find((i) => i.id === ingredientId);
             if (!ing) return null;
