@@ -220,60 +220,61 @@ const Produtos = () => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
             return (
               <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-base font-semibold">{item.name}</p>
-                      <Badge variant="outline" className="mt-1 text-xs">
-                        {item.category}
-                      </Badge>
+                <CardContent className="px-5 py-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    {/* Nome e categoria */}
+                    <div className="flex items-center gap-3 min-w-0 lg:w-48 lg:shrink-0">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{item.name}</p>
+                        <Badge variant="outline" className="mt-0.5 text-[10px]">
+                          {item.category}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="ml-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(item)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-destructive"
-                        onClick={() => {
-                          setDeletingItem(item);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm lg:grid-cols-4">
-                    <div>
-                      <p className="text-muted-foreground">Quantidade</p>
-                      <p className="font-semibold">
-                        {item.quantity} {item.unit}
-                      </p>
+                    {/* Infos horizontais */}
+                    <div className="flex flex-wrap items-center gap-6 text-sm lg:flex-1 lg:justify-center">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Quantidade</p>
+                        <p className="font-semibold">{item.quantity} {item.unit}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Mínimo</p>
+                        <p className="font-semibold">{item.min_quantity} {item.unit}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Preço Médio</p>
+                        <p className="font-semibold">R$ {item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Validade</p>
+                        <p className="font-semibold">{format(new Date(item.expiry_date), "dd/MM/yy")}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Mínimo</p>
-                      <p className="font-semibold">
-                        {item.min_quantity} {item.unit}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Preço Médio</p>
-                      <p className="font-semibold">R$ {item.price.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Validade</p>
-                      <p className="font-semibold">{format(new Date(item.expiry_date), "dd/MM/yy")}</p>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    {statusBadge(item)}
-                    {supplier && (
-                      <span className="truncate text-xs text-muted-foreground">{supplier.name}</span>
-                    )}
+                    {/* Status, fornecedor e ações */}
+                    <div className="flex items-center justify-between gap-3 lg:w-56 lg:shrink-0 lg:justify-end">
+                      {statusBadge(item)}
+                      {supplier && (
+                        <span className="truncate text-xs text-muted-foreground max-w-[120px]">{supplier.name}</span>
+                      )}
+                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(item)}>
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() => {
+                            setDeletingItem(item);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
