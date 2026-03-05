@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-import Ingredientes from "@/pages/Ingredientes";
+import Produtos from "@/pages/Produtos";
 import Fornecedores from "@/pages/Fornecedores";
 import Movimentacoes from "@/pages/Movimentacoes";
 import Funcionarios from "@/pages/Funcionarios";
@@ -41,11 +41,11 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/ingredientes"
+        path="/produtos"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <Ingredientes />
+              <Produtos />
             </AppLayout>
           </ProtectedRoute>
         }
