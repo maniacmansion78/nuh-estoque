@@ -70,13 +70,22 @@ const Funcionarios = () => {
           job_title: form.job_title,
         },
       });
-      if (error) throw error;
+      
+      console.log("create-employee response:", { data, error });
+      
+      if (error) {
+        // FunctionsHttpError contains the response
+        const errorMessage = typeof error === 'object' && 'message' in error ? error.message : String(error);
+        throw new Error(errorMessage);
+      }
       if (data?.error) throw new Error(data.error);
+      
       toast.success(`Funcionário ${form.display_name} criado com sucesso!`);
       setDialogOpen(false);
       setForm({ display_name: "", email: "", password: "", job_title: "" });
       fetchEmployees();
     } catch (err: any) {
+      console.error("Create employee error:", err);
       toast.error(err.message || "Erro ao criar funcionário");
     }
     setLoading(false);
