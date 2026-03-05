@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          alert_days: number
+          category: string
+          created_at: string
+          created_by: string | null
+          expiry_date: string
+          id: string
+          lote: string
+          min_quantity: number
+          name: string
+          price: number
+          quantity: number
+          supplier_id: string
+          unit: string
+        }
+        Insert: {
+          alert_days?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string
+          id?: string
+          lote?: string
+          min_quantity?: number
+          name: string
+          price?: number
+          quantity?: number
+          supplier_id?: string
+          unit?: string
+        }
+        Update: {
+          alert_days?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string
+          id?: string
+          lote?: string
+          min_quantity?: number
+          name?: string
+          price?: number
+          quantity?: number
+          supplier_id?: string
+          unit?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

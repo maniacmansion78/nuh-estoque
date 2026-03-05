@@ -5,13 +5,11 @@ import {
   Filter,
   Package,
   Clock,
-  TrendingDown,
   Edit,
   Trash2,
   ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -32,42 +30,43 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  ingredients as mockIngredients,
   suppliers,
   movements,
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
-  type Ingredient,
   type Category,
 } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { format } from "date-fns";
+import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 
 const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas"];
+
+const emptyForm: ProductForm = {
+  name: "",
+  category: "Vegetais",
+  quantity: 0,
+  unit: "kg",
+  min_quantity: 0,
+  price: 0,
+  expiry_date: new Date().toISOString().split("T")[0],
+  supplier_id: "s1",
+  alert_days: 3,
+  lote: "",
+};
 
 const Produtos = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [items, setItems] = useState<Ingredient[]>(mockIngredients);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Ingredient | null>(null);
-  const [deletingItem, setDeletingItem] = useState<Ingredient | null>(null);
+  const [editingItem, setEditingItem] = useState<Product | null>(null);
+  const [deletingItem, setDeletingItem] = useState<Product | null>(null);
+  const [form, setForm] = useState<ProductForm>({ ...emptyForm });
+  const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
-    name: "",
-    category: "Vegetais" as Category,
-    quantity: 0,
-    unit: "kg" as "kg" | "L" | "un",
-    min_quantity: 0,
-    price: 0,
-    expiry_date: "",
-    supplier_id: "s1",
-    alert_days: 3,
-    lote: "",
-  });
+  const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const filtered = useMemo(() => {
     return items.filter((i) => {
@@ -79,28 +78,17 @@ const Produtos = () => {
 
   const openAdd = () => {
     setEditingItem(null);
-    setForm({
-      name: "",
-      category: "Vegetais",
-      quantity: 0,
-      unit: "kg",
-      min_quantity: 0,
-      price: 0,
-      expiry_date: new Date().toISOString().split("T")[0],
-      supplier_id: "s1",
-      alert_days: 3,
-      lote: "",
-    });
+    setForm({ ...emptyForm, expiry_date: new Date().toISOString().split("T")[0] });
     setDialogOpen(true);
   };
 
-  const openEdit = (item: Ingredient) => {
+  const openEdit = (item: Product) => {
     setEditingItem(item);
     setForm({
       name: item.name,
-      category: item.category,
+      category: item.category as Category,
       quantity: item.quantity,
-      unit: item.unit,
+      unit: item.unit as "kg" | "L" | "un",
       min_quantity: item.min_quantity,
       price: item.price,
       expiry_date: item.expiry_date.split("T")[0],
@@ -111,43 +99,43 @@ const Produtos = () => {
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim()) {
+      const { toast } = await import("sonner");
       toast.error("Nome é obrigatório");
       return;
     }
-    if (editingItem) {
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === editingItem.id
-            ? { ...i, ...form, expiry_date: new Date(form.expiry_date).toISOString() }
-            : i
-        )
-      );
-      toast.success("Produto atualizado!");
-    } else {
-      const newItem: Ingredient = {
-        id: `i${Date.now()}`,
-        ...form,
-        expiry_date: new Date(form.expiry_date).toISOString(),
-        alert_days: form.alert_days,
-      };
-      setItems((prev) => [...prev, newItem]);
-      toast.success("Produto adicionado!");
+    setSaving(true);
+    try {
+      let success: boolean;
+      if (editingItem) {
+        success = await updateProduct(editingItem.id, form);
+      } else {
+        success = await addProduct(form);
+      }
+      if (success) setDialogOpen(false);
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deletingItem) return;
-    setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
-    toast.success("Produto removido!");
-    setDeleteDialogOpen(false);
-    setDeletingItem(null);
+    setSaving(true);
+    try {
+      const success = await deleteProduct(deletingItem.id);
+      if (success) {
+        setDeleteDialogOpen(false);
+        setDeletingItem(null);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const statusBadge = (item: Ingredient) => {
-    const status = getIngredientStatus(item);
+  const statusBadge = (item: Product) => {
+    const ingredient = { ...item, quantity: Number(item.quantity), min_quantity: Number(item.min_quantity) };
+    const status = getIngredientStatus(ingredient as any);
     const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
     const days = getDaysUntilExpiry(item.expiry_date);
     const worst = status === "critical" || expiryStatus === "critical" ? "critical" : status === "warning" || expiryStatus === "warning" ? "warning" : "ok";
@@ -156,9 +144,7 @@ const Produtos = () => {
       <div className="flex flex-wrap gap-1">
         <Badge
           variant={worst === "ok" ? "default" : "destructive"}
-          className={cn(
-            worst === "ok" && "border-success/30 bg-success/10 text-success"
-          )}
+          className={cn(worst === "ok" && "border-success/30 bg-success/10 text-success")}
         >
           {worst === "ok" ? "OK" : worst === "warning" ? "Alerta" : "Crítico"}
         </Badge>
@@ -170,6 +156,14 @@ const Produtos = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Carregando produtos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -184,16 +178,10 @@ const Produtos = () => {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar produto..."
-            className="pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <Input placeholder="Buscar produto..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
@@ -209,15 +197,12 @@ const Produtos = () => {
         </Select>
       </div>
 
-      {/* Items grid */}
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Package className="mb-4 h-16 w-16 text-muted-foreground/30" />
             <p className="text-lg font-medium text-muted-foreground">Nenhum produto encontrado</p>
-            <p className="mt-1 text-sm text-muted-foreground/70">
-              Tente ajustar os filtros ou adicione um novo produto
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground/70">Tente ajustar os filtros ou adicione um novo produto</p>
           </CardContent>
         </Card>
       ) : (
@@ -230,7 +215,6 @@ const Produtos = () => {
             return (
               <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
                 <CardContent className="px-4 py-2.5">
-                  {/* Header do produto */}
                   <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
                     <div className="flex items-center gap-2 min-w-0 lg:w-44 lg:shrink-0">
                       <p className="truncate text-sm font-semibold">{item.name}</p>
@@ -240,7 +224,7 @@ const Produtos = () => {
                       <span><span className="text-muted-foreground">Lote:</span> <strong>{item.lote}</strong></span>
                       <span><span className="text-muted-foreground">Qtd Total:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {item.price.toFixed(2)}</strong></span>
+                      <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {Number(item.price).toFixed(2)}</strong></span>
                       <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
                     <div className="flex items-center gap-2 lg:shrink-0">
@@ -259,7 +243,6 @@ const Produtos = () => {
                     </div>
                   </div>
 
-                  {/* Entradas do produto - cada uma separada */}
                   {productMovements.length > 0 && (
                     <div className="mt-2 border-t pt-2 space-y-1">
                       {productMovements.map((mov) => (
@@ -270,7 +253,7 @@ const Produtos = () => {
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {item.unit}</strong></span>
                           <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM/yy HH:mm")}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
-                          <span><span className="text-muted-foreground">R$:</span> <strong>{item.price.toFixed(2)}</strong></span>
+                          <span><span className="text-muted-foreground">R$:</span> <strong>{Number(item.price).toFixed(2)}</strong></span>
                         </div>
                       ))}
                     </div>
@@ -366,14 +349,12 @@ const Produtos = () => {
                 onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) })}
                 placeholder="Ex: 3 dias"
               />
-              <p className="text-xs text-muted-foreground">
-                Alerta será exibido quando faltar esse número de dias para vencer
-              </p>
+              <p className="text-xs text-muted-foreground">Alerta será exibido quando faltar esse número de dias para vencer</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave}>{editingItem ? "Salvar" : "Adicionar"}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : editingItem ? "Salvar" : "Adicionar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -388,8 +369,8 @@ const Produtos = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDelete}>Excluir</Button>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={saving}>{saving ? "Excluindo..." : "Excluir"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
