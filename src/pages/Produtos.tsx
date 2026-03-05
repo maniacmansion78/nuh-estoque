@@ -44,7 +44,7 @@ import { format } from "date-fns";
 
 const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas"];
 
-const Ingredientes = () => {
+const Produtos = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [items, setItems] = useState<Ingredient[]>(mockIngredients);
@@ -118,7 +118,7 @@ const Ingredientes = () => {
             : i
         )
       );
-      toast.success("Ingrediente atualizado!");
+      toast.success("Produto atualizado!");
     } else {
       const newItem: Ingredient = {
         id: `i${Date.now()}`,
@@ -127,7 +127,7 @@ const Ingredientes = () => {
         alert_days: form.alert_days,
       };
       setItems((prev) => [...prev, newItem]);
-      toast.success("Ingrediente adicionado!");
+      toast.success("Produto adicionado!");
     }
     setDialogOpen(false);
   };
@@ -135,7 +135,7 @@ const Ingredientes = () => {
   const handleDelete = () => {
     if (!deletingItem) return;
     setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
-    toast.success("Ingrediente removido!");
+    toast.success("Produto removido!");
     setDeleteDialogOpen(false);
     setDeletingItem(null);
   };
@@ -170,12 +170,12 @@ const Ingredientes = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Ingredientes</h1>
-          <p className="text-muted-foreground">Gerencie todos os ingredientes do estoque</p>
+          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Produtos</h1>
+          <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={openAdd}>
           <Plus className="h-5 w-5" />
-          Novo Ingrediente
+          Novo Produto
         </Button>
       </div>
 
@@ -184,7 +184,7 @@ const Ingredientes = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar ingrediente..."
+            placeholder="Buscar produto..."
             className="pl-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -209,9 +209,9 @@ const Ingredientes = () => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Package className="mb-4 h-16 w-16 text-muted-foreground/30" />
-            <p className="text-lg font-medium text-muted-foreground">Nenhum ingrediente encontrado</p>
+            <p className="text-lg font-medium text-muted-foreground">Nenhum produto encontrado</p>
             <p className="mt-1 text-sm text-muted-foreground/70">
-              Tente ajustar os filtros ou adicione um novo ingrediente
+              Tente ajustar os filtros ou adicione um novo produto
             </p>
           </CardContent>
         </Card>
@@ -287,9 +287,9 @@ const Ingredientes = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Editar Ingrediente" : "Novo Ingrediente"}</DialogTitle>
+            <DialogTitle>{editingItem ? "Editar Produto" : "Novo Produto"}</DialogTitle>
             <DialogDescription>
-              {editingItem ? "Atualize as informações do ingrediente." : "Preencha os dados do novo ingrediente."}
+              {editingItem ? "Atualize as informações do produto." : "Preencha os dados do novo produto."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -392,4 +392,4 @@ const Ingredientes = () => {
   );
 };
 
-export default Ingredientes;
+export default Produtos;
