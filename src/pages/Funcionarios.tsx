@@ -19,18 +19,18 @@ import { toast } from "sonner";
 interface Employee {
   user_id: string;
   display_name: string;
+  job_title: string;
   role: "admin" | "employee";
-  email?: string;
 }
 
 const Funcionarios = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ display_name: "", email: "", password: "" });
+  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "" });
 
   const fetchEmployees = async () => {
-    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name");
+    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, job_title");
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
 
     if (profiles && roles) {
@@ -39,6 +39,7 @@ const Funcionarios = () => {
         return {
           user_id: p.user_id,
           display_name: p.display_name,
+          job_title: p.job_title || "",
           role: (r?.role as "admin" | "employee") || "employee",
         };
       });
@@ -66,13 +67,14 @@ const Funcionarios = () => {
           email: form.email,
           password: form.password,
           display_name: form.display_name,
+          job_title: form.job_title,
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(`Funcionário ${form.display_name} criado com sucesso!`);
       setDialogOpen(false);
-      setForm({ display_name: "", email: "", password: "" });
+      setForm({ display_name: "", email: "", password: "", job_title: "" });
       fetchEmployees();
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar funcionário");
@@ -114,6 +116,9 @@ const Funcionarios = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{emp.display_name}</p>
+                  {emp.job_title && (
+                    <p className="text-sm text-muted-foreground">{emp.job_title}</p>
+                  )}
                   <Badge
                     variant={emp.role === "admin" ? "default" : "secondary"}
                     className="mt-1"
@@ -160,6 +165,14 @@ const Funcionarios = () => {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Cargo</Label>
+              <Input
+                value={form.job_title}
+                onChange={(e) => setForm({ ...form, job_title: e.target.value })}
+                placeholder="Ex: Cozinheiro, Garçom, Gerente..."
               />
             </div>
           </div>

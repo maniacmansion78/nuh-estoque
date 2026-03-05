@@ -56,7 +56,7 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, display_name } = await req.json();
+    const { email, password, display_name, job_title } = await req.json();
 
     if (!email || !password || !display_name) {
       return new Response(
@@ -78,6 +78,11 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Update job_title on profile
+    if (job_title) {
+      await supabaseAdmin.from("profiles").update({ job_title }).eq("user_id", newUser.user.id);
     }
 
     // Assign employee role
