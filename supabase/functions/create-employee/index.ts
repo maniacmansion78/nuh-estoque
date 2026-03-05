@@ -56,11 +56,30 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, display_name, job_title } = await req.json();
+    const payload = await req.json();
+    const email = String(payload?.email || "").trim().toLowerCase();
+    const password = String(payload?.password || "");
+    const display_name = String(payload?.display_name || "").trim();
+    const job_title = String(payload?.job_title || "").trim();
 
     if (!email || !password || !display_name) {
       return new Response(
         JSON.stringify({ error: "Email, senha e nome são obrigatórios" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Email inválido. Verifique o formato (ex: nome@dominio.com)." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (password.length < 6) {
+      return new Response(
+        JSON.stringify({ error: "A senha deve ter pelo menos 6 caracteres." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

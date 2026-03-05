@@ -52,43 +52,63 @@ const Funcionarios = () => {
   }, []);
 
   const handleCreate = async () => {
-    if (!form.email || !form.password || !form.display_name) {
+    const email = form.email.trim().toLowerCase();
+    const displayName = form.display_name.trim();
+    const jobTitle = form.job_title.trim();
+
+    if (!email || !form.password || !displayName) {
       toast.error("Preencha todos os campos");
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Email inválido. Use o formato nome@dominio.com");
+      return;
+    }
+
     if (form.password.length < 6) {
       toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-employee", {
         body: {
-          email: form.email,
+          email,
           password: form.password,
-          display_name: form.display_name,
-          job_title: form.job_title,
+          display_name: displayName,
+          job_title: jobTitle,
         },
       });
-      
-      console.log("create-employee response:", { data, error });
-      
+
       if (error) {
-        // FunctionsHttpError contains the response
-        const errorMessage = typeof error === 'object' && 'message' in error ? error.message : String(error);
-        throw new Error(errorMessage);
+        let detailedMessage = error.message;
+        try {
+          if ("context" in error && error.context) {
+            const context = error.context as Response;
+            const body = await context.json();
+            detailedMessage = body?.error || detailedMessage;
+          }
+        } catch (_) {
+          // keep default message
+        }
+        throw new Error(detailedMessage || "Erro ao criar funcionário");
       }
+
       if (data?.error) throw new Error(data.error);
-      
-      toast.success(`Funcionário ${form.display_name} criado com sucesso!`);
+
+      toast.success(`Funcionário ${displayName} criado com sucesso!`);
       setDialogOpen(false);
       setForm({ display_name: "", email: "", password: "", job_title: "" });
       fetchEmployees();
     } catch (err: any) {
       console.error("Create employee error:", err);
       toast.error(err.message || "Erro ao criar funcionário");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
