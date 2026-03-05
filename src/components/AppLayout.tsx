@@ -119,6 +119,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="font-bold">NUH</span>
           </div>
           <div className="flex-1" />
+          <Button variant="ghost" size="icon" onClick={signOut} title="Sair">
+            <LogOut className="h-5 w-5" />
+          </Button>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 pb-20 lg:p-8 lg:pb-8">{children}</main>
