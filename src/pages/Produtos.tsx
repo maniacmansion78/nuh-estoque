@@ -149,13 +149,12 @@ const Produtos = () => {
     return (
       <div className="flex flex-wrap gap-1">
         <Badge
-          variant={worst === "critical" ? "destructive" : worst === "warning" ? "secondary" : "default"}
+          variant={worst === "ok" ? "default" : "destructive"}
           className={cn(
-            worst === "ok" && "border-success/30 bg-success/10 text-success",
-            worst === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground"
+            worst === "ok" && "border-success/30 bg-success/10 text-success"
           )}
         >
-          {worst === "ok" ? "OK" : worst === "warning" ? "Atenção" : "Crítico"}
+          {worst === "ok" ? "OK" : worst === "warning" ? "Alerta" : "Crítico"}
         </Badge>
         {expiryStatus !== "ok" && (
           <Badge variant="outline" className="gap-1 text-xs">
