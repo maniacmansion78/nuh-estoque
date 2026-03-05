@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useMemo } from "react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,11 +54,24 @@ const Movimentacoes = () => {
     expiry_date: undefined as Date | undefined,
   });
 
+  // Group movements by product
+  const groupedByProduct = useMemo(() => {
+    const groups: Record<string, Movement[]> = {};
+    for (const mov of items) {
+      if (!groups[mov.ingredient_id]) groups[mov.ingredient_id] = [];
+      groups[mov.ingredient_id].push(mov);
+    }
+    // Sort each group by date descending
+    for (const key of Object.keys(groups)) {
+      groups[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+    return groups;
+  }, [items]);
+
   const handleSave = () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
     if (form.type === "in" && !form.expiry_date) { toast.error("Informe a data de validade"); return; }
 
-    // Find the product and validate
     const product = ingredients.find((i) => i.id === form.ingredient_id);
     if (!product) { toast.error("Produto não encontrado"); return; }
 
@@ -67,7 +80,6 @@ const Movimentacoes = () => {
       return;
     }
 
-    // Update the product quantity and expiry date directly in the shared data
     if (form.type === "in") {
       product.quantity = Math.round((product.quantity + form.quantity) * 100) / 100;
       if (form.expiry_date) {
@@ -84,6 +96,7 @@ const Movimentacoes = () => {
       quantity: form.quantity,
       date: new Date().toISOString(),
       user_id: "u1",
+      expiry_date: form.type === "in" && form.expiry_date ? form.expiry_date.toISOString() : undefined,
     };
     setItems((prev) => [newMov, ...prev]);
     toast.success(
@@ -118,48 +131,113 @@ const Movimentacoes = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((mov) => {
-                  const ing = ingredients.find((i) => i.id === mov.ingredient_id);
-                  return (
-                    <TableRow key={mov.id}>
-                      <TableCell>
-                        <Badge
-                          variant={mov.type === "in" ? "default" : "destructive"}
-                          className={mov.type === "in" ? "gap-1 bg-success/10 text-success" : "gap-1"}
-                        >
-                          {mov.type === "in" ? (
-                            <><ArrowUpRight className="h-3 w-3" />Entrada</>
-                          ) : (
-                            <><ArrowDownRight className="h-3 w-3" />Saída</>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">{ing?.name || "—"}</TableCell>
-                      <TableCell>
-                        {mov.quantity} {ing?.unit || ""}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(mov.date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Object.entries(groupedByProduct).map(([ingredientId, movs]) => {
+            const ing = ingredients.find((i) => i.id === ingredientId);
+            if (!ing) return null;
+
+            // Separate new entries (today) from previous
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const newEntries = movs.filter((m) => new Date(m.date) >= today);
+            const previousEntries = movs.filter((m) => new Date(m.date) < today);
+
+            return (
+              <Card key={ingredientId} className="overflow-hidden">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-base">{ing.name}</CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Estoque: {ing.quantity} {ing.unit}</span>
+                    <span>·</span>
+                    <span>R$ {ing.price.toFixed(2)}/{ing.unit}</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {newEntries.length > 0 && (
+                    <>
+                      <div className="px-4 py-1.5 bg-success/10">
+                        <span className="text-xs font-semibold text-success">Novas Entradas — Hoje</span>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs h-8">Tipo</TableHead>
+                            <TableHead className="text-xs h-8">Qtd</TableHead>
+                            <TableHead className="text-xs h-8">Entrada</TableHead>
+                            <TableHead className="text-xs h-8">Validade</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {newEntries.map((mov) => (
+                            <TableRow key={mov.id}>
+                              <TableCell className="py-1.5">
+                                <Badge
+                                  variant={mov.type === "in" ? "default" : "destructive"}
+                                  className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                                >
+                                  {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
+                              <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </>
+                  )}
+
+                  {previousEntries.length > 0 && (
+                    <>
+                      <div className="px-4 py-1.5 bg-muted/50 border-t">
+                        <span className="text-xs font-semibold text-muted-foreground">Anteriores</span>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs h-8">Tipo</TableHead>
+                            <TableHead className="text-xs h-8">Qtd</TableHead>
+                            <TableHead className="text-xs h-8">Entrada</TableHead>
+                            <TableHead className="text-xs h-8">Validade</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {previousEntries.map((mov) => (
+                            <TableRow key={mov.id}>
+                              <TableCell className="py-1.5">
+                                <Badge
+                                  variant={mov.type === "in" ? "default" : "destructive"}
+                                  className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                                >
+                                  {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
+                              <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell className="py-1.5 text-xs text-muted-foreground">
+                                {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

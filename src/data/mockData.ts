@@ -31,6 +31,7 @@ export interface Movement {
   quantity: number;
   date: string;
   user_id: string;
+  expiry_date?: string;
 }
 
 const today = new Date();
