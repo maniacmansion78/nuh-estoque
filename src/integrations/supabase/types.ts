@@ -20,7 +20,7 @@ export type Database = {
           created_by: string | null
           description: string
           id: string
-          photo_url: string | null
+          photo_urls: string[] | null
           product_name: string
           supplier_id: string
         }
@@ -29,7 +29,7 @@ export type Database = {
           created_by?: string | null
           description: string
           id?: string
-          photo_url?: string | null
+          photo_urls?: string[] | null
           product_name: string
           supplier_id: string
         }
@@ -38,7 +38,7 @@ export type Database = {
           created_by?: string | null
           description?: string
           id?: string
-          photo_url?: string | null
+          photo_urls?: string[] | null
           product_name?: string
           supplier_id?: string
         }
