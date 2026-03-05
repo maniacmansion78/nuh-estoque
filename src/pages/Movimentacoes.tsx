@@ -48,6 +48,23 @@ const Movimentacoes = () => {
 
   const handleSave = () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
+
+    // Find the product and validate
+    const product = ingredients.find((i) => i.id === form.ingredient_id);
+    if (!product) { toast.error("Produto não encontrado"); return; }
+
+    if (form.type === "out" && product.quantity < form.quantity) {
+      toast.error(`Estoque insuficiente. Disponível: ${product.quantity} ${product.unit}`);
+      return;
+    }
+
+    // Update the product quantity directly in the shared data
+    if (form.type === "in") {
+      product.quantity = Math.round((product.quantity + form.quantity) * 100) / 100;
+    } else {
+      product.quantity = Math.round((product.quantity - form.quantity) * 100) / 100;
+    }
+
     const newMov: Movement = {
       id: `m${Date.now()}`,
       ingredient_id: form.ingredient_id,
@@ -57,7 +74,11 @@ const Movimentacoes = () => {
       user_id: "u1",
     };
     setItems((prev) => [newMov, ...prev]);
-    toast.success(form.type === "in" ? "Entrada registrada!" : "Saída registrada!");
+    toast.success(
+      form.type === "in"
+        ? `Entrada registrada! ${product.name}: ${product.quantity} ${product.unit}`
+        : `Saída registrada! ${product.name}: ${product.quantity} ${product.unit}`
+    );
     setDialogOpen(false);
   };
 
