@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NaoConformidades } from "@/components/NaoConformidades";
 import {
   Package,
   AlertTriangle,
@@ -192,6 +193,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Não Conformidades */}
+      <NaoConformidades />
     </div>
   );
 };

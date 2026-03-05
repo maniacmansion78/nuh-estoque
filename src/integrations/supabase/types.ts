@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      non_conformities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          photo_url: string | null
+          product_name: string
+          supplier_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          photo_url?: string | null
+          product_name: string
+          supplier_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          photo_url?: string | null
+          product_name?: string
+          supplier_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
