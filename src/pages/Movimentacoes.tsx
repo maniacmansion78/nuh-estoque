@@ -131,117 +131,74 @@ const Movimentacoes = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex w-full flex-col gap-4">
+        <div className="w-full space-y-6">
           {Object.entries(groupedByProduct).map(([ingredientId, movs]) => {
             const ing = ingredients.find((i) => i.id === ingredientId);
             if (!ing) return null;
 
-            // Separate new entries (today) from previous
+            // Group entries by expiry_date (each entry = separate "lote")
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const newEntries = movs.filter((m) => new Date(m.date) >= today);
             const previousEntries = movs.filter((m) => new Date(m.date) < today);
 
             return (
-              <Card key={ingredientId} className="w-full overflow-hidden">
-                <CardHeader className="pb-3 lg:flex lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base">{ing.name}</CardTitle>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>Estoque: {ing.quantity} {ing.unit}</span>
-                    <span>·</span>
-                    <span>R$ {ing.price.toFixed(2)}/{ing.unit}</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div
-                    className={cn(
-                      "grid grid-cols-1",
-                      newEntries.length > 0 && previousEntries.length > 0 && "lg:grid-cols-2 lg:divide-x"
-                    )}
-                  >
-                    {newEntries.length > 0 && (
-                      <div>
-                        <div className="px-4 py-1.5 bg-success/10">
-                          <span className="text-xs font-semibold text-success">Novas Entradas — Hoje</span>
-                        </div>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs h-8">Tipo</TableHead>
-                              <TableHead className="text-xs h-8">Qtd</TableHead>
-                              <TableHead className="text-xs h-8">Entrada</TableHead>
-                              <TableHead className="text-xs h-8">Validade</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {newEntries.map((mov) => (
-                              <TableRow key={mov.id}>
-                                <TableCell className="py-1.5">
-                                  <Badge
-                                    variant={mov.type === "in" ? "default" : "destructive"}
-                                    className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
-                                  >
-                                    {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
-                                <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                  {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
-                                </TableCell>
-                                <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                  {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
+              <div key={ingredientId}>
+                {/* Product header */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold">{ing.name}</h3>
+                  <span className="text-xs text-muted-foreground">
+                    Estoque: {ing.quantity} {ing.unit} · R$ {ing.price.toFixed(2)}/{ing.unit}
+                  </span>
+                </div>
 
-                    {previousEntries.length > 0 && (
-                      <div className={cn(!newEntries.length && "border-t")}>
-                        <div className={cn("px-4 py-1.5 bg-muted/50", newEntries.length && "border-t lg:border-t-0")}>
-                          <span className="text-xs font-semibold text-muted-foreground">Anteriores</span>
+                {/* Cards lado a lado: cada entrada é um card separado */}
+                <div className="flex flex-wrap gap-3">
+                  {newEntries.map((mov) => (
+                    <Card key={mov.id} className="min-w-[200px] flex-1 max-w-xs border-success/30">
+                      <CardContent className="px-4 py-2.5">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Badge className="gap-1 text-[10px] px-1.5 py-0.5 bg-success/10 text-success">
+                            <ArrowUpRight className="h-3 w-3" />Nova
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                          </span>
                         </div>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs h-8">Tipo</TableHead>
-                              <TableHead className="text-xs h-8">Qtd</TableHead>
-                              <TableHead className="text-xs h-8">Entrada</TableHead>
-                              <TableHead className="text-xs h-8">Validade</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {previousEntries.map((mov) => (
-                              <TableRow key={mov.id}>
-                                <TableCell className="py-1.5">
-                                  <Badge
-                                    variant={mov.type === "in" ? "default" : "destructive"}
-                                    className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
-                                  >
-                                    {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="py-1.5 text-xs font-medium">{mov.quantity} {ing.unit}</TableCell>
-                                <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                  {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
-                                </TableCell>
-                                <TableCell className="py-1.5 text-xs text-muted-foreground">
-                                  {mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
+                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
+                          <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {previousEntries.map((mov) => (
+                    <Card key={mov.id} className="min-w-[200px] flex-1 max-w-xs">
+                      <CardContent className="px-4 py-2.5">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Badge
+                            variant={mov.type === "in" ? "default" : "destructive"}
+                            className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                          >
+                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
+                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
+                          <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>
