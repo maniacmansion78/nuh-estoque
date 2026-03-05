@@ -66,6 +66,7 @@ const Produtos = () => {
     expiry_date: "",
     supplier_id: "s1",
     alert_days: 3,
+    lote: "",
   });
 
   const filtered = useMemo(() => {
@@ -88,6 +89,7 @@ const Produtos = () => {
       expiry_date: new Date().toISOString().split("T")[0],
       supplier_id: "s1",
       alert_days: 3,
+      lote: "",
     });
     setDialogOpen(true);
   };
@@ -104,6 +106,7 @@ const Produtos = () => {
       expiry_date: item.expiry_date.split("T")[0],
       supplier_id: item.supplier_id,
       alert_days: item.alert_days,
+      lote: item.lote,
     });
     setDialogOpen(true);
   };
@@ -234,6 +237,7 @@ const Produtos = () => {
                       <Badge variant="outline" className="shrink-0 text-[10px]">{item.category}</Badge>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-xs lg:flex-1">
+                      <span><span className="text-muted-foreground">Lote:</span> <strong>{item.lote}</strong></span>
                       <span><span className="text-muted-foreground">Qtd Total:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {item.price.toFixed(2)}</strong></span>
@@ -288,9 +292,15 @@ const Produtos = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Nome</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Nome</Label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Lote</Label>
+                <Input value={form.lote} onChange={(e) => setForm({ ...form, lote: e.target.value })} placeholder="Ex: LC-2026-001" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
