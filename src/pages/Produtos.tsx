@@ -31,7 +31,6 @@ import {
 import { Label } from "@/components/ui/label";
 import {
   suppliers,
-  movements,
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
@@ -39,6 +38,7 @@ import {
 } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 
 const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas"];
@@ -67,6 +67,7 @@ const Produtos = () => {
   const [saving, setSaving] = useState(false);
 
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { items: dbMovements } = useMovements();
 
   const filtered = useMemo(() => {
     return items.filter((i) => {
@@ -209,7 +210,7 @@ const Produtos = () => {
         <div className="w-full space-y-4">
           {filtered.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
-            const productMovements = movements.filter((m) => m.ingredient_id === item.id && m.type === "in")
+            const productMovements = dbMovements.filter((m) => m.product_id === item.id && m.type === "in")
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             return (
