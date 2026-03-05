@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import logoNuh from "@/assets/logo-nuh.jpeg";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -42,11 +43,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <ChefHat className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NU</h1>
+            <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NUH</h1>
             <p className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">
               Thai Restaurant
             </p>

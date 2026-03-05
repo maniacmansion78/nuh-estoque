@@ -76,7 +76,7 @@ const Dashboard = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral do estoque do NU Thai Restaurant</p>
+          <p className="text-muted-foreground">Visão geral do estoque do NUH Thai Restaurant</p>
         </div>
         <div className="flex gap-3">
           <Button size="lg" className="gap-2">
