@@ -1,0 +1,121 @@
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Package,
+  Truck,
+  ArrowLeftRight,
+  Menu,
+  X,
+  ChefHat,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+const navItems = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/ingredientes", label: "Ingredientes", icon: Package },
+  { to: "/fornecedores", label: "Fornecedores", icon: Truck },
+  { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+];
+
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:static lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* Logo */}
+        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <ChefHat className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NU</h1>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">
+              Thai Restaurant
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-auto text-sidebar-foreground lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 space-y-1 p-4">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent px-3 py-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              A
+            </div>
+            <div>
+              <p className="text-sm font-medium text-sidebar-foreground">Admin</p>
+              <p className="text-xs text-sidebar-foreground/50">Gerente</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex flex-1 flex-col">
+        {/* Top bar */}
+        <header className="flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex-1" />
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
+}
