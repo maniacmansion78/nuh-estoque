@@ -141,7 +141,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(220,20%,7%)] text-[hsl(210,14%,93%)] overflow-y-auto">
+    <div className="min-h-screen bg-white text-[hsl(220,20%,10%)] overflow-y-auto">
       {/* Ticker */}
       <div className="bg-primary overflow-hidden whitespace-nowrap py-2 text-xs font-semibold text-primary-foreground">
         <div className="animate-marquee inline-block">
@@ -150,7 +150,7 @@ export default function LandingPage() {
       </div>
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-[hsl(220,14%,18%)] bg-[hsl(220,20%,7%)]/95 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-[hsl(220,14%,90%)] bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
@@ -168,13 +168,13 @@ export default function LandingPage() {
               <button
                 key={id}
                 onClick={() => scrollTo(id)}
-                className="text-sm text-[hsl(210,14%,70%)] transition-colors hover:text-[hsl(210,14%,93%)]"
+                className="text-sm text-[hsl(220,10%,45%)] transition-colors hover:text-[hsl(220,20%,10%)]"
               >
                 {label}
               </button>
             ))}
             <Link to="/login">
-              <Button variant="outline" className="border-[hsl(220,14%,25%)] bg-transparent text-[hsl(210,14%,93%)] hover:bg-[hsl(220,18%,16%)]">
+              <Button variant="outline" className="border-[hsl(220,14%,80%)] bg-transparent text-[hsl(220,20%,10%)] hover:bg-[hsl(220,14%,95%)]">
                 Entrar
               </Button>
             </Link>
@@ -187,7 +187,7 @@ export default function LandingPage() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="border-t border-[hsl(220,14%,18%)] bg-[hsl(220,20%,7%)] px-4 py-4 md:hidden">
+          <div className="border-t border-[hsl(220,14%,90%)] bg-white px-4 py-4 md:hidden">
             <div className="flex flex-col gap-3">
               {[
                 ["Funcionalidades", "funcionalidades"],
@@ -198,13 +198,13 @@ export default function LandingPage() {
                 <button
                   key={id}
                   onClick={() => scrollTo(id)}
-                  className="text-left text-sm text-[hsl(210,14%,70%)] transition-colors hover:text-[hsl(210,14%,93%)]"
+                  className="text-left text-sm text-[hsl(220,10%,45%)] transition-colors hover:text-[hsl(220,20%,10%)]"
                 >
                   {label}
                 </button>
               ))}
               <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full border-[hsl(220,14%,25%)] bg-transparent text-[hsl(210,14%,93%)]">
+                <Button variant="outline" className="w-full border-[hsl(220,14%,80%)] bg-transparent text-[hsl(220,20%,10%)]">
                   Entrar
                 </Button>
               </Link>
@@ -229,7 +229,7 @@ export default function LandingPage() {
           <span className="text-primary">NUH Thai Restaurant</span>
         </motion.h1>
         <motion.p
-          className="mx-auto mt-6 max-w-2xl text-lg text-[hsl(210,14%,60%)]"
+          className="mx-auto mt-6 max-w-2xl text-lg text-[hsl(220,10%,45%)]"
           variants={fadeUp}
         >
           Controle completo de estoque, validades, fornecedores e equipe — desenvolvido especialmente para a operação do NUH.
@@ -246,7 +246,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-[hsl(220,14%,25%)] bg-transparent px-8 text-lg text-[hsl(210,14%,93%)] hover:bg-[hsl(220,18%,16%)]"
+              className="border-[hsl(220,14%,80%)] bg-transparent px-8 text-lg text-[hsl(220,20%,10%)] hover:bg-[hsl(220,14%,95%)]"
             >
               Entrar
             </Button>
@@ -255,7 +255,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Como Funciona */}
-      <section id="como-funciona" className="bg-[hsl(220,18%,9%)] py-20">
+      <section id="como-funciona" className="bg-[hsl(220,14%,96%)] py-20">
         <div className="mx-auto max-w-6xl px-4">
           <motion.div
             className="text-center"
@@ -267,7 +267,7 @@ export default function LandingPage() {
             <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>
               Como Funciona o NUH
             </motion.h2>
-            <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(210,14%,60%)]" variants={fadeUp}>
+            <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(220,10%,45%)]" variants={fadeUp}>
               Chega de planilhas, cadernos e controles manuais. O NUH é seu braço direito na gestão da cozinha.
             </motion.p>
           </motion.div>
@@ -281,14 +281,14 @@ export default function LandingPage() {
             {howItWorks.map((item) => (
               <motion.div
                 key={item.title}
-                className="rounded-xl border border-[hsl(220,14%,18%)] bg-[hsl(220,18%,11%)] p-6"
+                className="rounded-xl border border-[hsl(220,14%,90%)] bg-white p-6"
                 variants={fadeUp}
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <item.icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm text-[hsl(210,14%,60%)]">{item.desc}</p>
+                <p className="mt-2 text-sm text-[hsl(220,10%,45%)]">{item.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -308,7 +308,7 @@ export default function LandingPage() {
             <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>
               Funcionalidades
             </motion.h2>
-            <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(210,14%,60%)]" variants={fadeUp}>
+            <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(220,10%,45%)]" variants={fadeUp}>
               Tudo que você precisa em um só sistema
             </motion.p>
           </motion.div>
@@ -322,14 +322,14 @@ export default function LandingPage() {
             {features.map((f) => (
               <motion.div
                 key={f.title}
-                className="rounded-xl border border-[hsl(220,14%,18%)] bg-[hsl(220,18%,11%)] p-6 transition-colors hover:border-primary/30"
+                className="rounded-xl border border-[hsl(220,14%,90%)] bg-white p-6 transition-colors hover:border-primary/30"
                 variants={fadeUp}
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <f.icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold">{f.title}</h3>
-                <p className="mt-2 text-sm text-[hsl(210,14%,60%)]">{f.desc}</p>
+                <p className="mt-2 text-sm text-[hsl(220,10%,45%)]">{f.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -337,7 +337,7 @@ export default function LandingPage() {
       </section>
 
       {/* Plano */}
-      <section id="plano" className="bg-[hsl(220,18%,9%)] py-20">
+      <section id="plano" className="bg-[hsl(220,14%,96%)] py-20">
         <div className="mx-auto max-w-lg px-4">
           <motion.div
             className="text-center"
@@ -349,13 +349,13 @@ export default function LandingPage() {
             <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>
               💳 Plano Único
             </motion.h2>
-            <motion.p className="mt-4 text-[hsl(210,14%,60%)]" variants={fadeUp}>
+            <motion.p className="mt-4 text-[hsl(220,10%,45%)]" variants={fadeUp}>
               ⚡ Acesso completo a todas as funcionalidades
             </motion.p>
           </motion.div>
 
           <motion.div
-            className="relative mt-12 overflow-hidden rounded-2xl border-2 border-primary bg-[hsl(220,18%,11%)]"
+            className="relative mt-12 overflow-hidden rounded-2xl border-2 border-primary bg-white"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -365,13 +365,13 @@ export default function LandingPage() {
               🔥 MELHOR CUSTO-BENEFÍCIO
             </div>
             <div className="p-8">
-              <p className="text-sm font-medium text-[hsl(210,14%,60%)]">Semestral</p>
+              <p className="text-sm font-medium text-[hsl(220,10%,45%)]">Semestral</p>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="text-5xl font-extrabold">R$ 69</span>
-                <span className="text-2xl font-bold text-[hsl(210,14%,60%)]">,90</span>
-                <span className="ml-1 text-[hsl(210,14%,60%)]">/mês</span>
+                <span className="text-2xl font-bold text-[hsl(220,10%,45%)]">,90</span>
+                <span className="ml-1 text-[hsl(220,10%,45%)]">/mês</span>
               </div>
-              <p className="mt-2 text-xs text-[hsl(210,14%,50%)]">Cobrado semestralmente • R$ 419,40 total</p>
+              <p className="mt-2 text-xs text-[hsl(220,10%,55%)]">Cobrado semestralmente • R$ 419,40 total</p>
 
               <div className="mt-8 space-y-3">
                 <p className="text-sm font-semibold">✨ Tudo Incluído:</p>
@@ -390,7 +390,7 @@ export default function LandingPage() {
               >
                 🚀 Começar Agora
               </Button>
-              <p className="mt-3 text-center text-xs text-[hsl(210,14%,50%)]">
+              <p className="mt-3 text-center text-xs text-[hsl(220,10%,55%)]">
                 Pagamento 100% seguro
               </p>
             </div>
@@ -400,7 +400,7 @@ export default function LandingPage() {
 
 
       {/* FAQ */}
-      <section id="faq" className="bg-[hsl(220,18%,9%)] py-20">
+      <section id="faq" className="bg-[hsl(220,14%,96%)] py-20">
         <div className="mx-auto max-w-2xl px-4">
           <motion.h2
             className="text-center text-3xl font-bold md:text-4xl"
@@ -415,7 +415,7 @@ export default function LandingPage() {
             {faqs.map((faq, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-[hsl(220,14%,18%)] bg-[hsl(220,18%,11%)]"
+                className="rounded-xl border border-[hsl(220,14%,90%)] bg-white"
               >
                 <button
                   className="flex w-full items-center justify-between px-6 py-4 text-left text-sm font-medium"
@@ -427,7 +427,7 @@ export default function LandingPage() {
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="border-t border-[hsl(220,14%,18%)] px-6 py-4 text-sm text-[hsl(210,14%,60%)]">
+                  <div className="border-t border-[hsl(220,14%,90%)] px-6 py-4 text-sm text-[hsl(220,10%,45%)]">
                     {faq.a}
                   </div>
                 )}
@@ -438,13 +438,13 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[hsl(220,14%,18%)] py-10">
+      <footer className="border-t border-[hsl(220,14%,90%)] py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center">
           <div className="flex items-center gap-2">
             <img src={logoNuh} alt="NUH" className="h-8 w-8 rounded-lg object-cover" />
             <span className="text-lg font-bold">NUH</span>
           </div>
-          <p className="text-xs text-[hsl(210,14%,50%)]">
+          <p className="text-xs text-[hsl(220,10%,55%)]">
             © {new Date().getFullYear()} NUH — Thai Restaurant. Todos os direitos reservados.
           </p>
         </div>
