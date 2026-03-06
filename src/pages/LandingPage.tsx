@@ -142,12 +142,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-[hsl(220,20%,10%)] overflow-y-auto">
-      {/* Ticker */}
-      <div className="bg-primary overflow-hidden whitespace-nowrap py-2 text-xs font-semibold text-primary-foreground">
-        <div className="animate-marquee inline-block">
-          {"🚀 GARANTA SEU ACESSO    ⚡ OFERTA POR TEMPO LIMITADO    ".repeat(8)}
-        </div>
-      </div>
 
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-[hsl(220,14%,90%)] bg-white/95 backdrop-blur-md">
