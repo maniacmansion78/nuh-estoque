@@ -151,7 +151,7 @@ export default function LandingPage() {
             <span className="text-xl font-bold">NUH</span>
           </div>
 
-          {/* Desktop menu */}
+          {/* Desktop menu - always visible */}
           <div className="hidden items-center gap-6 md:flex">
             {[
               ["Funcionalidades", "funcionalidades"],
@@ -173,6 +173,11 @@ export default function LandingPage() {
               </Button>
             </Link>
           </div>
+
+          {/* Mobile menu toggle */}
+          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
 
           {/* Mobile menu toggle */}
           <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
