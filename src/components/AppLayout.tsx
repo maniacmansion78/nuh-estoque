@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import logoNuh from "@/assets/logo-nuh.jpeg";
 
 const baseNavItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
