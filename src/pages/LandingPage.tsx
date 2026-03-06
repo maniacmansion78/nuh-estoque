@@ -9,7 +9,6 @@ import {
   Smartphone,
   Check,
   ChevronDown,
-  Star,
   ShieldCheck,
   Zap,
   Clock,
@@ -226,14 +225,14 @@ export default function LandingPage() {
           className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl"
           variants={fadeUp}
         >
-          Gerencie seu estoque e cozinha com{" "}
-          <span className="text-primary">controle total</span>
+          O sistema exclusivo do{" "}
+          <span className="text-primary">NUH Thai Restaurant</span>
         </motion.h1>
         <motion.p
           className="mx-auto mt-6 max-w-2xl text-lg text-[hsl(210,14%,60%)]"
           variants={fadeUp}
         >
-          O sistema completo para restaurantes e cozinhas profissionais. Estoque, validades, fornecedores, não conformidades e equipe — tudo em um só lugar, 100% online.
+          Controle completo de estoque, validades, fornecedores e equipe — desenvolvido especialmente para a operação do NUH.
         </motion.p>
         <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-4" variants={fadeUp}>
           <Button
@@ -399,46 +398,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <motion.h2
-            className="text-center text-3xl font-bold md:text-4xl"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-          >
-            ⭐ O Que Nossos Clientes Dizem
-          </motion.h2>
-          <motion.div
-            className="mt-14 grid gap-6 md:grid-cols-3"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-          >
-            {testimonials.map((t) => (
-              <motion.div
-                key={t.name}
-                className="rounded-xl border border-[hsl(220,14%,18%)] bg-[hsl(220,18%,11%)] p-6"
-                variants={fadeUp}
-              >
-                <div className="mb-4 flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-sm text-[hsl(210,14%,70%)]">"{t.text}" {t.emoji}</p>
-                <div className="mt-4 border-t border-[hsl(220,14%,18%)] pt-4">
-                  <p className="font-semibold">{t.name}</p>
-                  <p className="text-xs text-[hsl(210,14%,50%)]">{t.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* FAQ */}
       <section id="faq" className="bg-[hsl(220,18%,9%)] py-20">
