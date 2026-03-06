@@ -47,12 +47,12 @@ const features = [
   {
     icon: BarChart3,
     title: "Dashboard Completo",
-    desc: "Visão geral do estoque, alertas de validade, produtos próximos do mínimo e resumo financeiro.",
+    desc: "Visão geral do estoque, alertas de validade e produtos próximos do mínimo.",
   },
   {
     icon: Users,
     title: "Gestão de Funcionários",
-    desc: "Cadastre colaboradores, defina permissões e controle quem acessa o quê no sistema.",
+    desc: "Funcionários cadastrados com acesso ao app podem registrar dados de produtos, entradas e saídas de estoque.",
   },
   {
     icon: Smartphone,
