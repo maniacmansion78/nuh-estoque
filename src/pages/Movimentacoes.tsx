@@ -33,6 +33,12 @@ import { cn } from "@/lib/utils";
 import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
 
+interface BatchInfo {
+  expiry_date: string;
+  remaining: number;
+  label: string;
+}
+
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading } = useProducts();
   const { items: dbMovements, loading: movementsLoading, addMovement } = useMovements();
@@ -55,7 +61,37 @@ const Movimentacoes = () => {
     type: "in" as "in" | "out",
     quantity: 0,
     expiry_date: undefined as Date | undefined,
+    selected_batch: "" as string,
   });
+
+  // Calculate available batches per product (in qty - out qty grouped by expiry_date)
+  const batchesForProduct = useMemo(() => {
+    if (!form.product_id || form.type !== "out") return [] as BatchInfo[];
+
+    const productMovements = dbMovements.filter((m) => m.product_id === form.product_id);
+    const batchMap: Record<string, number> = {};
+
+    for (const mov of productMovements) {
+      const key = mov.expiry_date || "sem-validade";
+      if (!batchMap[key]) batchMap[key] = 0;
+      if (mov.type === "in") {
+        batchMap[key] += Number(mov.quantity);
+      } else {
+        batchMap[key] -= Number(mov.quantity);
+      }
+    }
+
+    return Object.entries(batchMap)
+      .filter(([, qty]) => qty > 0)
+      .map(([expiry, qty]) => ({
+        expiry_date: expiry,
+        remaining: Math.round(qty * 100) / 100,
+        label:
+          expiry === "sem-validade"
+            ? `Sem validade (${Math.round(qty * 100) / 100} disponível)`
+            : `Val: ${format(new Date(expiry), "dd/MM/yyyy", { locale: ptBR })} (${Math.round(qty * 100) / 100} disponível)`,
+      })) as BatchInfo[];
+  }, [form.product_id, form.type, dbMovements]);
 
   // Group movements by product, newest first
   const groupedByProduct = useMemo(() => {
@@ -77,18 +113,30 @@ const Movimentacoes = () => {
     const product = allProducts.find((i) => i.id === form.product_id);
     if (!product) { toast.error("Produto não encontrado"); return; }
 
-    if (form.type === "out" && product.quantity < form.quantity) {
-      toast.error(`Estoque insuficiente. Disponível: ${product.quantity} ${product.unit}`);
-      return;
+    if (form.type === "out") {
+      if (!form.selected_batch) { toast.error("Selecione o lote/validade de saída"); return; }
+      const batch = batchesForProduct.find((b) => b.expiry_date === form.selected_batch);
+      if (!batch) { toast.error("Lote não encontrado"); return; }
+      if (batch.remaining < form.quantity) {
+        toast.error(`Estoque insuficiente neste lote. Disponível: ${batch.remaining} ${product.unit}`);
+        return;
+      }
     }
 
     setSaving(true);
     try {
+      const expiryToSend =
+        form.type === "in" && form.expiry_date
+          ? form.expiry_date.toISOString()
+          : form.type === "out" && form.selected_batch && form.selected_batch !== "sem-validade"
+            ? form.selected_batch
+            : null;
+
       const success = await addMovement({
         product_id: form.product_id,
         type: form.type,
         quantity: form.quantity,
-        expiry_date: form.type === "in" && form.expiry_date ? form.expiry_date.toISOString() : null,
+        expiry_date: expiryToSend,
       });
 
       if (success) {
@@ -120,7 +168,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined });
+          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "" });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
@@ -215,7 +263,7 @@ const Movimentacoes = () => {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Tipo</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as "in" | "out" })}>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as "in" | "out", selected_batch: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="in">Entrada</SelectItem>
@@ -225,7 +273,7 @@ const Movimentacoes = () => {
             </div>
             <div className="grid gap-2">
               <Label>Produto</Label>
-              <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v })}>
+              <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v, selected_batch: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent position="popper" side="bottom" className="max-h-[200px] overflow-y-auto">
                   {allProducts.map((i) => (
@@ -234,6 +282,28 @@ const Movimentacoes = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Batch selection for "out" type */}
+            {form.type === "out" && form.product_id && (
+              <div className="grid gap-2">
+                <Label>Lote / Validade de saída</Label>
+                {batchesForProduct.length === 0 ? (
+                  <p className="text-sm text-destructive">Nenhum lote com estoque disponível para este produto.</p>
+                ) : (
+                  <Select value={form.selected_batch} onValueChange={(v) => setForm({ ...form, selected_batch: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o lote" /></SelectTrigger>
+                    <SelectContent position="popper" side="bottom" className="max-h-[200px] overflow-y-auto">
+                      {batchesForProduct.map((batch) => (
+                        <SelectItem key={batch.expiry_date} value={batch.expiry_date}>
+                          {batch.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
+
             <div className="grid gap-2">
               <Label>Quantidade</Label>
               <Input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
