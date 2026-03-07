@@ -76,10 +76,17 @@ export function useMovements() {
         ? Math.round((currentQty + movement.quantity) * 100) / 100
         : Math.round((currentQty - movement.quantity) * 100) / 100;
 
-      await supabase
-        .from("products")
-        .update({ quantity: newQty })
-        .eq("id", movement.product_id);
+      if (newQty <= 0) {
+        await supabase
+          .from("products")
+          .delete()
+          .eq("id", movement.product_id);
+      } else {
+        await supabase
+          .from("products")
+          .update({ quantity: newQty })
+          .eq("id", movement.product_id);
+      }
     }
 
     await fetchMovements();
