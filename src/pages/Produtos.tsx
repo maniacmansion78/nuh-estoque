@@ -41,7 +41,7 @@ import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 
-const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas"];
+const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas", "Importados"];
 
 const emptyForm: ProductForm = {
   name: "",

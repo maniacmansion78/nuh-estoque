@@ -1,6 +1,6 @@
 import { addDays, subDays } from "date-fns";
 
-export type Category = "Vegetais" | "Proteínas" | "Temperos" | "Bebidas";
+export type Category = "Vegetais" | "Proteínas" | "Temperos" | "Bebidas" | "Importados";
 export type Unit = "kg" | "L" | "un";
 export type MovementType = "in" | "out";
 
