@@ -101,7 +101,7 @@ const testimonials = [
   {
     text: "O controle de não conformidades é incrível. Consigo rastrear cada problema com fornecedores e manter a qualidade dos meus pratos.",
     name: "Carlos Mendes",
-    role: "Gerente — Thai Garden",
+    role: "Gerente — Asian Garden",
     emoji: "🏆",
   },
   {
@@ -225,7 +225,7 @@ export default function LandingPage() {
           variants={fadeUp}
         >
           O sistema exclusivo do{" "}
-          <span className="text-primary">NUH Thai Restaurant</span>
+          <span className="text-primary">NUH Asian Food</span>
         </motion.h1>
         <motion.p
           className="mx-auto mt-6 max-w-2xl text-lg text-[hsl(220,10%,45%)]"
@@ -444,7 +444,7 @@ export default function LandingPage() {
             <span className="text-lg font-bold">NUH</span>
           </div>
           <p className="text-xs text-[hsl(220,10%,55%)]">
-            © {new Date().getFullYear()} NUH — Thai Restaurant. Todos os direitos reservados.
+            © {new Date().getFullYear()} NUH — Asian Food. Todos os direitos reservados.
           </p>
         </div>
       </footer>

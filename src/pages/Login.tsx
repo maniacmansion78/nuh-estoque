@@ -53,7 +53,7 @@ const Login = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold">NUH</h1>
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Thai Restaurant
+              Asian Food
             </p>
           </div>
         </CardHeader>
