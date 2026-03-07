@@ -58,7 +58,9 @@ export function useProducts() {
 
   const addProduct = async (form: ProductForm) => {
     const { data: userData } = await supabase.auth.getUser();
-    const { error } = await supabase.from("products").insert({
+    const userId = userData?.user?.id || null;
+
+    const { data: inserted, error } = await supabase.from("products").insert({
       name: form.name,
       category: form.category,
       quantity: form.quantity,
@@ -69,13 +71,26 @@ export function useProducts() {
       supplier_id: form.supplier_id,
       alert_days: form.alert_days,
       lote: form.lote,
-      created_by: userData?.user?.id || null,
-    });
-    if (error) {
+      created_by: userId,
+    }).select("id").single();
+
+    if (error || !inserted) {
       console.error("Erro ao adicionar produto:", error);
       toast.error("Erro ao adicionar produto");
       return false;
     }
+
+    // Register initial "in" movement so batch tracking works
+    if (form.quantity > 0 && userId) {
+      await supabase.from("movements").insert({
+        product_id: inserted.id,
+        type: "in",
+        quantity: form.quantity,
+        expiry_date: new Date(form.expiry_date).toISOString(),
+        user_id: userId,
+      });
+    }
+
     toast.success("Produto adicionado!");
     await fetchProducts();
     return true;
