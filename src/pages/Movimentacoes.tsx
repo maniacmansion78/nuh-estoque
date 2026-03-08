@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,7 @@ interface BatchInfo {
 
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading } = useProducts();
-  const { items: dbMovements, loading: movementsLoading, addMovement } = useMovements();
+  const { items: dbMovements, loading: movementsLoading, addMovement, deleteMovement } = useMovements();
   const { isAdmin } = useAuth();
 
   const allProducts = useMemo(() => {
