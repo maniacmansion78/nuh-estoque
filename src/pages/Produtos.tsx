@@ -86,11 +86,10 @@ const Produtos = () => {
 
   const latestExpiryPerProduct = useMemo(() => {
     const map: Record<string, string> = {};
+    // dbMovements is already sorted by date desc
     for (const mov of dbMovements) {
-      if (mov.type === "in" && mov.expiry_date) {
-        if (!map[mov.product_id] || new Date(mov.date) > new Date(map[mov.product_id] ? dbMovements.find(m => m.product_id === mov.product_id && m.expiry_date === map[mov.product_id])?.date || "" : "")) {
-          map[mov.product_id] = mov.expiry_date;
-        }
+      if (mov.type === "in" && mov.expiry_date && !map[mov.product_id]) {
+        map[mov.product_id] = mov.expiry_date;
       }
     }
     return map;
