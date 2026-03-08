@@ -39,8 +39,8 @@ const Dashboard = () => {
   const totalItems = items.length;
   const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
   const expiringSoon = items.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
-  const criticalItems = items.filter(
-    (i) => getProductStatus(i) === "critical" || getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
+  const criticalExpiry = items.filter(
+    (i) => getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
   );
 
   const alertItems = items.filter(
@@ -51,7 +51,7 @@ const Dashboard = () => {
     { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
     { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
     { title: "Validade Próxima", value: expiringSoon, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    { title: "Itens Críticos", value: criticalItems.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
+    { title: "Validade Crítica", value: criticalExpiry.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   return (
