@@ -71,12 +71,21 @@ const Produtos = () => {
   const { items: dbMovements } = useMovements();
 
   const filtered = useMemo(() => {
-    return items.filter((i) => {
+    const base = items.filter((i) => {
       const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
       const matchCat = categoryFilter === "all" || i.category === categoryFilter;
       return matchSearch && matchCat;
     });
-  }, [items, search, categoryFilter]);
+
+    // Sort: products with most recent movements first
+    return base.sort((a, b) => {
+      const lastA = dbMovements.find((m) => m.product_id === a.id);
+      const lastB = dbMovements.find((m) => m.product_id === b.id);
+      const dateA = lastA ? new Date(lastA.date).getTime() : 0;
+      const dateB = lastB ? new Date(lastB.date).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [items, search, categoryFilter, dbMovements]);
 
   const openAdd = () => {
     setEditingItem(null);
