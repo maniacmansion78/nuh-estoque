@@ -64,6 +64,7 @@ const Movimentacoes = () => {
     quantity: 0,
     expiry_date: undefined as Date | undefined,
     selected_batch: "" as string,
+    lote: "" as string,
   });
 
   // Calculate available batches per product (in qty - out qty grouped by expiry_date)
