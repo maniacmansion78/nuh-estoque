@@ -57,7 +57,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div>
             <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NUH</h1>
             <p className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">
-              Thai Restaurant
+              Controle de Estoque
             </p>
           </div>
           <Button
