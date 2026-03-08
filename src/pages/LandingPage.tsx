@@ -396,9 +396,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-
       {/* FAQ */}
-      <section id="faq" className="bg-[hsl(220,14%,96%)] py-10">
+      <section id="faq" className="bg-[hsl(220,14%,96%)] pb-20 pt-4">
         <div className="mx-auto max-w-2xl px-4">
           <motion.h2
             className="text-center text-3xl font-bold md:text-4xl"
