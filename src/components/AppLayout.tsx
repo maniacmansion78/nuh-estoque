@@ -36,7 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
 
   return (
-    <div className="flex h-screen w-full max-w-full overflow-hidden">
+    <div className="flex h-[100dvh] w-full max-w-full overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
@@ -126,7 +126,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 pb-20 sm:p-4 sm:pb-4 lg:p-8">{children}</main>
       </div>
     </div>
   );
