@@ -266,7 +266,7 @@ export default function LandingPage() {
             variants={stagger}
           >
             <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>
-              Como Funciona o NUH
+              Como Funciona o Aplicativo de Controle de Estoque?
             </motion.h2>
             <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(220,10%,45%)]" variants={fadeUp}>
               Chega de planilhas, cadernos e controles manuais. O NUH é seu braço direito na gestão da cozinha.
