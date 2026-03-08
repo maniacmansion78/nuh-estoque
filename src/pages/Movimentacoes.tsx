@@ -143,6 +143,14 @@ const Movimentacoes = () => {
       });
 
       if (success) {
+        // Update lote on product if admin provided one
+        if (form.type === "in" && form.lote.trim() && isAdmin) {
+          const { supabase } = await import("@/integrations/supabase/client");
+          await supabase
+            .from("products")
+            .update({ lote: form.lote.trim() })
+            .eq("id", form.product_id);
+        }
         toast.success(
           form.type === "in"
             ? `Entrada registrada! ${product.name}`
