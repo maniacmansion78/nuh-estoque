@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
 
     // Token validation
-    const webhookToken = Deno.env.get("WEBHOOK_PURCHASE_TOKEN");
+    const webhookToken = Deno.env.get("WEBHOOK_DEMO_TOKEN");
     if (webhookToken) {
       const incomingToken =
         req.headers.get("x-webhook-token") ||
