@@ -164,10 +164,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── 8. Assign employee role ────────────────────────────────────
+    // ── 8. Assign admin role (buyer is the owner) ─────────────────
     await supabaseAdmin.from("user_roles").insert({
       user_id: userId,
-      role: "employee",
+      role: "admin",
     });
 
     console.log("✅ Webhook processed successfully for:", email);
