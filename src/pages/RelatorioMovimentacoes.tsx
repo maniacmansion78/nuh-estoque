@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
-import { Printer, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Printer, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -57,8 +59,42 @@ const RelatorioMovimentacoes = () => {
       }));
   }, [dbMovements, dbProducts, monthStart, monthEnd]);
 
+  const reportRef = useRef<HTMLDivElement>(null);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgData = canvas.toDataURL("image/png");
+      const pdfWidth = 190;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = pdfHeight;
+      let position = 10;
+
+      pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
+      heightLeft -= 277;
+
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position -= 277;
+        pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
+        heightLeft -= 277;
+      }
+
+      const filename = `relatorio-${format(currentMonth, "yyyy-MM")}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+    }
   };
 
   if (productsLoading || movementsLoading) {
@@ -83,10 +119,16 @@ const RelatorioMovimentacoes = () => {
             Entradas e saídas por produto
           </p>
         </div>
-        <Button size="lg" className="gap-2" onClick={handlePrint}>
-          <Printer className="h-5 w-5" />
-          Imprimir
-        </Button>
+        <div className="flex gap-2">
+          <Button size="lg" className="gap-2" onClick={handleDownloadPDF}>
+            <Download className="h-5 w-5" />
+            Baixar PDF
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2" onClick={handlePrint}>
+            <Printer className="h-5 w-5" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       {/* Month selector - hidden on print */}
@@ -102,13 +144,14 @@ const RelatorioMovimentacoes = () => {
         </Button>
       </div>
 
-      {/* Print header - only visible on print */}
-      <div className="hidden print:block text-center mb-6">
-        <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
-        <p className="text-lg capitalize">{monthLabel}</p>
-      </div>
+      <div ref={reportRef}>
+        {/* Print header - only visible on print */}
+        <div className="hidden print:block text-center mb-6">
+          <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
+          <p className="text-lg capitalize">{monthLabel}</p>
+        </div>
 
-      <Card className="print:shadow-none print:border-none">
+        <Card className="print:shadow-none print:border-none">
         <CardHeader className="print:hidden">
           <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
         </CardHeader>
@@ -147,6 +190,7 @@ const RelatorioMovimentacoes = () => {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
