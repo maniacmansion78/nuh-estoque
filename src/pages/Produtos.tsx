@@ -327,7 +327,7 @@ const Produtos = () => {
               <Select value={form.supplier_id} onValueChange={(v) => setForm({ ...form, supplier_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {suppliers.map((s) => (
+                  {sortedSuppliers.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>
