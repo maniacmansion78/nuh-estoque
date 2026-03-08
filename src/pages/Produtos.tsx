@@ -275,7 +275,7 @@ const Produtos = () => {
                       <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
                       
-                      <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
+                      <span><span className="text-muted-foreground">Val:</span> <strong>{latestExpiryPerProduct[item.id] ? format(new Date(latestExpiryPerProduct[item.id]), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
                     <div className="flex items-center gap-1.5 lg:shrink-0">
                       {statusBadge(item)}
