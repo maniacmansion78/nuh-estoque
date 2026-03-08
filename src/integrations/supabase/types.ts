@@ -144,6 +144,7 @@ export type Database = {
           id: string
           job_title: string | null
           temp_password: boolean
+          trial_ends_at: string | null
           user_id: string
         }
         Insert: {
@@ -153,6 +154,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           temp_password?: boolean
+          trial_ends_at?: string | null
           user_id: string
         }
         Update: {
@@ -162,6 +164,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           temp_password?: boolean
+          trial_ends_at?: string | null
           user_id?: string
         }
         Relationships: []
