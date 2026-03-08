@@ -10,6 +10,7 @@ import {
   Users,
   LogOut,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const baseNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+  { to: "/relatorio", label: "Relatório Mensal", icon: FileText },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/nao-conformidades", label: "Não Conformidades", icon: AlertTriangle },
 ];

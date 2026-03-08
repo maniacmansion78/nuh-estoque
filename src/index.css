@@ -125,3 +125,32 @@
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  .print\:border-none {
+    border: none !important;
+  }
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+  aside, header, nav {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}
