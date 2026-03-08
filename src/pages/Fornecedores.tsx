@@ -63,16 +63,16 @@ const Fornecedores = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Fornecedores</h1>
-          <p className="text-muted-foreground">Gerencie seus fornecedores e faça pedidos</p>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Fornecedores</h1>
+          <p className="text-sm text-muted-foreground sm:text-base">Gerencie seus fornecedores e faça pedidos</p>
         </div>
-        <div className="flex gap-3">
-          <Button size="lg" variant="outline" className="gap-2" onClick={() => setReorderOpen(true)}>
-            <ShoppingCart className="h-5 w-5" />
-            Pedir Reposição
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-3">
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => setReorderOpen(true)}>
+            <ShoppingCart className="h-4 w-4" />
+            Reposição
           </Button>
-          <Button size="lg" className="gap-2" onClick={openAdd}>
-            <Plus className="h-5 w-5" />
+          <Button size="sm" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={openAdd}>
+            <Plus className="h-4 w-4" />
             Novo Fornecedor
           </Button>
         </div>
