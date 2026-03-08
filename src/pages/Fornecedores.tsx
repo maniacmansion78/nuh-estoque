@@ -195,7 +195,7 @@ const Fornecedores = () => {
 
       {/* Add/Edit */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingItem ? "Editar Fornecedor" : "Novo Fornecedor"}</DialogTitle>
             <DialogDescription>Preencha os dados do fornecedor.</DialogDescription>
