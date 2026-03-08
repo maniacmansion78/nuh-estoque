@@ -8,6 +8,7 @@ import {
   Edit,
   Trash2,
   ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -210,7 +211,7 @@ const Produtos = () => {
         <div className="w-full space-y-4">
           {filtered.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
-            const productMovements = dbMovements.filter((m) => m.product_id === item.id && m.type === "in")
+            const productMovements = dbMovements.filter((m) => m.product_id === item.id)
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             return (
@@ -248,8 +249,8 @@ const Produtos = () => {
                     <div className="mt-2 border-t pt-2 space-y-1">
                       {productMovements.map((mov) => (
                         <div key={mov.id} className="flex items-center gap-4 text-xs py-1 px-2 rounded bg-muted/30">
-                          <Badge className="gap-1 text-[10px] px-1.5 py-0.5 bg-success/10 text-success shrink-0">
-                            <ArrowUpRight className="h-3 w-3" />Entrada
+                          <Badge className={cn("gap-1 text-[10px] px-1.5 py-0.5 shrink-0", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
+                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Entrada</> : <><ArrowDownRight className="h-3 w-3" />Saída</>}
                           </Badge>
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {item.unit}</strong></span>
                           <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM/yy HH:mm")}</strong></span>
