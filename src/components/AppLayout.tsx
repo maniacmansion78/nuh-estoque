@@ -126,7 +126,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto overscroll-contain p-4 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );

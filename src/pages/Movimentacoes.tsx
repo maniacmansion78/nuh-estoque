@@ -172,11 +172,11 @@ const Movimentacoes = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Movimentações</h1>
-          <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
+        <div className="text-center sm:text-left">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
+          <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
           setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
@@ -207,27 +207,29 @@ const Movimentacoes = () => {
 
             return (
               <div key={productId}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">{ing.name}</h3>
-                  <span className="text-xs text-muted-foreground">
-                    Estoque: {ing.quantity} {ing.unit} · R$ {ing.price.toFixed(2)}/{ing.unit}
+                <div className="flex flex-col items-center gap-1 mb-2 sm:flex-row sm:items-center sm:gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Package className="h-4 w-4 text-primary shrink-0" />
+                    <h3 className="text-xs font-semibold sm:text-sm truncate">{ing.name}</h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground sm:text-xs">
+                    {ing.quantity} {ing.unit} · R$ {ing.price.toFixed(2)}/{ing.unit}
                   </span>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {newEntries.map((mov) => (
-                    <Card key={mov.id} className={cn("min-w-[200px] flex-1 max-w-xs", mov.type === "in" ? "border-success/30" : "border-destructive/30")}>
-                      <CardContent className="px-4 py-2.5">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Badge className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
-                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Entrada</> : <><ArrowDownRight className="h-3 w-3" />Saída</>}
+                    <Card key={mov.id} className={cn("w-full", mov.type === "in" ? "border-success/30" : "border-destructive/30")}>
+                      <CardContent className="px-3 py-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Badge className={cn("gap-0.5 text-[9px] px-1 py-0.5 sm:text-[10px] sm:px-1.5", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
+                            {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Entrada</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saída</>}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[9px] text-muted-foreground sm:text-[10px]">
                             {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-xs">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
                           <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
@@ -237,20 +239,20 @@ const Movimentacoes = () => {
                   ))}
 
                   {previousEntries.map((mov) => (
-                    <Card key={mov.id} className="min-w-[200px] flex-1 max-w-xs">
-                      <CardContent className="px-4 py-2.5">
-                        <div className="flex items-center gap-2 mb-1.5">
+                    <Card key={mov.id} className="w-full">
+                      <CardContent className="px-3 py-2">
+                        <div className="flex items-center gap-1.5 mb-1">
                           <Badge
                             variant={mov.type === "in" ? "default" : "destructive"}
-                            className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" && "bg-success/10 text-success")}
+                            className={cn("gap-0.5 text-[9px] px-1 py-0.5 sm:text-[10px] sm:px-1.5", mov.type === "in" && "bg-success/10 text-success")}
                           >
-                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Ent</> : <><ArrowDownRight className="h-3 w-3" />Saí</>}
+                            {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Ent</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saí</>}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[9px] text-muted-foreground sm:text-[10px]">
                             {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-xs">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
                           <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
