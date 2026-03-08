@@ -45,7 +45,7 @@ const Dashboard = () => {
 
   const alertItems = items.filter(
     (i) => getProductStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
-  ).slice(0, 6);
+  );
 
   const statsCards = [
     { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
