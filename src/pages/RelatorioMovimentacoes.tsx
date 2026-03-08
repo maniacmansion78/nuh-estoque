@@ -59,8 +59,42 @@ const RelatorioMovimentacoes = () => {
       }));
   }, [dbMovements, dbProducts, monthStart, monthEnd]);
 
+  const reportRef = useRef<HTMLDivElement>(null);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgData = canvas.toDataURL("image/png");
+      const pdfWidth = 190;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = pdfHeight;
+      let position = 10;
+
+      pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
+      heightLeft -= 277;
+
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position -= 277;
+        pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
+        heightLeft -= 277;
+      }
+
+      const filename = `relatorio-${format(currentMonth, "yyyy-MM")}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+    }
   };
 
   if (productsLoading || movementsLoading) {
