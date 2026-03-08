@@ -92,5 +92,17 @@ export function useMovements() {
     return true;
   };
 
-  return { items, loading, addMovement, fetchMovements };
+  const deleteMovement = async (id: string) => {
+    const { error } = await supabase.from("movements").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao remover movimentação:", error);
+      toast.error("Erro ao remover movimentação");
+      return false;
+    }
+    toast.success("Movimentação removida!");
+    await fetchMovements();
+    return true;
+  };
+
+  return { items, loading, addMovement, deleteMovement, fetchMovements };
 }
