@@ -178,11 +178,6 @@ export default function LandingPage() {
           <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-
-          {/* Mobile menu toggle */}
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
         </div>
 
         {mobileMenuOpen && (
@@ -403,7 +398,7 @@ export default function LandingPage() {
 
 
       {/* FAQ */}
-      <section id="faq" className="bg-[hsl(220,14%,96%)] py-20">
+      <section id="faq" className="bg-[hsl(220,14%,96%)] py-10">
         <div className="mx-auto max-w-2xl px-4">
           <motion.h2
             className="text-center text-3xl font-bold md:text-4xl"
