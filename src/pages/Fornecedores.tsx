@@ -137,8 +137,7 @@ const Fornecedores = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((s) => {
             const supplierProducts = products.filter((p) => p.supplier_id === s.id);
-            const supplierIngredients = ingredients.filter((i) => i.supplier_id === s.id);
-            const totalItems = supplierProducts.length + supplierIngredients.length;
+            const totalItems = supplierProducts.length;
             return (
               <Card key={s.id} className="group transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
