@@ -58,15 +58,15 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral do estoque do NUH Asian Food</p>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Dashboard</h1>
+          <p className="text-sm text-muted-foreground sm:text-base">Visão geral do estoque do NUH Asian Food</p>
         </div>
-        <div className="flex gap-3">
-          <Button size="lg" className="gap-2" onClick={() => navigate("/movimentacoes")}>
-            <Plus className="h-5 w-5" /> Nova Entrada
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-3">
+          <Button size="sm" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => navigate("/movimentacoes")}>
+            <Plus className="h-4 w-4" /> Nova Entrada
           </Button>
-          <Button size="lg" variant="outline" className="gap-2" onClick={() => navigate("/movimentacoes")}>
-            <Minus className="h-5 w-5" /> Nova Saída
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => navigate("/movimentacoes")}>
+            <Minus className="h-4 w-4" /> Nova Saída
           </Button>
         </div>
       </div>
