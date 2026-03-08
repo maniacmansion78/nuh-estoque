@@ -21,9 +21,9 @@ const baseNavItems = [
   { to: "/dashboard", label: "Tela Inicial", icon: LayoutDashboard },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
-  { to: "/relatorio", label: "Relatório Mensal", icon: FileText },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/nao-conformidades", label: "Não Conformidades", icon: AlertTriangle },
+  { to: "/relatorio", label: "Relatório Mensal", icon: FileText },
 ];
 
 const adminNavItems = [
