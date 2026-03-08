@@ -171,7 +171,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "" });
+          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
