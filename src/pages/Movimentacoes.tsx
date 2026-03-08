@@ -53,7 +53,7 @@ const Movimentacoes = () => {
       unit: p.unit,
       price: Number(p.price),
       expiry_date: p.expiry_date,
-    }));
+    })).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   }, [dbProducts]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
