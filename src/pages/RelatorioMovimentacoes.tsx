@@ -144,52 +144,52 @@ const RelatorioMovimentacoes = () => {
         </Button>
       </div>
 
-      <div ref={reportRef}>
-        {/* Print header - only visible on print */}
-        <div className="hidden print:block text-center mb-6">
-          <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
-          <p className="text-lg capitalize">{monthLabel}</p>
+      <div ref={reportRef} className="pdf-content">
+        {/* PDF/Print header */}
+        <div className="hidden print:block text-center mb-4">
+          <h1 className="text-lg font-bold">Relatório de Movimentações</h1>
+          <p className="text-sm capitalize">{monthLabel}</p>
         </div>
 
         <Card className="print:shadow-none print:border-none">
-        <CardHeader className="print:hidden">
-          <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6 print:p-0">
-          {report.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhuma movimentação neste mês.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead className="text-center">Entrada</TableHead>
-                  <TableHead className="text-center">Saída</TableHead>
-                  <TableHead className="text-center">Saldo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {report.map((row) => (
-                  <TableRow key={row.name}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell className="text-center text-success font-semibold">
-                      +{row.totalIn} {row.unit}
-                    </TableCell>
-                    <TableCell className="text-center text-destructive font-semibold">
-                      -{row.totalOut} {row.unit}
-                    </TableCell>
-                    <TableCell className="text-center font-semibold">
-                      {Math.round((row.totalIn - row.totalOut) * 100) / 100} {row.unit}
-                    </TableCell>
+          <CardHeader className="py-3 print:hidden">
+            <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4 print:p-0">
+            {report.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhuma movimentação neste mês.
+              </p>
+            ) : (
+              <Table className="text-xs">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="py-1.5 text-xs">Produto</TableHead>
+                    <TableHead className="py-1.5 text-xs text-center">Entrada</TableHead>
+                    <TableHead className="py-1.5 text-xs text-center">Saída</TableHead>
+                    <TableHead className="py-1.5 text-xs text-center">Saldo</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {report.map((row) => (
+                    <TableRow key={row.name}>
+                      <TableCell className="py-1.5 font-medium text-xs">{row.name}</TableCell>
+                      <TableCell className="py-1.5 text-center text-success font-semibold text-xs">
+                        +{row.totalIn} {row.unit}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-center text-destructive font-semibold text-xs">
+                        -{row.totalOut} {row.unit}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-center font-semibold text-xs">
+                        {Math.round((row.totalIn - row.totalOut) * 100) / 100} {row.unit}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
