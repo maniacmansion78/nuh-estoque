@@ -53,6 +53,7 @@ const Movimentacoes = () => {
       unit: p.unit,
       price: Number(p.price),
       expiry_date: p.expiry_date,
+      lote: p.lote,
     })).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   }, [dbProducts]);
 
@@ -239,7 +240,7 @@ const Movimentacoes = () => {
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
-                          <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
+                          <span><span className="text-muted-foreground">Lote:</span> <strong>{ing.lote || "—"}</strong></span>
                         </div>
                       </CardContent>
                     </Card>
@@ -269,7 +270,7 @@ const Movimentacoes = () => {
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
-                          <span><span className="text-muted-foreground">R$:</span> <strong>{ing.price.toFixed(2)}</strong></span>
+                          <span><span className="text-muted-foreground">Lote:</span> <strong>{ing.lote || "—"}</strong></span>
                         </div>
                       </CardContent>
                     </Card>
