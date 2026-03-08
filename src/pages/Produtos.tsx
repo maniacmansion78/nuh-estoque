@@ -84,6 +84,17 @@ const Produtos = () => {
     return map;
   }, [dbMovements]);
 
+  const latestExpiryPerProduct = useMemo(() => {
+    const map: Record<string, string> = {};
+    // dbMovements is already sorted by date desc
+    for (const mov of dbMovements) {
+      if (mov.type === "in" && mov.expiry_date && !map[mov.product_id]) {
+        map[mov.product_id] = mov.expiry_date;
+      }
+    }
+    return map;
+  }, [dbMovements]);
+
   const filtered = useMemo(() => {
     const base = items.filter((i) => {
       const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
@@ -264,7 +275,7 @@ const Produtos = () => {
                       <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
                       
-                      <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
+                      <span><span className="text-muted-foreground">Val:</span> <strong>{latestExpiryPerProduct[item.id] ? format(new Date(latestExpiryPerProduct[item.id]), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
                     <div className="flex items-center gap-1.5 lg:shrink-0">
                       {statusBadge(item)}
