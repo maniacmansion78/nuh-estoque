@@ -344,30 +344,6 @@ const Produtos = () => {
               />
               <p className="text-xs text-muted-foreground">Alerta será exibido quando faltar esse número de dias para vencer</p>
             </div>
-            {editingItem && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Lote</Label>
-                    <Input value={form.lote} onChange={(e) => setForm({ ...form, lote: e.target.value })} placeholder="Ex: LC-2026-001" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Validade</Label>
-                    <Input type="date" value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Quantidade</Label>
-                    <Input type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Preço Médio (R$)</Label>
-                    <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
-                  </div>
-                </div>
-              </>
-            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
