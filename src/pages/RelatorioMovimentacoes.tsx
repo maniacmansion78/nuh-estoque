@@ -1,0 +1,154 @@
+import { useState, useMemo } from "react";
+import { Printer, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useProducts } from "@/hooks/useProducts";
+import { useMovements } from "@/hooks/useMovements";
+
+const RelatorioMovimentacoes = () => {
+  const { items: dbProducts, loading: productsLoading } = useProducts();
+  const { items: dbMovements, loading: movementsLoading } = useMovements();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+
+  const report = useMemo(() => {
+    const filtered = dbMovements.filter((m) => {
+      const d = new Date(m.date);
+      return d >= monthStart && d <= monthEnd;
+    });
+
+    const map: Record<string, { name: string; unit: string; totalIn: number; totalOut: number }> = {};
+
+    for (const mov of filtered) {
+      if (!map[mov.product_id]) {
+        const product = dbProducts.find((p) => p.id === mov.product_id);
+        map[mov.product_id] = {
+          name: product?.name || "Produto removido",
+          unit: product?.unit || "",
+          totalIn: 0,
+          totalOut: 0,
+        };
+      }
+      if (mov.type === "in") {
+        map[mov.product_id].totalIn += Number(mov.quantity);
+      } else {
+        map[mov.product_id].totalOut += Number(mov.quantity);
+      }
+    }
+
+    return Object.values(map)
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+      .map((r) => ({
+        ...r,
+        totalIn: Math.round(r.totalIn * 100) / 100,
+        totalOut: Math.round(r.totalOut * 100) / 100,
+      }));
+  }, [dbMovements, dbProducts, monthStart, monthEnd]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  if (productsLoading || movementsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Carregando relatório...</p>
+      </div>
+    );
+  }
+
+  const monthLabel = format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR });
+
+  return (
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
+      {/* Header - hidden on print */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
+        <div className="text-center sm:text-left">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
+            Relatório Mensal
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Entradas e saídas por produto
+          </p>
+        </div>
+        <Button size="lg" className="gap-2" onClick={handlePrint}>
+          <Printer className="h-5 w-5" />
+          Imprimir
+        </Button>
+      </div>
+
+      {/* Month selector - hidden on print */}
+      <div className="flex items-center justify-center gap-4 print:hidden">
+        <Button variant="outline" size="icon" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-lg font-semibold capitalize min-w-[200px] text-center">
+          {monthLabel}
+        </span>
+        <Button variant="outline" size="icon" onClick={() => setCurrentMonth((m) => addMonths(m, 1))}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Print header - only visible on print */}
+      <div className="hidden print:block text-center mb-6">
+        <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
+        <p className="text-lg capitalize">{monthLabel}</p>
+      </div>
+
+      <Card className="print:shadow-none print:border-none">
+        <CardHeader className="print:hidden">
+          <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6 print:p-0">
+          {report.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhuma movimentação neste mês.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produto</TableHead>
+                  <TableHead className="text-center">Entrada</TableHead>
+                  <TableHead className="text-center">Saída</TableHead>
+                  <TableHead className="text-center">Saldo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {report.map((row) => (
+                  <TableRow key={row.name}>
+                    <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell className="text-center text-success font-semibold">
+                      +{row.totalIn} {row.unit}
+                    </TableCell>
+                    <TableCell className="text-center text-destructive font-semibold">
+                      -{row.totalOut} {row.unit}
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">
+                      {Math.round((row.totalIn - row.totalOut) * 100) / 100} {row.unit}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default RelatorioMovimentacoes;
