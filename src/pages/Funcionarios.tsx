@@ -125,7 +125,25 @@ const Funcionarios = () => {
     }
   };
 
-  return (
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-employee", {
+        body: { user_id: deleteTarget.user_id },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${deleteTarget.display_name} removido com sucesso`);
+      setDeleteTarget(null);
+      fetchEmployees();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao deletar funcionário");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
