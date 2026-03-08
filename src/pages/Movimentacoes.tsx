@@ -333,7 +333,7 @@ const Movimentacoes = () => {
 
             <div className="grid gap-2">
               <Label>Quantidade</Label>
-              <Input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
+              <Input type="number" step="0.1" value={form.quantity || ""} placeholder="0" onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
             </div>
             {form.type === "in" && isAdmin && (
               <div className="grid gap-2">
