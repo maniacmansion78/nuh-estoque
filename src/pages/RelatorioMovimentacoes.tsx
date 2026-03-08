@@ -190,6 +190,7 @@ const RelatorioMovimentacoes = () => {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
