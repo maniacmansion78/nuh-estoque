@@ -246,7 +246,7 @@ export default function LandingPage() {
             asChild
           >
             <a href="https://checkout.nexano.com.br/checkout/cmmfqefvo033g1rmfeh5a8jjw?offer=IU7FIBE" target="_blank" rel="noopener noreferrer">
-              🎁 Teste Demo de 7 Dias
+              🎁 Demonstração de 7 Dias
             </a>
           </Button>
           <Link to="/login">
