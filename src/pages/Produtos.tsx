@@ -42,7 +42,8 @@ import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 
-const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas", "Importados"];
+const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
+const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
 const emptyForm: ProductForm = {
   name: "",
