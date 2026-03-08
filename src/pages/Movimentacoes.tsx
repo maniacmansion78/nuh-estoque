@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BatchInfo {
   expiry_date: string;
