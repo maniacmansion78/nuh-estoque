@@ -78,6 +78,15 @@ export function useMovements() {
 
       {
         const finalQty = Math.max(0, newQty);
+        const { error: updError } = await supabase
+          .from("products")
+          .update({ quantity: finalQty })
+          .eq("id", movement.product_id);
+
+        if (updError) {
+          console.error("Erro ao atualizar quantidade:", updError);
+        }
+      }
 
         const { error: updError } = await supabase
           .from("products")
