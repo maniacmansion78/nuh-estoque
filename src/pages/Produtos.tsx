@@ -84,6 +84,18 @@ const Produtos = () => {
     return map;
   }, [dbMovements]);
 
+  const latestExpiryPerProduct = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const mov of dbMovements) {
+      if (mov.type === "in" && mov.expiry_date) {
+        if (!map[mov.product_id] || new Date(mov.date) > new Date(map[mov.product_id] ? dbMovements.find(m => m.product_id === mov.product_id && m.expiry_date === map[mov.product_id])?.date || "" : "")) {
+          map[mov.product_id] = mov.expiry_date;
+        }
+      }
+    }
+    return map;
+  }, [dbMovements]);
+
   const filtered = useMemo(() => {
     const base = items.filter((i) => {
       const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
