@@ -38,6 +38,14 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route
+        path="/conta-bloqueada"
+        element={
+          <ProtectedRoute allowBlocked>
+            <ContaBloqueada />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/alterar-senha"
         element={
           <ProtectedRoute allowTempPassword>
