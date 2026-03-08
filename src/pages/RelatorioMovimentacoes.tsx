@@ -85,9 +85,9 @@ const RelatorioMovimentacoes = () => {
 
       while (heightLeft > 0) {
         pdf.addPage();
-        position -= 277;
-        pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
-        heightLeft -= 277;
+        position -= 287;
+        pdf.addImage(imgData, "PNG", 5, position, pdfWidth, pdfHeight);
+        heightLeft -= 287;
       }
 
       const filename = `relatorio-${format(currentMonth, "yyyy-MM")}.pdf`;
