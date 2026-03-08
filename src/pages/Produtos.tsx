@@ -263,7 +263,7 @@ const Produtos = () => {
                       <span><span className="text-muted-foreground">Lotes:</span> <strong className="break-all">{(lotesPerProduct[item.id] || []).length > 0 ? (lotesPerProduct[item.id]).join(", ") : "—"}</strong></span>
                       <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">R$:</span> <strong>{Number(item.price).toFixed(2)}</strong></span>
+                      
                       <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
                     <div className="flex items-center gap-1.5 lg:shrink-0">
