@@ -269,7 +269,7 @@ export default function LandingPage() {
               Como Funciona o Aplicativo de Controle de Estoque?
             </motion.h2>
             <motion.p className="mx-auto mt-4 max-w-xl text-[hsl(220,10%,45%)]" variants={fadeUp}>
-              Chega de planilhas, cadernos e controles manuais. O NUH é seu braço direito na gestão da cozinha.
+              O controle de estoque é seu braço direito na gestão de custos e produção.
             </motion.p>
           </motion.div>
           <motion.div
