@@ -42,7 +42,8 @@ import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 
-const categories: Category[] = ["Vegetais", "Proteínas", "Temperos", "Bebidas", "Importados"];
+const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
+const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
 const emptyForm: ProductForm = {
   name: "",
@@ -326,7 +327,7 @@ const Produtos = () => {
               <Select value={form.supplier_id} onValueChange={(v) => setForm({ ...form, supplier_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {suppliers.map((s) => (
+                  {sortedSuppliers.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>
