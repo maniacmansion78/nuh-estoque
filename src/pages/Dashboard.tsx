@@ -58,7 +58,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Dashboard</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Tela Inicial</h1>
           <p className="text-sm text-muted-foreground sm:text-base">Visão geral do estoque do NUH Asian Food</p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-3">
