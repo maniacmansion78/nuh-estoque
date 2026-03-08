@@ -75,13 +75,13 @@ const RelatorioMovimentacoes = () => {
       });
       const pdf = new jsPDF("p", "mm", "a4");
       const imgData = canvas.toDataURL("image/png");
-      const pdfWidth = 190;
+      const pdfWidth = 200;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       let heightLeft = pdfHeight;
-      let position = 10;
+      let position = 5;
 
-      pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
-      heightLeft -= 277;
+      pdf.addImage(imgData, "PNG", 5, position, pdfWidth, pdfHeight);
+      heightLeft -= 287;
 
       while (heightLeft > 0) {
         pdf.addPage();
