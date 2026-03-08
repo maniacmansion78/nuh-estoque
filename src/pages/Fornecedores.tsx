@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Plus, Edit, Trash2, Truck, ShoppingCart, Mail, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Truck, ShoppingCart, Mail, Phone, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,8 @@ import {
   getIngredientStatus,
   type Supplier,
 } from "@/data/mockData";
+import { useProducts, type Product } from "@/hooks/useProducts";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Fornecedores = () => {
@@ -27,30 +31,74 @@ const Fornecedores = () => {
   const [reorderOpen, setReorderOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Supplier | null>(null);
   const [form, setForm] = useState({ name: "", contact: "", email: "" });
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  const { items: products, fetchProducts } = useProducts();
 
   const lowStockItems = ingredients.filter((i) => getIngredientStatus(i) !== "ok");
 
   const openAdd = () => {
     setEditingItem(null);
     setForm({ name: "", contact: "", email: "" });
+    setSelectedProductIds([]);
     setDialogOpen(true);
   };
 
   const openEdit = (s: Supplier) => {
     setEditingItem(s);
     setForm({ name: s.name, contact: s.contact, email: s.email });
+    // Pre-select products that already belong to this supplier
+    const supplierProducts = products.filter((p) => p.supplier_id === s.id);
+    setSelectedProductIds(supplierProducts.map((p) => p.id));
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!form.name.trim()) { toast.error("Nome é obrigatório"); return; }
+  const toggleProduct = (productId: string) => {
+    setSelectedProductIds((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+
+    let supplierId: string;
+
     if (editingItem) {
+      supplierId = editingItem.id;
       setItems((prev) => prev.map((i) => (i.id === editingItem.id ? { ...i, ...form } : i)));
       toast.success("Fornecedor atualizado!");
     } else {
-      setItems((prev) => [...prev, { id: `s${Date.now()}`, ...form }]);
+      supplierId = `s${Date.now()}`;
+      setItems((prev) => [...prev, { id: supplierId, ...form }]);
       toast.success("Fornecedor adicionado!");
     }
+
+    // Update products: set supplier_id for selected, clear for unselected
+    const previousProducts = products.filter((p) => p.supplier_id === supplierId);
+    const previousIds = previousProducts.map((p) => p.id);
+
+    // Products to assign to this supplier
+    const toAssign = selectedProductIds.filter((id) => !previousIds.includes(id));
+    // Products to unassign from this supplier
+    const toUnassign = previousIds.filter((id) => !selectedProductIds.includes(id));
+
+    for (const pid of toAssign) {
+      await supabase.from("products").update({ supplier_id: supplierId }).eq("id", pid);
+    }
+    for (const pid of toUnassign) {
+      await supabase.from("products").update({ supplier_id: "" }).eq("id", pid);
+    }
+
+    if (toAssign.length > 0 || toUnassign.length > 0) {
+      await fetchProducts();
+    }
+
     setDialogOpen(false);
   };
 
@@ -88,7 +136,9 @@ const Fornecedores = () => {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((s) => {
+            const supplierProducts = products.filter((p) => p.supplier_id === s.id);
             const supplierIngredients = ingredients.filter((i) => i.supplier_id === s.id);
+            const totalItems = supplierProducts.length + supplierIngredients.length;
             return (
               <Card key={s.id} className="group transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
@@ -100,7 +150,7 @@ const Fornecedores = () => {
                       <div>
                         <p className="font-semibold">{s.name}</p>
                         <Badge variant="outline" className="mt-1 text-xs">
-                          {supplierIngredients.length} itens
+                          {totalItems} itens
                         </Badge>
                       </div>
                     </div>
@@ -123,6 +173,20 @@ const Fornecedores = () => {
                       {s.email}
                     </div>
                   </div>
+                  {supplierProducts.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {supplierProducts.slice(0, 3).map((p) => (
+                        <Badge key={p.id} variant="secondary" className="text-xs">
+                          {p.name}
+                        </Badge>
+                      ))}
+                      {supplierProducts.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{supplierProducts.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -149,6 +213,42 @@ const Fornecedores = () => {
             <div className="grid gap-2">
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Produtos deste fornecedor
+              </Label>
+              {products.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum produto cadastrado ainda.</p>
+              ) : (
+                <ScrollArea className="h-[180px] rounded-md border border-border p-3">
+                  <div className="space-y-2">
+                    {products.map((product) => (
+                      <label
+                        key={product.id}
+                        className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          checked={selectedProductIds.includes(product.id)}
+                          onCheckedChange={() => toggleProduct(product.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.category} · {product.quantity} {product.unit}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+              {selectedProductIds.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedProductIds.length} produto(s) selecionado(s)
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
