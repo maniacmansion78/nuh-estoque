@@ -119,10 +119,16 @@ const RelatorioMovimentacoes = () => {
             Entradas e saídas por produto
           </p>
         </div>
-        <Button size="lg" className="gap-2" onClick={handlePrint}>
-          <Printer className="h-5 w-5" />
-          Imprimir
-        </Button>
+        <div className="flex gap-2">
+          <Button size="lg" className="gap-2" onClick={handleDownloadPDF}>
+            <Download className="h-5 w-5" />
+            Baixar PDF
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2" onClick={handlePrint}>
+            <Printer className="h-5 w-5" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       {/* Month selector - hidden on print */}
