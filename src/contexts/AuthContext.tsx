@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   displayName: string;
   tempPassword: boolean;
+  blocked: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   clearTempPassword: () => void;
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [tempPassword, setTempPassword] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchUserMeta = async (userId: string) => {
@@ -42,12 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (profileError) throw profileError;
 
-      // If blocked, sign out immediately
       if (profile?.blocked) {
-        await supabase.auth.signOut();
+        setBlocked(true);
+        setDisplayName(profile?.display_name || "");
         return;
       }
 
+      setBlocked(false);
       setDisplayName(profile?.display_name || "");
       setTempPassword(profile?.temp_password || false);
     } catch (err) {
