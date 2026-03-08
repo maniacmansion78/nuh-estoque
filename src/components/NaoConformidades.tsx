@@ -160,15 +160,17 @@ export function NaoConformidades() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <AlertTriangle className="h-5 w-5 text-destructive" />
-          Não Conformidades
-        </CardTitle>
-        <Button size="sm" className="gap-1" onClick={() => { resetForm(); setDialogOpen(true); }}>
-          <Plus className="h-4 w-4" />
-          Registrar
-        </Button>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
+            Não Conformidades
+          </CardTitle>
+          <Button size="sm" className="gap-1 text-xs shrink-0" onClick={() => { resetForm(); setDialogOpen(true); }}>
+            <Plus className="h-3.5 w-3.5" />
+            Registrar
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length === 0 ? (
