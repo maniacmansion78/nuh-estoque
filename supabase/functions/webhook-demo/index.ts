@@ -19,11 +19,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── 1. Parse payload ───────────────────────────────────────────
     const payload = await req.json();
-    console.log("📦 Webhook received — full payload:", JSON.stringify(payload, null, 2));
+    console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
 
-    // ── 2. Token validation ────────────────────────────────────────
+    // Token validation
     const webhookToken = Deno.env.get("WEBHOOK_PURCHASE_TOKEN");
     if (webhookToken) {
       const incomingToken =
@@ -38,12 +37,9 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      console.log("✅ Webhook token validated");
-    } else {
-      console.warn("⚠️ WEBHOOK_PURCHASE_TOKEN not set — skipping token validation (test mode)");
     }
 
-    // ── 3. Extract buyer data (Nexano format: payload.client) ─────
+    // Extract buyer data (same Nexano format)
     const buyer =
       payload?.client ||
       payload?.data?.buyer ||
@@ -52,40 +48,15 @@ Deno.serve(async (req) => {
       payload?.customer ||
       payload;
 
-    const name = (
-      buyer?.name ||
-      buyer?.full_name ||
-      buyer?.nome ||
-      ""
-    ).trim();
-
-    const email = (
-      buyer?.email ||
-      buyer?.email_address ||
-      ""
-    ).trim().toLowerCase();
-
+    const name = (buyer?.name || buyer?.full_name || buyer?.nome || "").trim();
+    const email = (buyer?.email || buyer?.email_address || "").trim().toLowerCase();
     const document = (
-      buyer?.cpf ||
-      buyer?.cnpj ||
-      buyer?.doc ||
-      buyer?.document ||
-      buyer?.documento ||
-      ""
+      buyer?.cpf || buyer?.cnpj || buyer?.doc || buyer?.document || buyer?.documento || ""
     ).toString().replace(/\D/g, "");
-
-    // Unique event ID for idempotency
-    const eventId =
-      payload?.transaction?.id ||
-      payload?.id ||
-      payload?.event_id ||
-      "";
-
-    console.log("👤 Extracted data:", { name, email, document: document ? "***" : "(empty)", eventId });
 
     if (!email) {
       return new Response(
-        JSON.stringify({ error: "Email do comprador não encontrado no payload" }),
+        JSON.stringify({ error: "Email não encontrado no payload" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -97,42 +68,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── 4. Supabase admin client ───────────────────────────────────
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // ── 5. Idempotency — check if user already exists ──────────────
+    // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(
       (u: any) => u.email?.toLowerCase() === email
     );
 
     if (existingUser) {
-      console.log("ℹ️ User already exists, unblocking and clearing trial:", email);
-      // Unblock and clear trial for returning users
-      await supabaseAdmin
-        .from("profiles")
-        .update({ blocked: false, trial_ends_at: null })
-        .eq("user_id", existingUser.id);
-
+      console.log("ℹ️ User already exists:", email);
       return new Response(
-        JSON.stringify({
-          status: "reactivated",
-          message: "Usuário reativado com sucesso",
-          user_id: existingUser.id,
-        }),
+        JSON.stringify({ status: "already_exists", message: "Usuário já cadastrado", user_id: existingUser.id }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ── 6. Create user with document as temp password ──────────────
-    const tempPassword = document; // CPF/CNPJ as initial password
-
+    // Create user with document as temp password
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password: tempPassword,
+      password: document,
       email_confirm: true,
       user_metadata: { display_name: name || email },
     });
@@ -146,10 +104,14 @@ Deno.serve(async (req) => {
     }
 
     const userId = newUser.user.id;
-    console.log("✅ User created:", userId);
+    console.log("✅ Demo user created:", userId);
 
-    // ── 7. Wait for trigger, then ensure profile + mark temp password ──
+    // Wait for trigger to create profile
     await new Promise((r) => setTimeout(r, 500));
+
+    // Calculate trial end date (7 days from now)
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
@@ -160,30 +122,36 @@ Deno.serve(async (req) => {
     if (profile) {
       await supabaseAdmin
         .from("profiles")
-        .update({ display_name: name || email, temp_password: true })
+        .update({
+          display_name: name || email,
+          temp_password: true,
+          trial_ends_at: trialEndsAt.toISOString(),
+        })
         .eq("user_id", userId);
     } else {
       await supabaseAdmin.from("profiles").insert({
         user_id: userId,
         display_name: name || email,
         temp_password: true,
+        trial_ends_at: trialEndsAt.toISOString(),
       });
     }
 
-    // ── 8. Assign admin role (buyer is the owner) ─────────────────
+    // Assign admin role (demo user is the owner)
     await supabaseAdmin.from("user_roles").insert({
       user_id: userId,
       role: "admin",
     });
 
-    console.log("✅ Webhook processed successfully for:", email);
+    console.log("✅ Demo webhook processed for:", email, "trial ends:", trialEndsAt.toISOString());
 
     return new Response(
       JSON.stringify({
-        status: "created",
-        message: "Usuário criado com sucesso",
+        status: "demo_created",
+        message: "Usuário demo criado com sucesso",
         user_id: userId,
         email,
+        trial_ends_at: trialEndsAt.toISOString(),
       }),
       { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

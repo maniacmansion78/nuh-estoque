@@ -38,13 +38,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name, temp_password, blocked")
+        .select("display_name, temp_password, blocked, trial_ends_at")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (profileError) throw profileError;
 
-      if (profile?.blocked) {
+      // Check if blocked OR trial expired
+      const trialExpired = profile?.trial_ends_at && new Date(profile.trial_ends_at) < new Date();
+      if (profile?.blocked || trialExpired) {
         setBlocked(true);
         setDisplayName(profile?.display_name || "");
         return;
