@@ -212,6 +212,18 @@ const Produtos = () => {
         </Select>
       </div>
 
+  const lotesPerProduct = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const mov of dbMovements) {
+      if (mov.lote && mov.lote.trim()) {
+        if (!map[mov.product_id]) map[mov.product_id] = [];
+        if (!map[mov.product_id].includes(mov.lote.trim())) {
+          map[mov.product_id].push(mov.lote.trim());
+        }
+      }
+    }
+    return map;
+  }, [dbMovements]);
 
 
       {filtered.length === 0 ? (
