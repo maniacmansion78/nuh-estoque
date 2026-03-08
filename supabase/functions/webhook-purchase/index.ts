@@ -110,11 +110,17 @@ Deno.serve(async (req) => {
     );
 
     if (existingUser) {
-      console.log("ℹ️ User already exists, skipping creation:", email);
+      console.log("ℹ️ User already exists, unblocking and clearing trial:", email);
+      // Unblock and clear trial for returning users
+      await supabaseAdmin
+        .from("profiles")
+        .update({ blocked: false, trial_ends_at: null })
+        .eq("user_id", existingUser.id);
+
       return new Response(
         JSON.stringify({
-          status: "already_exists",
-          message: "Usuário já cadastrado",
+          status: "reactivated",
+          message: "Usuário reativado com sucesso",
           user_id: existingUser.id,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
