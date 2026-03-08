@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BatchInfo {
   expiry_date: string;
@@ -42,6 +43,7 @@ interface BatchInfo {
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading } = useProducts();
   const { items: dbMovements, loading: movementsLoading, addMovement } = useMovements();
+  const { isAdmin } = useAuth();
 
   const allProducts = useMemo(() => {
     return dbProducts.map((p) => ({
@@ -62,6 +64,7 @@ const Movimentacoes = () => {
     quantity: 0,
     expiry_date: undefined as Date | undefined,
     selected_batch: "" as string,
+    lote: "" as string,
   });
 
   // Calculate available batches per product (in qty - out qty grouped by expiry_date)
@@ -140,6 +143,14 @@ const Movimentacoes = () => {
       });
 
       if (success) {
+        // Update lote on product if admin provided one
+        if (form.type === "in" && form.lote.trim() && isAdmin) {
+          const { supabase } = await import("@/integrations/supabase/client");
+          await supabase
+            .from("products")
+            .update({ lote: form.lote.trim() })
+            .eq("id", form.product_id);
+        }
         toast.success(
           form.type === "in"
             ? `Entrada registrada! ${product.name}`
@@ -168,7 +179,7 @@ const Movimentacoes = () => {
           <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
         </div>
         <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "" });
+          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
           setDialogOpen(true);
         }}>
           <Plus className="h-5 w-5" />
@@ -308,6 +319,17 @@ const Movimentacoes = () => {
               <Label>Quantidade</Label>
               <Input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
             </div>
+            {form.type === "in" && isAdmin && (
+              <div className="grid gap-2">
+                <Label>Lote</Label>
+                <Input
+                  type="text"
+                  placeholder="Ex: L2024-001"
+                  value={form.lote}
+                  onChange={(e) => setForm({ ...form, lote: e.target.value })}
+                />
+              </div>
+            )}
             {form.type === "in" && (
               <div className="grid gap-2">
                 <Label>Data de Validade</Label>
