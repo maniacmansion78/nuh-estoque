@@ -168,22 +168,22 @@ const Funcionarios = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {employees.map((emp) => (
             <Card key={emp.user_id} className="transition-shadow hover:shadow-md">
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                   {emp.role === "admin" ? (
-                    <Shield className="h-6 w-6 text-primary" />
+                    <Shield className="h-5 w-5 text-primary" />
                   ) : (
-                    <User className="h-6 w-6 text-muted-foreground" />
+                    <User className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{emp.display_name}</p>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="truncate text-sm font-semibold">{emp.display_name}</p>
                   {emp.job_title && (
-                    <p className="text-sm text-muted-foreground">{emp.job_title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{emp.job_title}</p>
                   )}
                   <Badge
                     variant={emp.role === "admin" ? "default" : "secondary"}
-                    className="mt-1"
+                    className="mt-1 text-[10px]"
                   >
                     {emp.role === "admin" ? "Administrador" : "Funcionário"}
                   </Badge>
@@ -192,7 +192,7 @@ const Funcionarios = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-destructive/10"
+                    className="shrink-0 text-destructive hover:bg-destructive/10"
                     onClick={() => setDeleteTarget(emp)}
                   >
                     <Trash2 className="h-4 w-4" />
