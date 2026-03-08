@@ -86,6 +86,7 @@ const planFeatures = [
   "Não conformidades com fotos",
   "Dashboard com alertas",
   "Gestão de funcionários",
+  "Relatório mensal em PDF",
   "Suporte prioritário",
   "Atualizações gratuitas",
   "Acesso mobile completo",
