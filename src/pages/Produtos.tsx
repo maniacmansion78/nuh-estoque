@@ -71,6 +71,19 @@ const Produtos = () => {
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
 
+  const lotesPerProduct = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const mov of dbMovements) {
+      if (mov.lote && mov.lote.trim()) {
+        if (!map[mov.product_id]) map[mov.product_id] = [];
+        if (!map[mov.product_id].includes(mov.lote.trim())) {
+          map[mov.product_id].push(mov.lote.trim());
+        }
+      }
+    }
+    return map;
+  }, [dbMovements]);
+
   const filtered = useMemo(() => {
     const base = items.filter((i) => {
       const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
