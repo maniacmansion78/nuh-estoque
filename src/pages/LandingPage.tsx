@@ -368,11 +368,11 @@ export default function LandingPage() {
             <div className="p-8">
               <p className="text-sm font-medium text-[hsl(220,10%,45%)]">Semestral</p>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold">R$ 69</span>
+                <span className="text-5xl font-extrabold">R$ 59</span>
                 <span className="text-2xl font-bold text-[hsl(220,10%,45%)]">,90</span>
                 <span className="ml-1 text-[hsl(220,10%,45%)]">/mês</span>
               </div>
-              <p className="mt-2 text-xs text-[hsl(220,10%,55%)]">Cobrado semestralmente • R$ 419,40 total</p>
+              <p className="mt-2 text-xs text-[hsl(220,10%,55%)]">Cobrado semestralmente • R$ 359,40 total</p>
 
               <div className="mt-8 space-y-3">
                 <p className="text-sm font-semibold">✨ Tudo Incluído:</p>
