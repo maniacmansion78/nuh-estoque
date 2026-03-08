@@ -109,9 +109,9 @@ const Dashboard = () => {
                 const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
                 return (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{item.name}</p>
+                      <p className="truncate text-xs sm:text-sm font-medium">{item.name}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {stockStatus !== "ok" && (
                           <Badge
