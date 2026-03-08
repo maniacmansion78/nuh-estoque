@@ -139,6 +139,7 @@ export type Database = {
           display_name: string
           id: string
           job_title: string | null
+          temp_password: boolean
           user_id: string
         }
         Insert: {
@@ -146,6 +147,7 @@ export type Database = {
           display_name: string
           id?: string
           job_title?: string | null
+          temp_password?: boolean
           user_id: string
         }
         Update: {
@@ -153,6 +155,7 @@ export type Database = {
           display_name?: string
           id?: string
           job_title?: string | null
+          temp_password?: boolean
           user_id?: string
         }
         Relationships: []
