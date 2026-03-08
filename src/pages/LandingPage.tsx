@@ -385,9 +385,11 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 className="mt-8 w-full bg-primary text-lg font-bold text-primary-foreground hover:bg-primary/90"
-                onClick={() => scrollTo("plano")}
+                asChild
               >
-                🚀 Começar Agora
+                <a href="https://checkout.nexano.com.br/checkout/cmmfqefvo033g1rmfeh5a8jjw?offer=6QUFMRT" target="_blank" rel="noopener noreferrer">
+                  🚀 Começar Agora
+                </a>
               </Button>
               <p className="mt-3 text-center text-xs text-[hsl(220,10%,55%)]">
                 Pagamento 100% seguro
