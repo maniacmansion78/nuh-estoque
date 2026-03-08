@@ -19,8 +19,8 @@ import logoNuh from "@/assets/logo-nuh.jpeg";
 const baseNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/produtos", label: "Produtos", icon: Package },
-  { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+  { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/nao-conformidades", label: "Não Conformidades", icon: AlertTriangle },
 ];
 
