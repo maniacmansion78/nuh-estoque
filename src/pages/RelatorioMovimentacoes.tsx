@@ -144,13 +144,14 @@ const RelatorioMovimentacoes = () => {
         </Button>
       </div>
 
-      {/* Print header - only visible on print */}
-      <div className="hidden print:block text-center mb-6">
-        <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
-        <p className="text-lg capitalize">{monthLabel}</p>
-      </div>
+      <div ref={reportRef}>
+        {/* Print header - only visible on print */}
+        <div className="hidden print:block text-center mb-6">
+          <h1 className="text-2xl font-bold">Relatório de Movimentações</h1>
+          <p className="text-lg capitalize">{monthLabel}</p>
+        </div>
 
-      <Card className="print:shadow-none print:border-none">
+        <Card className="print:shadow-none print:border-none">
         <CardHeader className="print:hidden">
           <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
         </CardHeader>
