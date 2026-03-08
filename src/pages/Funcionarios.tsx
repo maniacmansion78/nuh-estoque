@@ -35,13 +35,12 @@ interface Employee {
 }
 
 const Funcionarios = () => {
-  const { session } = useAuth();
+  const { user } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "" });
   const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "" });
 
   const fetchEmployees = async () => {
