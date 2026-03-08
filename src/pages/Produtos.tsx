@@ -77,7 +77,10 @@ const Produtos = () => {
       return matchSearch && matchCat;
     });
 
-    // Sort: products with most recent movements first
+    // Sort: alphabetical when filtering by category, otherwise by recent movements
+    if (categoryFilter !== "all") {
+      return base.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    }
     return base.sort((a, b) => {
       const lastA = dbMovements.find((m) => m.product_id === a.id);
       const lastB = dbMovements.find((m) => m.product_id === b.id);
