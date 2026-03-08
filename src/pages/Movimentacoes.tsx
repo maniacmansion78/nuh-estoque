@@ -43,6 +43,7 @@ interface BatchInfo {
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading } = useProducts();
   const { items: dbMovements, loading: movementsLoading, addMovement } = useMovements();
+  const { isAdmin } = useAuth();
 
   const allProducts = useMemo(() => {
     return dbProducts.map((p) => ({
