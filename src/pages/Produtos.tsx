@@ -278,7 +278,7 @@ const Produtos = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>{editingItem ? "Editar Produto" : "Novo Produto"}</DialogTitle>
             <DialogDescription>
