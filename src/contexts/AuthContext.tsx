@@ -36,11 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name, temp_password")
+        .select("display_name, temp_password, blocked")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (profileError) throw profileError;
+
+      // If blocked, sign out immediately
+      if (profile?.blocked) {
+        await supabase.auth.signOut();
+        return;
+      }
+
       setDisplayName(profile?.display_name || "");
       setTempPassword(profile?.temp_password || false);
     } catch (err) {
@@ -111,8 +118,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message || null };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+
+    // Check if user is blocked
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("blocked")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (profile?.blocked) {
+        await supabase.auth.signOut();
+        return { error: "Sua conta foi bloqueada. Entre em contato com o suporte." };
+      }
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {
