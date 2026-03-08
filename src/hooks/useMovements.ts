@@ -87,18 +87,7 @@ export function useMovements() {
           console.error("Erro ao atualizar quantidade:", updError);
         }
       }
-
-        const { error: updError } = await supabase
-          .from("products")
-          .update({ quantity: newQty })
-          .eq("id", movement.product_id);
-
-        if (updError) {
-          console.error("Erro ao atualizar quantidade:", updError);
-        }
-      }
     }
-
     await fetchMovements();
     return true;
   };
