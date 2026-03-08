@@ -56,7 +56,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
           <div>
             <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NUH</h1>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">
+            <p className="text-[8px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
               Controle de Estoque
             </p>
           </div>
