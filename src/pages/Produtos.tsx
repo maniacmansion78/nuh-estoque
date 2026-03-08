@@ -257,47 +257,45 @@ const Produtos = () => {
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             return (
-              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
-                <CardContent className="px-4 py-2.5">
-                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-6">
-                    <div className="flex items-center gap-2 min-w-0 lg:w-44 lg:shrink-0">
-                      <p className="truncate text-sm font-semibold">{item.name}</p>
-                      <Badge variant="outline" className="shrink-0 text-[10px]">{item.category}</Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs lg:flex-1">
-                      <span><span className="text-muted-foreground">Lote:</span> <strong>{item.lote}</strong></span>
-                      <span><span className="text-muted-foreground">Qtd Total:</span> <strong>{item.quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">Preço:</span> <strong>R$ {Number(item.price).toFixed(2)}</strong></span>
-                      <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
-                    </div>
-                    <div className="flex items-center gap-2 lg:shrink-0">
-                      {statusBadge(item)}
-                      {supplier && (
-                        <span className="truncate text-[11px] text-muted-foreground max-w-[100px]">{supplier.name}</span>
-                      )}
-                      <div className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(item)}>
-                          <Edit className="h-3 w-3" />
+              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md overflow-hidden">
+                <CardContent className="px-3 py-2 sm:px-4 sm:py-2.5">
+                  <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center lg:gap-6">
+                    <div className="flex items-center justify-between gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <p className="truncate text-[11px] sm:text-sm font-semibold">{item.name}</p>
+                        <Badge variant="outline" className="shrink-0 text-[8px] sm:text-[10px] px-1 py-0">{item.category}</Badge>
+                      </div>
+                      <div className="flex gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 shrink-0">
+                        <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6" onClick={() => openEdit(item)}>
+                          <Edit className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
-                          <Trash2 className="h-3 w-3" />
+                        <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
+                          <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         </Button>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[10px] sm:text-xs sm:flex sm:flex-wrap sm:gap-4 lg:flex-1">
+                      <span><span className="text-muted-foreground">Lote:</span> <strong className="break-all">{item.lote || "—"}</strong></span>
+                      <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
+                      <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
+                      <span><span className="text-muted-foreground">R$:</span> <strong>{Number(item.price).toFixed(2)}</strong></span>
+                      <span><span className="text-muted-foreground">Val:</span> <strong>{format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 lg:shrink-0">
+                      {statusBadge(item)}
                     </div>
                   </div>
 
                   {productMovements.length > 0 && (
-                    <div className="mt-2 border-t pt-2 space-y-1">
+                    <div className="mt-1.5 border-t pt-1.5 space-y-1">
                       {productMovements.map((mov) => (
-                        <div key={mov.id} className="flex items-center gap-4 text-xs py-1 px-2 rounded bg-muted/30">
-                          <Badge className={cn("gap-1 text-[10px] px-1.5 py-0.5 shrink-0", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
-                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Entrada</> : <><ArrowDownRight className="h-3 w-3" />Saída</>}
+                        <div key={mov.id} className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-2 gap-y-0.5 items-center text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 rounded bg-muted/30">
+                          <Badge className={cn("gap-0.5 text-[8px] sm:text-[10px] px-1 py-0 shrink-0", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
+                            {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Ent</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saí</>}
                           </Badge>
-                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {item.unit}</strong></span>
-                          <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM/yy HH:mm")}</strong></span>
-                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
-                          <span><span className="text-muted-foreground">R$:</span> <strong>{Number(item.price).toFixed(2)}</strong></span>
+                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity}</strong></span>
+                          <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM HH:mm")}</strong></span>
+                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy") : "—"}</strong></span>
                         </div>
                       ))}
                     </div>
