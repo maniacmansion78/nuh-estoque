@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProducts } from "@/hooks/useProducts";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import {
   Package,
@@ -8,74 +8,54 @@ import {
   TrendingDown,
   Plus,
   Minus,
-  ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ingredients,
-  weeklyConsumption,
-  getIngredientStatus,
-  getExpiryStatus,
-  getDaysUntilExpiry,
-} from "@/data/mockData";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function getProductStatus(p: { quantity: number; min_quantity: number }) {
+  if (p.quantity <= p.min_quantity * 0.5) return "critical";
+  if (p.quantity <= p.min_quantity) return "warning";
+  return "ok";
+}
+
+function getExpiryStatus(expiryDate: string, alertDays: number) {
+  const days = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (days <= Math.ceil(alertDays * 0.3)) return "critical";
+  if (days <= alertDays) return "warning";
+  return "ok";
+}
+
+function getDaysUntilExpiry(expiryDate: string) {
+  return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const totalItems = ingredients.length;
-  const lowStock = ingredients.filter((i) => getIngredientStatus(i) !== "ok").length;
-  const expiringSoon = ingredients.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
-  const criticalItems = ingredients.filter(
-    (i) => getIngredientStatus(i) === "critical" || getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
+  const { items, loading } = useProducts();
+
+  const totalItems = items.length;
+  const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
+  const expiringSoon = items.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
+  const criticalItems = items.filter(
+    (i) => getProductStatus(i) === "critical" || getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
   );
 
+  const alertItems = items.filter(
+    (i) => getProductStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
+  ).slice(0, 6);
+
   const statsCards = [
-    {
-      title: "Total de Itens",
-      value: totalItems,
-      icon: Package,
-      color: "text-primary",
-      bg: "bg-accent",
-    },
-    {
-      title: "Estoque Baixo",
-      value: lowStock,
-      icon: TrendingDown,
-      color: "text-destructive",
-      bg: "bg-destructive/10",
-    },
-    {
-      title: "Validade Próxima",
-      value: expiringSoon,
-      icon: Clock,
-      color: "text-warning",
-      bg: "bg-warning/10",
-    },
-    {
-      title: "Itens Críticos",
-      value: criticalItems.length,
-      icon: AlertTriangle,
-      color: "text-destructive",
-      bg: "bg-destructive/10",
-    },
+    { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
+    { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
+    { title: "Validade Próxima", value: expiringSoon, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
+    { title: "Itens Críticos", value: criticalItems.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Dashboard</h1>
@@ -83,12 +63,10 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-3">
           <Button size="lg" className="gap-2" onClick={() => navigate("/movimentacoes")}>
-            <Plus className="h-5 w-5" />
-            Nova Entrada
+            <Plus className="h-5 w-5" /> Nova Entrada
           </Button>
           <Button size="lg" variant="outline" className="gap-2" onClick={() => navigate("/movimentacoes")}>
-            <Minus className="h-5 w-5" />
-            Nova Saída
+            <Minus className="h-5 w-5" /> Nova Saída
           </Button>
         </div>
       </div>
@@ -103,73 +81,42 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
-                <p className="text-2xl font-bold">{stat.value}</p>
+                {loading ? (
+                  <Skeleton className="h-8 w-12 mt-1" />
+                ) : (
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        {/* Chart */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="text-lg">Consumo Semanal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyConsumption}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="entrada" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Entradas" />
-                  <Bar dataKey="saida" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Saídas" />
-                </BarChart>
-              </ResponsiveContainer>
+      {/* Alertas */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Alertas</h2>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Alerts */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Alertas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {ingredients
-              .filter(
-                (i) =>
-                  getIngredientStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
-              )
-              .slice(0, 6)
-              .map((item) => {
-                const stockStatus = getIngredientStatus(item);
+          ) : alertItems.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Nenhum alerta no momento.</p>
+          ) : (
+            <div className="space-y-3">
+              {alertItems.map((item) => {
+                const stockStatus = getProductStatus(item);
                 const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
                 return (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3"
-                  >
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{item.name}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {stockStatus !== "ok" && (
                           <Badge
                             variant={stockStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(
-                              stockStatus === "warning" &&
-                                "border-warning/30 bg-warning/10 text-warning-foreground"
-                            )}
+                            className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
                           >
                             <TrendingDown className="mr-1 h-3 w-3" />
                             {item.quantity}{item.unit}
@@ -178,10 +125,7 @@ const Dashboard = () => {
                         {expiryStatus !== "ok" && (
                           <Badge
                             variant={expiryStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(
-                              expiryStatus === "warning" &&
-                                "border-warning/30 bg-warning/10 text-warning-foreground"
-                            )}
+                            className={cn(expiryStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
                           >
                             <Clock className="mr-1 h-3 w-3" />
                             {days}d
@@ -192,11 +136,11 @@ const Dashboard = () => {
                   </div>
                 );
               })}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Não Conformidades */}
       <NaoConformidades />
     </div>
   );
