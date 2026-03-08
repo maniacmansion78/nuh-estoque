@@ -237,9 +237,11 @@ export default function LandingPage() {
           <Button
             size="lg"
             className="bg-primary px-8 text-lg font-semibold text-primary-foreground hover:bg-primary/90"
-            onClick={() => scrollTo("plano")}
+            asChild
           >
-            🚀 Começar Agora
+            <a href="https://checkout.nexano.com.br/checkout/cmmfqefvo033g1rmfeh5a8jjw?offer=6QUFMRT" target="_blank" rel="noopener noreferrer">
+              🚀 Começar Agora
+            </a>
           </Button>
           <Link to="/login">
             <Button
