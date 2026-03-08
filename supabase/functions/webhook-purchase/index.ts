@@ -43,21 +43,19 @@ Deno.serve(async (req) => {
       console.warn("⚠️ WEBHOOK_PURCHASE_TOKEN not set — skipping token validation (test mode)");
     }
 
-    // ── 3. Extract buyer data ──────────────────────────────────────
-    // Adapts to common payment platform structures
+    // ── 3. Extract buyer data (Nexano format: payload.client) ─────
     const buyer =
+      payload?.client ||
       payload?.data?.buyer ||
       payload?.data?.customer ||
       payload?.buyer ||
       payload?.customer ||
-      payload?.data ||
       payload;
 
     const name = (
       buyer?.name ||
       buyer?.full_name ||
       buyer?.nome ||
-      [buyer?.first_name, buyer?.last_name].filter(Boolean).join(" ") ||
       ""
     ).trim();
 
@@ -68,21 +66,19 @@ Deno.serve(async (req) => {
     ).trim().toLowerCase();
 
     const document = (
-      buyer?.doc ||
-      buyer?.document ||
       buyer?.cpf ||
       buyer?.cnpj ||
+      buyer?.doc ||
+      buyer?.document ||
       buyer?.documento ||
-      buyer?.identification?.number ||
       ""
     ).toString().replace(/\D/g, "");
 
     // Unique event ID for idempotency
     const eventId =
+      payload?.transaction?.id ||
       payload?.id ||
       payload?.event_id ||
-      payload?.data?.id ||
-      payload?.data?.transaction_id ||
       "";
 
     console.log("👤 Extracted data:", { name, email, document: document ? "***" : "(empty)", eventId });
