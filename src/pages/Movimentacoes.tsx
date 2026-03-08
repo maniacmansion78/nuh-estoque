@@ -141,6 +141,7 @@ const Movimentacoes = () => {
         type: form.type,
         quantity: form.quantity,
         expiry_date: expiryToSend,
+        lote: form.lote.trim(),
       });
 
       if (success) {
@@ -240,7 +241,7 @@ const Movimentacoes = () => {
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
-                          <span><span className="text-muted-foreground">Lote:</span> <strong>{ing.lote || "—"}</strong></span>
+                          <span><span className="text-muted-foreground">Lote:</span> <strong>{mov.lote || "—"}</strong></span>
                         </div>
                       </CardContent>
                     </Card>
@@ -270,7 +271,7 @@ const Movimentacoes = () => {
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
-                          <span><span className="text-muted-foreground">Lote:</span> <strong>{ing.lote || "—"}</strong></span>
+                          <span><span className="text-muted-foreground">Lote:</span> <strong>{mov.lote || "—"}</strong></span>
                         </div>
                       </CardContent>
                     </Card>
