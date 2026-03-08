@@ -206,11 +206,11 @@ const Movimentacoes = () => {
 
                 <div className="flex flex-wrap gap-3">
                   {newEntries.map((mov) => (
-                    <Card key={mov.id} className="min-w-[200px] flex-1 max-w-xs border-success/30">
+                    <Card key={mov.id} className={cn("min-w-[200px] flex-1 max-w-xs", mov.type === "in" ? "border-success/30" : "border-destructive/30")}>
                       <CardContent className="px-4 py-2.5">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Badge className="gap-1 text-[10px] px-1.5 py-0.5 bg-success/10 text-success">
-                            <ArrowUpRight className="h-3 w-3" />Nova
+                          <Badge className={cn("gap-1 text-[10px] px-1.5 py-0.5", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
+                            {mov.type === "in" ? <><ArrowUpRight className="h-3 w-3" />Entrada</> : <><ArrowDownRight className="h-3 w-3" />Saída</>}
                           </Badge>
                           <span className="text-[10px] text-muted-foreground">
                             {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
