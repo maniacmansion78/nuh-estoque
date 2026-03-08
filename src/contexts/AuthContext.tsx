@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearTempPassword = () => setTempPassword(false);
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, tempPassword, signIn, signOut, clearTempPassword }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, tempPassword, blocked, signIn, signOut, clearTempPassword }}>
       {children}
     </AuthContext.Provider>
   );

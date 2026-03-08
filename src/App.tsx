@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import AlterarSenha from "@/pages/AlterarSenha";
+import ContaBloqueada from "@/pages/ContaBloqueada";
 import Produtos from "@/pages/Produtos";
 import Fornecedores from "@/pages/Fornecedores";
 import Movimentacoes from "@/pages/Movimentacoes";
@@ -18,10 +19,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, adminOnly = false, allowTempPassword = false }: { children: React.ReactNode; adminOnly?: boolean; allowTempPassword?: boolean }) {
-  const { user, isAdmin, loading, tempPassword } = useAuth();
+function ProtectedRoute({ children, adminOnly = false, allowTempPassword = false, allowBlocked = false }: { children: React.ReactNode; adminOnly?: boolean; allowTempPassword?: boolean; allowBlocked?: boolean }) {
+  const { user, isAdmin, loading, tempPassword, blocked } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (blocked && !allowBlocked) return <Navigate to="/conta-bloqueada" replace />;
   if (tempPassword && !allowTempPassword) return <Navigate to="/alterar-senha" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
