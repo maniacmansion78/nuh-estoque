@@ -11,6 +11,7 @@ export interface DbMovement {
   expiry_date: string | null;
   user_id: string;
   created_at: string;
+  lote: string;
 }
 
 export function useMovements() {
@@ -42,6 +43,7 @@ export function useMovements() {
     type: "in" | "out";
     quantity: number;
     expiry_date?: string | null;
+    lote?: string;
   }) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user?.id) {
@@ -54,6 +56,7 @@ export function useMovements() {
       type: movement.type,
       quantity: movement.quantity,
       expiry_date: movement.expiry_date || null,
+      lote: movement.lote || "",
       user_id: userData.user.id,
     });
 
