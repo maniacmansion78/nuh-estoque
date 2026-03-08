@@ -316,7 +316,7 @@ const Produtos = () => {
             </div>
             <div className="grid gap-2">
               <Label>Qtd. Mínima</Label>
-              <Input type="number" value={form.min_quantity} onChange={(e) => setForm({ ...form, min_quantity: Number(e.target.value) })} />
+              <Input type="number" value={form.min_quantity || ""} onChange={(e) => setForm({ ...form, min_quantity: Number(e.target.value) })} placeholder="0" />
             </div>
             <div className="grid gap-2">
               <Label>Fornecedor</Label>
@@ -334,8 +334,8 @@ const Produtos = () => {
               <Input
                 type="number"
                 min={1}
-                value={form.alert_days}
-                onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) })}
+                onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) || 0 })}
+                value={form.alert_days || ""}
                 placeholder="Ex: 3 dias"
               />
               <p className="text-xs text-muted-foreground">Alerta será exibido quando faltar esse número de dias para vencer</p>
