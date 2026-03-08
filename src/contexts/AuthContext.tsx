@@ -7,8 +7,10 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   displayName: string;
+  tempPassword: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  clearTempPassword: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [tempPassword, setTempPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchUserMeta = async (userId: string) => {
@@ -33,16 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, temp_password")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (profileError) throw profileError;
       setDisplayName(profile?.display_name || "");
+      setTempPassword(profile?.temp_password || false);
     } catch (err) {
       console.error("Error fetching user meta:", err);
       setIsAdmin(false);
       setDisplayName("");
+      setTempPassword(false);
     }
   };
 
@@ -65,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsAdmin(false);
           setDisplayName("");
+          setTempPassword(false);
         }
       } catch (err) {
         console.error("Error restoring session:", err);
@@ -72,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setIsAdmin(false);
           setDisplayName("");
+          setTempPassword(false);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -91,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setIsAdmin(false);
         setDisplayName("");
+        setTempPassword(false);
       }
 
       setLoading(false);
@@ -111,8 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const clearTempPassword = () => setTempPassword(false);
+
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, tempPassword, signIn, signOut, clearTempPassword }}>
       {children}
     </AuthContext.Provider>
   );

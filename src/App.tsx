@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
+import AlterarSenha from "@/pages/AlterarSenha";
 import Produtos from "@/pages/Produtos";
 import Fornecedores from "@/pages/Fornecedores";
 import Movimentacoes from "@/pages/Movimentacoes";
@@ -17,10 +18,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
-  const { user, isAdmin, loading } = useAuth();
+function ProtectedRoute({ children, adminOnly = false, allowTempPassword = false }: { children: React.ReactNode; adminOnly?: boolean; allowTempPassword?: boolean }) {
+  const { user, isAdmin, loading, tempPassword } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (tempPassword && !allowTempPassword) return <Navigate to="/alterar-senha" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -33,6 +35,14 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route
+        path="/alterar-senha"
+        element={
+          <ProtectedRoute allowTempPassword>
+            <AlterarSenha />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
