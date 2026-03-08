@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     console.log("📦 Webhook refusal received — full payload:", JSON.stringify(payload, null, 2));
 
     // ── 2. Token validation ────────────────────────────────────────
-    const webhookToken = Deno.env.get("WEBHOOK_PURCHASE_TOKEN");
+    const webhookToken = Deno.env.get("WEBHOOK_REFUSAL_TOKEN");
     if (webhookToken) {
       const incomingToken =
         req.headers.get("x-webhook-token") ||
