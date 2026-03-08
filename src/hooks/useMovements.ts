@@ -76,22 +76,9 @@ export function useMovements() {
         ? Math.round((currentQty + movement.quantity) * 100) / 100
         : Math.round((currentQty - movement.quantity) * 100) / 100;
 
-      if (newQty <= 0) {
-        // Delete all movements for this product first (FK constraint)
-        await supabase
-          .from("movements")
-          .delete()
-          .eq("product_id", movement.product_id);
+      {
+        const finalQty = Math.max(0, newQty);
 
-        const { error: delError } = await supabase
-          .from("products")
-          .delete()
-          .eq("id", movement.product_id);
-
-        if (delError) {
-          console.error("Erro ao remover produto zerado:", delError);
-        }
-      } else {
         const { error: updError } = await supabase
           .from("products")
           .update({ quantity: newQty })
