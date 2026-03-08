@@ -311,6 +311,17 @@ const Movimentacoes = () => {
               <Label>Quantidade</Label>
               <Input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} />
             </div>
+            {form.type === "in" && isAdmin && (
+              <div className="grid gap-2">
+                <Label>Lote</Label>
+                <Input
+                  type="text"
+                  placeholder="Ex: L2024-001"
+                  value={form.lote}
+                  onChange={(e) => setForm({ ...form, lote: e.target.value })}
+                />
+              </div>
+            )}
             {form.type === "in" && (
               <div className="grid gap-2">
                 <Label>Data de Validade</Label>
