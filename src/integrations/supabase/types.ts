@@ -20,6 +20,7 @@ export type Database = {
           date: string
           expiry_date: string | null
           id: string
+          lote: string
           product_id: string
           quantity: number
           type: string
@@ -30,6 +31,7 @@ export type Database = {
           date?: string
           expiry_date?: string | null
           id?: string
+          lote?: string
           product_id: string
           quantity?: number
           type?: string
@@ -40,6 +42,7 @@ export type Database = {
           date?: string
           expiry_date?: string | null
           id?: string
+          lote?: string
           product_id?: string
           quantity?: number
           type?: string
