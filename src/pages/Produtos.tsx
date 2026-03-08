@@ -71,6 +71,19 @@ const Produtos = () => {
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
 
+  const lotesPerProduct = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const mov of dbMovements) {
+      if (mov.lote && mov.lote.trim()) {
+        if (!map[mov.product_id]) map[mov.product_id] = [];
+        if (!map[mov.product_id].includes(mov.lote.trim())) {
+          map[mov.product_id].push(mov.lote.trim());
+        }
+      }
+    }
+    return map;
+  }, [dbMovements]);
+
   const filtered = useMemo(() => {
     const base = items.filter((i) => {
       const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
@@ -213,7 +226,6 @@ const Produtos = () => {
       </div>
 
 
-
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
@@ -248,7 +260,7 @@ const Produtos = () => {
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[10px] sm:text-xs sm:flex sm:flex-wrap sm:gap-4 lg:flex-1">
-                      <span><span className="text-muted-foreground">Lote:</span> <strong className="break-all">{item.lote || "—"}</strong></span>
+                      <span><span className="text-muted-foreground">Lotes:</span> <strong className="break-all">{(lotesPerProduct[item.id] || []).length > 0 ? (lotesPerProduct[item.id]).join(", ") : "—"}</strong></span>
                       <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">R$:</span> <strong>{Number(item.price).toFixed(2)}</strong></span>
