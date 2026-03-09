@@ -32,7 +32,7 @@ export function useSuppliers() {
       console.error("Erro ao buscar fornecedores:", error);
       toast.error("Erro ao carregar fornecedores");
     } else {
-      setItems(data as Supplier[]);
+      setItems((data as unknown) as Supplier[]);
     }
     setLoading(false);
   }, []);
