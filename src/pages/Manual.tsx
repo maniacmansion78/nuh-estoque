@@ -160,7 +160,7 @@ const Manual = () => {
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Manual do Usuário</h1>
           <p className="text-sm text-muted-foreground sm:text-base">
-            Guia completo de como utilizar o sistema NUH
+            Guia completo de como utilizar o sistema NUH de controle de estoque
           </p>
         </div>
         <Button size="sm" className="gap-2 sm:size-default" onClick={generatePDF}>
