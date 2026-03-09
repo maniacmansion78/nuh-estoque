@@ -43,7 +43,7 @@ import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts
 import { useSuppliers } from "@/hooks/useSuppliers";
 
 const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
-const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+// sortedSuppliers moved inside component to use hook data
 
 const emptyForm: ProductForm = {
   name: "",
