@@ -15,6 +15,7 @@ import Movimentacoes from "@/pages/Movimentacoes";
 import RelatorioMovimentacoes from "@/pages/RelatorioMovimentacoes";
 import Funcionarios from "@/pages/Funcionarios";
 import NaoConformidadesPage from "@/pages/NaoConformidades";
+import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
