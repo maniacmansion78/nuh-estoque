@@ -59,7 +59,7 @@ export function useSuppliers() {
 
     toast.success("Fornecedor adicionado!");
     await fetchSuppliers();
-    return data.id;
+    return (data as any).id;
   };
 
   const updateSupplier = async (id: string, form: SupplierForm): Promise<boolean> => {
