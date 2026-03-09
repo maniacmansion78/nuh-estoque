@@ -17,6 +17,7 @@ import Funcionarios from "@/pages/Funcionarios";
 import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
+import ScriptVenda from "@/pages/ScriptVenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
