@@ -12,7 +12,6 @@ const sections = [
     title: "Tela Inicial (Dashboard)",
     content: [
       "Visão geral do estoque com indicadores de produtos em alerta e vencimento próximo.",
-      "Gráfico de consumo semanal com entradas e saídas.",
       "Acesso rápido às principais funcionalidades do sistema.",
     ],
   },
