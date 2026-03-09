@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  suppliers,
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
@@ -41,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
 const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
 const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
