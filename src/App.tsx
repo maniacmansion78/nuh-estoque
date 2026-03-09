@@ -15,6 +15,7 @@ import Movimentacoes from "@/pages/Movimentacoes";
 import RelatorioMovimentacoes from "@/pages/RelatorioMovimentacoes";
 import Funcionarios from "@/pages/Funcionarios";
 import NaoConformidadesPage from "@/pages/NaoConformidades";
+import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -120,6 +121,16 @@ function AppRoutes() {
           <ProtectedRoute adminOnly>
             <AppLayout>
               <Funcionarios />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manual"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Manual />
             </AppLayout>
           </ProtectedRoute>
         }

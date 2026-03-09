@@ -11,6 +11,7 @@ import {
   LogOut,
   AlertTriangle,
   FileText,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const baseNavItems = [
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
   { to: "/nao-conformidades", label: "Não Conformidades", icon: AlertTriangle },
   { to: "/relatorio", label: "Relatório Mensal", icon: FileText },
+  { to: "/manual", label: "Manual", icon: BookOpen },
 ];
 
 const adminNavItems = [
