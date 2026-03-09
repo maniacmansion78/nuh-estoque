@@ -125,6 +125,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/manual"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Manual />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
