@@ -46,7 +46,7 @@ export function useSuppliers() {
     const userId = userData?.user?.id || null;
 
     const { data, error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .insert({ name: form.name, contact: form.contact, email: form.email, created_by: userId })
       .select("id")
       .single();
