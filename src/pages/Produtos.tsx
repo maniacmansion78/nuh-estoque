@@ -70,6 +70,8 @@ const Produtos = () => {
 
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
+  const { items: suppliersList } = useSuppliers();
+  const sortedSuppliers = [...suppliersList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   const lotesPerProduct = useMemo(() => {
     const map: Record<string, string[]> = {};
