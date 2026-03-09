@@ -64,7 +64,7 @@ export function useSuppliers() {
 
   const updateSupplier = async (id: string, form: SupplierForm): Promise<boolean> => {
     const { error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .update({ name: form.name, contact: form.contact, email: form.email })
       .eq("id", id);
 
