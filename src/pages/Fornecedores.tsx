@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Edit, Trash2, Truck, ShoppingCart, Mail, Phone, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,39 +15,31 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  suppliers as mockSuppliers,
-  ingredients,
-  getIngredientStatus,
-  type Supplier,
-} from "@/data/mockData";
+import { useSuppliers, type SupplierForm } from "@/hooks/useSuppliers";
 import { useProducts, type Product } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Fornecedores = () => {
-  const [items, setItems] = useState<Supplier[]>(mockSuppliers);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [reorderOpen, setReorderOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Supplier | null>(null);
-  const [form, setForm] = useState({ name: "", contact: "", email: "" });
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-
+  const { items, loading, addSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const { items: products, fetchProducts } = useProducts();
 
-  const lowStockItems = ingredients.filter((i) => getIngredientStatus(i) !== "ok");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<SupplierForm>({ name: "", contact: "", email: "" });
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const openAdd = () => {
-    setEditingItem(null);
+    setEditingId(null);
     setForm({ name: "", contact: "", email: "" });
     setSelectedProductIds([]);
     setDialogOpen(true);
   };
 
-  const openEdit = (s: Supplier) => {
-    setEditingItem(s);
+  const openEdit = (s: { id: string; name: string; contact: string; email: string }) => {
+    setEditingId(s.id);
     setForm({ name: s.name, contact: s.contact, email: s.email });
-    // Pre-select products that already belong to this supplier
     const supplierProducts = products.filter((p) => p.supplier_id === s.id);
     setSelectedProductIds(supplierProducts.map((p) => p.id));
     setDialogOpen(true);
@@ -55,9 +47,7 @@ const Fornecedores = () => {
 
   const toggleProduct = (productId: string) => {
     setSelectedProductIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
@@ -67,45 +57,53 @@ const Fornecedores = () => {
       return;
     }
 
-    let supplierId: string;
+    setSaving(true);
+    try {
+      let supplierId: string | null;
 
-    if (editingItem) {
-      supplierId = editingItem.id;
-      setItems((prev) => prev.map((i) => (i.id === editingItem.id ? { ...i, ...form } : i)));
-      toast.success("Fornecedor atualizado!");
-    } else {
-      supplierId = `s${Date.now()}`;
-      setItems((prev) => [...prev, { id: supplierId, ...form }]);
-      toast.success("Fornecedor adicionado!");
+      if (editingId) {
+        const ok = await updateSupplier(editingId, form);
+        supplierId = ok ? editingId : null;
+      } else {
+        supplierId = await addSupplier(form);
+      }
+
+      if (!supplierId) return;
+
+      // Update product-supplier links
+      const previousProducts = products.filter((p) => p.supplier_id === supplierId);
+      const previousIds = previousProducts.map((p) => p.id);
+      const toAssign = selectedProductIds.filter((id) => !previousIds.includes(id));
+      const toUnassign = previousIds.filter((id) => !selectedProductIds.includes(id));
+
+      for (const pid of toAssign) {
+        await supabase.from("products").update({ supplier_id: supplierId }).eq("id", pid);
+      }
+      for (const pid of toUnassign) {
+        await supabase.from("products").update({ supplier_id: "" }).eq("id", pid);
+      }
+
+      if (toAssign.length > 0 || toUnassign.length > 0) {
+        await fetchProducts();
+      }
+
+      setDialogOpen(false);
+    } finally {
+      setSaving(false);
     }
-
-    // Update products: set supplier_id for selected, clear for unselected
-    const previousProducts = products.filter((p) => p.supplier_id === supplierId);
-    const previousIds = previousProducts.map((p) => p.id);
-
-    // Products to assign to this supplier
-    const toAssign = selectedProductIds.filter((id) => !previousIds.includes(id));
-    // Products to unassign from this supplier
-    const toUnassign = previousIds.filter((id) => !selectedProductIds.includes(id));
-
-    for (const pid of toAssign) {
-      await supabase.from("products").update({ supplier_id: supplierId }).eq("id", pid);
-    }
-    for (const pid of toUnassign) {
-      await supabase.from("products").update({ supplier_id: "" }).eq("id", pid);
-    }
-
-    if (toAssign.length > 0 || toUnassign.length > 0) {
-      await fetchProducts();
-    }
-
-    setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success("Fornecedor removido!");
+  const handleDelete = async (id: string) => {
+    await deleteSupplier(id);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Carregando fornecedores...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -114,11 +112,7 @@ const Fornecedores = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Fornecedores</h1>
           <p className="text-sm text-muted-foreground sm:text-base">Gerencie seus fornecedores e faça pedidos</p>
         </div>
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-3">
-          <Button size="sm" variant="outline" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => setReorderOpen(true)}>
-            <ShoppingCart className="h-4 w-4" />
-            Reposição
-          </Button>
+        <div className="flex gap-2 sm:gap-3">
           <Button size="sm" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={openAdd}>
             <Plus className="h-4 w-4" />
             Novo Fornecedor
@@ -137,7 +131,6 @@ const Fornecedores = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((s) => {
             const supplierProducts = products.filter((p) => p.supplier_id === s.id);
-            const totalItems = supplierProducts.length;
             return (
               <Card key={s.id} className="group transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
@@ -149,7 +142,7 @@ const Fornecedores = () => {
                       <div>
                         <p className="font-semibold">{s.name}</p>
                         <Badge variant="outline" className="mt-1 text-xs">
-                          {totalItems} itens
+                          {supplierProducts.length} itens
                         </Badge>
                       </div>
                     </div>
@@ -175,14 +168,10 @@ const Fornecedores = () => {
                   {supplierProducts.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {supplierProducts.slice(0, 3).map((p) => (
-                        <Badge key={p.id} variant="secondary" className="text-xs">
-                          {p.name}
-                        </Badge>
+                        <Badge key={p.id} variant="secondary" className="text-xs">{p.name}</Badge>
                       ))}
                       {supplierProducts.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{supplierProducts.length - 3}
-                        </Badge>
+                        <Badge variant="secondary" className="text-xs">+{supplierProducts.length - 3}</Badge>
                       )}
                     </div>
                   )}
@@ -193,11 +182,10 @@ const Fornecedores = () => {
         </div>
       )}
 
-      {/* Add/Edit */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Editar Fornecedor" : "Novo Fornecedor"}</DialogTitle>
+            <DialogTitle>{editingId ? "Editar Fornecedor" : "Novo Fornecedor"}</DialogTitle>
             <DialogDescription>Preencha os dados do fornecedor.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -224,19 +212,11 @@ const Fornecedores = () => {
                 <ScrollArea className="h-[180px] rounded-md border border-border p-3">
                   <div className="space-y-2">
                     {products.map((product) => (
-                      <label
-                        key={product.id}
-                        className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
-                      >
-                        <Checkbox
-                          checked={selectedProductIds.includes(product.id)}
-                          onCheckedChange={() => toggleProduct(product.id)}
-                        />
+                      <label key={product.id} className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50">
+                        <Checkbox checked={selectedProductIds.includes(product.id)} onCheckedChange={() => toggleProduct(product.id)} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {product.category} · {product.quantity} {product.unit}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{product.category} · {product.quantity} {product.unit}</p>
                         </div>
                       </label>
                     ))}
@@ -244,57 +224,13 @@ const Fornecedores = () => {
                 </ScrollArea>
               )}
               {selectedProductIds.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {selectedProductIds.length} produto(s) selecionado(s)
-                </p>
+                <p className="text-xs text-muted-foreground">{selectedProductIds.length} produto(s) selecionado(s)</p>
               )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave}>{editingItem ? "Salvar" : "Adicionar"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reorder list */}
-      <Dialog open={reorderOpen} onOpenChange={setReorderOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Lista de Reposição</DialogTitle>
-            <DialogDescription>Itens com estoque abaixo do mínimo que precisam ser repostos.</DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[400px] space-y-3 overflow-y-auto py-4">
-            {lowStockItems.length === 0 ? (
-              <p className="py-8 text-center text-muted-foreground">Todos os itens estão com estoque adequado! 🎉</p>
-            ) : (
-              lowStockItems.map((item) => {
-                const supplier = mockSuppliers.find((s) => s.id === item.supplier_id);
-                const needed = item.min_quantity - item.quantity;
-                return (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{supplier?.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-destructive">
-                        Faltam {needed.toFixed(1)} {item.unit}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Atual: {item.quantity} / Min: {item.min_quantity}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReorderOpen(false)}>Fechar</Button>
-            <Button onClick={() => { toast.success("Lista de reposição copiada!"); setReorderOpen(false); }}>
-              Copiar Lista
-            </Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : editingId ? "Salvar" : "Adicionar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  suppliers,
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
@@ -41,9 +40,10 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
 const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
-const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+// sortedSuppliers moved inside component to use hook data
 
 const emptyForm: ProductForm = {
   name: "",
@@ -70,6 +70,8 @@ const Produtos = () => {
 
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
+  const { items: suppliersList } = useSuppliers();
+  const sortedSuppliers = [...suppliersList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   const lotesPerProduct = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -248,7 +250,7 @@ const Produtos = () => {
       ) : (
         <div className="w-full space-y-4">
           {filtered.map((item) => {
-            const supplier = suppliers.find((s) => s.id === item.supplier_id);
+            const supplier = suppliersList.find((s) => s.id === item.supplier_id);
             const productMovements = dbMovements.filter((m) => m.product_id === item.id)
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
