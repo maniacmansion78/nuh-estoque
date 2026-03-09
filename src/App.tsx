@@ -136,6 +136,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/script-venda" element={<ScriptVenda />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
