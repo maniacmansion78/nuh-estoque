@@ -24,7 +24,7 @@ export function useSuppliers() {
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .select("*")
       .order("name", { ascending: true });
 
