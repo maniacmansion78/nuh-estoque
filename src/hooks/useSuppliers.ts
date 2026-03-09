@@ -24,7 +24,7 @@ export function useSuppliers() {
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .select("*")
       .order("name", { ascending: true });
 
@@ -32,7 +32,7 @@ export function useSuppliers() {
       console.error("Erro ao buscar fornecedores:", error);
       toast.error("Erro ao carregar fornecedores");
     } else {
-      setItems(data as Supplier[]);
+      setItems((data as unknown) as Supplier[]);
     }
     setLoading(false);
   }, []);
@@ -46,7 +46,7 @@ export function useSuppliers() {
     const userId = userData?.user?.id || null;
 
     const { data, error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .insert({ name: form.name, contact: form.contact, email: form.email, created_by: userId })
       .select("id")
       .single();
@@ -59,12 +59,12 @@ export function useSuppliers() {
 
     toast.success("Fornecedor adicionado!");
     await fetchSuppliers();
-    return data.id;
+    return (data as any).id;
   };
 
   const updateSupplier = async (id: string, form: SupplierForm): Promise<boolean> => {
     const { error } = await supabase
-      .from("suppliers")
+      .from("suppliers" as any)
       .update({ name: form.name, contact: form.contact, email: form.email })
       .eq("id", id);
 
@@ -80,7 +80,7 @@ export function useSuppliers() {
   };
 
   const deleteSupplier = async (id: string): Promise<boolean> => {
-    const { error } = await supabase.from("suppliers").delete().eq("id", id);
+    const { error } = await supabase.from("suppliers" as any).delete().eq("id", id);
 
     if (error) {
       console.error("Erro ao remover fornecedor:", error);
