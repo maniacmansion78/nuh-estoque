@@ -80,7 +80,7 @@ export function useSuppliers() {
   };
 
   const deleteSupplier = async (id: string): Promise<boolean> => {
-    const { error } = await supabase.from("suppliers").delete().eq("id", id);
+    const { error } = await supabase.from("suppliers" as any).delete().eq("id", id);
 
     if (error) {
       console.error("Erro ao remover fornecedor:", error);
