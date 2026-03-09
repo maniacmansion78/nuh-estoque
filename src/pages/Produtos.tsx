@@ -250,7 +250,7 @@ const Produtos = () => {
       ) : (
         <div className="w-full space-y-4">
           {filtered.map((item) => {
-            const supplier = suppliers.find((s) => s.id === item.supplier_id);
+            const supplier = suppliersList.find((s) => s.id === item.supplier_id);
             const productMovements = dbMovements.filter((m) => m.product_id === item.id)
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
