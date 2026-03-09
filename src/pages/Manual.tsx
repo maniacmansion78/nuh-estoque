@@ -11,7 +11,7 @@ const sections = [
     icon: LayoutDashboard,
     title: "Tela Inicial (Dashboard)",
     content: [
-      "Visão geral do estoque com indicadores de produtos em alerta e vencimento próximo.",
+      "Visão geral do estoque com alertas de vencimento próximo e de estoque baixo.",
       "Acesso rápido às principais funcionalidades do sistema.",
     ],
   },
