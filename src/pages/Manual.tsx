@@ -72,7 +72,7 @@ const sections = [
       "Disponível apenas para administradores.",
       "Cadastre novos funcionários com e-mail e senha temporária.",
       "O funcionário deverá alterar a senha no primeiro acesso.",
-      "Gerencie permissões: administradores têm acesso total; funcionários têm acesso operacional.",
+      "Administradores têm acesso total; funcionários têm acesso operacional.",
       "Bloqueie ou desbloqueie contas de funcionários.",
     ],
   },
