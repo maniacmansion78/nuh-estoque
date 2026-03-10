@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { BookOpen, Download, LayoutDashboard, Package, Truck, ArrowLeftRight, AlertTriangle, FileText, Users, Shield } from "lucide-react";
+import { BookOpen, Download, Printer, LayoutDashboard, Package, Truck, ArrowLeftRight, AlertTriangle, FileText, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
