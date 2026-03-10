@@ -162,10 +162,16 @@ const Manual = () => {
             Guia completo de como utilizar o sistema NUH de controle de estoque
           </p>
         </div>
-        <Button size="sm" className="gap-2 sm:size-default" onClick={generatePDF}>
-          <Download className="h-4 w-4" />
-          Baixar PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" className="gap-2 sm:size-default" onClick={generatePDF}>
+            <Download className="h-4 w-4" />
+            Baixar PDF
+          </Button>
+          <Button size="sm" variant="outline" className="gap-2 sm:size-default" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
