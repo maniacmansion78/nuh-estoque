@@ -22,22 +22,7 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
 
-    // Token validation
-    const webhookToken = Deno.env.get("WEBHOOK_DEMO_TOKEN");
-    if (webhookToken) {
-      const incomingToken =
-        req.headers.get("x-webhook-token") ||
-        req.headers.get("authorization")?.replace("Bearer ", "") ||
-        payload?.token;
-
-      if (incomingToken !== webhookToken) {
-        console.error("❌ Invalid webhook token");
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
+    // No token validation for public demo registration
 
     // Extract buyer data (same Nexano format)
     const buyer =
