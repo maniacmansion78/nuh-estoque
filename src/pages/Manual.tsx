@@ -44,7 +44,6 @@ const sections = [
       "Cadastre fornecedores com nome, telefone e e-mail.",
       "Vincule múltiplos produtos a cada fornecedor usando a lista de checkboxes no formulário.",
       "O contador de itens por fornecedor reflete os produtos vinculados.",
-      "Ao cadastrar um novo fornecedor, ele fica disponível imediatamente no campo de fornecedor ao criar/editar produtos.",
     ],
   },
   {
