@@ -127,6 +127,10 @@
 }
 
 @media print {
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+  }
   body {
     background: white !important;
     color: black !important;
@@ -151,6 +155,10 @@
   }
   main {
     padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  * {
     overflow: visible !important;
   }
 }
