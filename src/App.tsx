@@ -137,6 +137,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/demo" element={user ? <Navigate to="/dashboard" replace /> : <Demo />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
