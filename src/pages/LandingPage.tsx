@@ -239,16 +239,6 @@ export default function LandingPage() {
               🚀 Começar Agora
             </a>
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-primary/40 bg-transparent px-8 text-lg text-primary hover:bg-primary/5"
-            asChild
-          >
-            <a href="https://checkout.nexano.com.br/checkout/cmmfqefvo033g1rmfeh5a8jjw?offer=IU7FIBE" target="_blank" rel="noopener noreferrer">
-              🎁 Demonstração de 7 Dias
-            </a>
-          </Button>
           <Link to="/login">
             <Button
               size="lg"
