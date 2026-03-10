@@ -62,6 +62,7 @@ const sections = [
     content: [
       "Gere relatórios de movimentações por período.",
       "Visualize entradas e saídas consolidadas.",
+      "Baixe o relatório em PDF ou imprima diretamente pela impressora.",
       "Útil para controle gerencial e auditoria do estoque.",
     ],
   },
