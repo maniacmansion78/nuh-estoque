@@ -130,6 +130,7 @@
   html, body, #root {
     height: auto !important;
     overflow: visible !important;
+    max-height: none !important;
   }
   body {
     background: white !important;
@@ -159,6 +160,19 @@
     height: auto !important;
   }
   * {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex-shrink: 0 !important;
+  }
+  #root > div {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #root > div > div {
+    display: block !important;
+    height: auto !important;
     overflow: visible !important;
   }
 }
