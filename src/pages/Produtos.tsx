@@ -348,17 +348,6 @@ const Produtos = () => {
               <Input type="number" value={form.min_quantity || ""} onChange={(e) => setForm({ ...form, min_quantity: Number(e.target.value) })} placeholder="0" />
             </div>
             <div className="grid gap-2">
-              <Label>Fornecedor</Label>
-              <Select value={form.supplier_id} onValueChange={(v) => setForm({ ...form, supplier_id: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {sortedSuppliers.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
               <Label>Dias de alerta antes do vencimento</Label>
               <Input
                 type="number"
