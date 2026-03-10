@@ -21,7 +21,6 @@ const sections = [
     content: [
       "Cadastre produtos com nome, categoria (Vegetais, Proteínas, Temperos, Bebidas, Importados), unidade (kg, L, un) e quantidade mínima.",
       "Defina os dias de alerta antes do vencimento para cada produto.",
-      "Vincule um fornecedor ao produto durante o cadastro.",
       "Visualize lotes, validade e movimentações diretamente no card do produto.",
       "Filtre por categoria ou pesquise por nome.",
       "Produtos com estoque abaixo do mínimo ou validade próxima exibem alertas visuais (Alerta / Crítico).",
