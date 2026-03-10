@@ -18,6 +18,7 @@ import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import ScriptVenda from "@/pages/ScriptVenda";
+import Demo from "@/pages/Demo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
