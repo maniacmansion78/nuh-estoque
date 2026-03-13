@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { suppliers } from "@/data/mockData";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { WhatsAppReportDialog } from "./WhatsAppReportDialog";
 
 interface NonConformity {
   id: string;
