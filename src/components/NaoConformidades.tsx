@@ -48,6 +48,7 @@ export function NaoConformidades() {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerPhotos, setViewerPhotos] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [whatsappItem, setWhatsappItem] = useState<NonConformity | null>(null);
   const [form, setForm] = useState({
     product_name: "",
     supplier_id: "",
