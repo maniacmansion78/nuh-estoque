@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Camera, Plus, Trash2, AlertTriangle, Loader2, Download, X, ImageIcon } from "lucide-react";
+import { Camera, Plus, Trash2, AlertTriangle, Loader2, Download, X, ImageIcon, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { suppliers } from "@/data/mockData";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { WhatsAppReportDialog } from "./WhatsAppReportDialog";
 
 interface NonConformity {
   id: string;
@@ -47,6 +48,7 @@ export function NaoConformidades() {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerPhotos, setViewerPhotos] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [whatsappItem, setWhatsappItem] = useState<NonConformity | null>(null);
   const [form, setForm] = useState({
     product_name: "",
     supplier_id: "",
@@ -208,6 +210,15 @@ export function NaoConformidades() {
                         {format(new Date(item.created_at), "dd/MM/yy HH:mm")}
                       </span>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
+                      onClick={() => setWhatsappItem(item)}
+                    >
+                      <Send className="h-3 w-3" />
+                      WhatsApp
+                    </Button>
                   </div>
                 </div>
                 {photos.length > 0 && (
@@ -330,6 +341,18 @@ export function NaoConformidades() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* WhatsApp report dialog */}
+      {whatsappItem && (
+        <WhatsAppReportDialog
+          open={!!whatsappItem}
+          onOpenChange={(open) => !open && setWhatsappItem(null)}
+          item={{
+            ...whatsappItem,
+            supplier_name: suppliers.find((s) => s.id === whatsappItem.supplier_id)?.name || "N/A",
+          }}
+        />
+      )}
 
       {/* Photo viewer dialog */}
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
