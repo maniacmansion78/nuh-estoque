@@ -210,6 +210,15 @@ export function NaoConformidades() {
                         {format(new Date(item.created_at), "dd/MM/yy HH:mm")}
                       </span>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
+                      onClick={() => setWhatsappItem(item)}
+                    >
+                      <Send className="h-3 w-3" />
+                      WhatsApp
+                    </Button>
                   </div>
                 </div>
                 {photos.length > 0 && (
