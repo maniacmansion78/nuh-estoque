@@ -9,6 +9,7 @@ import {
   Trash2,
   ArrowUpRight,
   ArrowDownRight,
+  X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,20 +35,17 @@ import {
   getIngredientStatus,
   getExpiryStatus,
   getDaysUntilExpiry,
-  type Category,
 } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
-
-const categories: Category[] = ["Bebidas", "Importados", "Proteínas", "Temperos", "Vegetais"];
-// sortedSuppliers moved inside component to use hook data
+import { useCategories } from "@/hooks/useCategories";
 
 const emptyForm: ProductForm = {
   name: "",
-  category: "Vegetais",
+  category: "",
   quantity: 0,
   unit: "kg",
   min_quantity: 0,
@@ -68,10 +66,18 @@ const Produtos = () => {
   const [form, setForm] = useState<ProductForm>({ ...emptyForm });
   const [saving, setSaving] = useState(false);
 
+  // Category management state
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
   const { items: suppliersList } = useSuppliers();
+  const { categories, addCategory, deleteCategory } = useCategories();
   const sortedSuppliers = [...suppliersList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+  const categoryNames = useMemo(() => categories.map((c) => c.name).sort((a, b) => a.localeCompare(b, "pt-BR")), [categories]);
 
   const lotesPerProduct = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -88,7 +94,6 @@ const Produtos = () => {
 
   const latestExpiryPerProduct = useMemo(() => {
     const map: Record<string, string> = {};
-    // dbMovements is already sorted by date desc
     for (const mov of dbMovements) {
       if (mov.type === "in" && mov.expiry_date && !map[mov.product_id]) {
         map[mov.product_id] = mov.expiry_date;
@@ -104,7 +109,6 @@ const Produtos = () => {
       return matchSearch && matchCat;
     });
 
-    // Sort: alphabetical when filtering by category, otherwise by recent movements
     if (categoryFilter !== "all") {
       return base.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
     }
@@ -119,7 +123,7 @@ const Produtos = () => {
 
   const openAdd = () => {
     setEditingItem(null);
-    setForm({ ...emptyForm, expiry_date: new Date().toISOString().split("T")[0] });
+    setForm({ ...emptyForm, category: categoryNames[0] || "", expiry_date: new Date().toISOString().split("T")[0] });
     setDialogOpen(true);
   };
 
@@ -127,7 +131,7 @@ const Produtos = () => {
     setEditingItem(item);
     setForm({
       name: item.name,
-      category: item.category as Category,
+      category: item.category,
       quantity: item.quantity,
       unit: item.unit as "kg" | "L" | "un",
       min_quantity: item.min_quantity,
@@ -172,6 +176,20 @@ const Produtos = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddCategory = async () => {
+    const success = await addCategory(newCategoryName);
+    if (success) {
+      setNewCategoryName("");
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    setDeletingCategoryId(id);
+    const success = await deleteCategory(id);
+    setDeletingCategoryId(null);
+    return success;
   };
 
   const statusBadge = (item: Product) => {
@@ -231,13 +249,12 @@ const Produtos = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
-            {categories.map((c) => (
+            {categoryNames.map((c) => (
               <SelectItem key={c} value={c}>{c}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-
 
       {filtered.length === 0 ? (
         <Card>
@@ -276,7 +293,6 @@ const Produtos = () => {
                       <span><span className="text-muted-foreground">Lotes:</span> <strong className="break-all">{(lotesPerProduct[item.id] || []).length > 0 ? (lotesPerProduct[item.id]).join(", ") : "—"}</strong></span>
                       <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
                       <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
-                      
                       <span><span className="text-muted-foreground">Val:</span> <strong>{latestExpiryPerProduct[item.id] ? format(new Date(latestExpiryPerProduct[item.id]), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
                     </div>
                     <div className="flex items-center gap-1.5 lg:shrink-0">
@@ -305,7 +321,7 @@ const Produtos = () => {
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
+      {/* Add/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
@@ -321,11 +337,16 @@ const Produtos = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Categoria</Label>
-                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Category })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <div className="flex items-center justify-between">
+                  <Label>Categoria</Label>
+                  <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setCategoryDialogOpen(true)}>
+                    Gerenciar
+                  </Button>
+                </div>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    {categories.map((c) => (
+                    {categoryNames.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
@@ -363,6 +384,48 @@ const Produtos = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
             <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : editingItem ? "Salvar" : "Adicionar"}</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Management Dialog */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+            <DialogDescription>Adicione ou remova categorias de produtos.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nova categoria..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
+              />
+              <Button size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {categories.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma categoria cadastrada</p>
+              )}
+              {categories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <span className="text-sm">{cat.name}</span>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-destructive hover:text-destructive"
+                    disabled={deletingCategoryId === cat.id}
+                    onClick={() => handleDeleteCategory(cat.id)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
