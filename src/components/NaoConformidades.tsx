@@ -342,6 +342,18 @@ export function NaoConformidades() {
         </DialogContent>
       </Dialog>
 
+      {/* WhatsApp report dialog */}
+      {whatsappItem && (
+        <WhatsAppReportDialog
+          open={!!whatsappItem}
+          onOpenChange={(open) => !open && setWhatsappItem(null)}
+          item={{
+            ...whatsappItem,
+            supplier_name: suppliers.find((s) => s.id === whatsappItem.supplier_id)?.name || "N/A",
+          }}
+        />
+      )}
+
       {/* Photo viewer dialog */}
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90dvh] p-0 overflow-hidden">
