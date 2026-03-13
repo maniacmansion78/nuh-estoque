@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Camera, Plus, Trash2, AlertTriangle, Loader2, Download, X, ImageIcon } from "lucide-react";
+import { Camera, Plus, Trash2, AlertTriangle, Loader2, Download, X, ImageIcon, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
