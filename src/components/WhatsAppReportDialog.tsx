@@ -65,7 +65,12 @@ export function WhatsAppReportDialog({ open, onOpenChange, item }: WhatsAppRepor
       doc.setFontSize(18);
       doc.setFont("helvetica", "bold");
       doc.text("Relatório de Não Conformidade", pageW / 2, y, { align: "center" });
-      y += 12;
+      y += 10;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("NUH Asian Food Restaurant", pageW / 2, y, { align: "center" });
+      y += 10;
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -134,7 +139,8 @@ export function WhatsAppReportDialog({ open, onOpenChange, item }: WhatsAppRepor
       const pdfUrl = urlData.publicUrl;
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       const message = encodeURIComponent(
-        `📋 *Relatório de Não Conformidade*\n\n` +
+        `📋 *Relatório de Não Conformidade*\n` +
+        `📍 *NUH Asian Food Restaurant*\n\n` +
         `*Produto:* ${item.product_name}\n` +
         `*Fornecedor:* ${item.supplier_name || "N/A"}\n` +
         `*Descrição:* ${item.description}\n\n` +
