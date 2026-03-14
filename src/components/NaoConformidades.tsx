@@ -38,7 +38,7 @@ interface NonConformity {
 }
 
 export function NaoConformidades() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<NonConformity[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,7 @@ export function NaoConformidades() {
   const [viewerPhotos, setViewerPhotos] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [whatsappItem, setWhatsappItem] = useState<NonConformity | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     product_name: "",
     supplier_id: "",
