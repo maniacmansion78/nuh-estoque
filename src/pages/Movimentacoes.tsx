@@ -181,11 +181,11 @@ const Movimentacoes = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
           <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
-            buttonSize="lg"
+            buttonSize="sm"
             onProductFound={(product) => {
               // Find matching product by name
               const match = allProducts.find(
@@ -207,12 +207,12 @@ const Movimentacoes = () => {
               }
             }}
           />
-          <Button size="lg" className="gap-2" onClick={() => {
+          <Button size="sm" className="gap-1.5 flex-1 sm:flex-none sm:size-auto" onClick={() => {
             setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
             setDialogOpen(true);
           }}>
-            <Plus className="h-5 w-5" />
-            Nova Movimentação
+            <Plus className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Nova Movimentação</span>
           </Button>
         </div>
       </div>
