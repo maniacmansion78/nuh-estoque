@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
 import { useAuth } from "@/contexts/AuthContext";
+import BarcodeScanner from "@/components/BarcodeScanner";
 
 interface BatchInfo {
   expiry_date: string;
@@ -180,13 +181,40 @@ const Movimentacoes = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
           <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
-        <Button size="lg" className="gap-2" onClick={() => {
-          setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
-          setDialogOpen(true);
-        }}>
-          <Plus className="h-5 w-5" />
-          Nova Movimentação
-        </Button>
+        <div className="flex gap-2">
+          <BarcodeScanner
+            buttonLabel="Escanear"
+            buttonVariant="outline"
+            buttonSize="lg"
+            onProductFound={(product) => {
+              // Find matching product by name
+              const match = allProducts.find(
+                (p) => p.name.toLowerCase() === product.name.toLowerCase()
+              );
+              setForm({
+                product_id: match?.id || allProducts[0]?.id || "",
+                type: "in",
+                quantity: 0,
+                expiry_date: undefined,
+                selected_batch: "",
+                lote: "",
+              });
+              setDialogOpen(true);
+              if (match) {
+                toast.success(`Produto identificado: ${match.name}`);
+              } else if (product.name) {
+                toast.info(`Produto "${product.name}" não cadastrado. Cadastre primeiro em Produtos.`);
+              }
+            }}
+          />
+          <Button size="lg" className="gap-2" onClick={() => {
+            setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
+            setDialogOpen(true);
+          }}>
+            <Plus className="h-5 w-5" />
+            Nova Movimentação
+          </Button>
+        </div>
       </div>
 
       {dbMovements.length === 0 ? (
