@@ -226,15 +226,33 @@ export function NaoConformidades() {
                         {format(new Date(item.created_at), "dd/MM/yy HH:mm")}
                       </span>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
-                      onClick={() => setWhatsappItem(item)}
-                    >
-                      <Send className="h-3 w-3" />
-                      WhatsApp
-                    </Button>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
+                        onClick={() => setWhatsappItem(item)}
+                      >
+                        <Send className="h-3 w-3" />
+                        WhatsApp
+                      </Button>
+                      {isAdmin && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 text-xs shrink-0 text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId === item.id}
+                        >
+                          {deletingId === item.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                          Excluir
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {photos.length > 0 && (
