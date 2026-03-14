@@ -38,7 +38,7 @@ interface NonConformity {
 }
 
 export function NaoConformidades() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<NonConformity[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,7 @@ export function NaoConformidades() {
   const [viewerPhotos, setViewerPhotos] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [whatsappItem, setWhatsappItem] = useState<NonConformity | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     product_name: "",
     supplier_id: "",
@@ -146,6 +147,21 @@ export function NaoConformidades() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta não conformidade?")) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from("non_conformities").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Não conformidade excluída!");
+      fetchItems();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao excluir");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const openViewer = (photos: string[], index: number) => {
     setViewerPhotos(photos);
     setViewerIndex(index);
@@ -210,15 +226,33 @@ export function NaoConformidades() {
                         {format(new Date(item.created_at), "dd/MM/yy HH:mm")}
                       </span>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
-                      onClick={() => setWhatsappItem(item)}
-                    >
-                      <Send className="h-3 w-3" />
-                      WhatsApp
-                    </Button>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1 text-xs shrink-0 text-green-600 border-green-600/30 hover:bg-green-50"
+                        onClick={() => setWhatsappItem(item)}
+                      >
+                        <Send className="h-3 w-3" />
+                        WhatsApp
+                      </Button>
+                      {isAdmin && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 text-xs shrink-0 text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId === item.id}
+                        >
+                          {deletingId === item.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                          Excluir
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {photos.length > 0 && (
