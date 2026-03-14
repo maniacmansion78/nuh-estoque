@@ -139,7 +139,8 @@ export function WhatsAppReportDialog({ open, onOpenChange, item }: WhatsAppRepor
       const pdfUrl = urlData.publicUrl;
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       const message = encodeURIComponent(
-        `📋 *Relatório de Não Conformidade*\n\n` +
+        `📋 *Relatório de Não Conformidade*\n` +
+        `📍 *NUH Asian Food Restaurant*\n\n` +
         `*Produto:* ${item.product_name}\n` +
         `*Fornecedor:* ${item.supplier_name || "N/A"}\n` +
         `*Descrição:* ${item.description}\n\n` +
