@@ -232,10 +232,27 @@ const Produtos = () => {
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Produtos</h1>
           <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
         </div>
-        <Button size="lg" className="gap-2" onClick={openAdd}>
-          <Plus className="h-5 w-5" />
-          Novo Produto
-        </Button>
+        <div className="flex gap-2">
+          <BarcodeScanner
+            buttonLabel="Escanear"
+            buttonVariant="outline"
+            buttonSize="lg"
+            onProductFound={(product) => {
+              setEditingItem(null);
+              setForm({
+                ...emptyForm,
+                name: product.name || "",
+                category: categoryNames.includes(product.category) ? product.category : categoryNames[0] || "",
+                expiry_date: new Date().toISOString().split("T")[0],
+              });
+              setDialogOpen(true);
+            }}
+          />
+          <Button size="lg" className="gap-2" onClick={openAdd}>
+            <Plus className="h-5 w-5" />
+            Novo Produto
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
