@@ -181,11 +181,11 @@ const Movimentacoes = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
           <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
-            buttonSize="lg"
+            buttonSize="sm"
             onProductFound={(product) => {
               // Find matching product by name
               const match = allProducts.find(
