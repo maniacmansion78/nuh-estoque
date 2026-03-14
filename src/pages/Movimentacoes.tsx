@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
 import { useAuth } from "@/contexts/AuthContext";
+import BarcodeScanner from "@/components/BarcodeScanner";
 
 interface BatchInfo {
   expiry_date: string;
