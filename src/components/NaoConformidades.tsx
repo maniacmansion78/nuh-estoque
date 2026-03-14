@@ -147,6 +147,21 @@ export function NaoConformidades() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta não conformidade?")) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from("non_conformities").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Não conformidade excluída!");
+      fetchItems();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao excluir");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const openViewer = (photos: string[], index: number) => {
     setViewerPhotos(photos);
     setViewerIndex(index);
