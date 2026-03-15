@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setBlocked(false);
       setDisplayName(profile?.display_name || "");
       setTempPassword(profile?.temp_password || false);
+      setMovementPermission(profile?.movement_permission || "all");
     } catch (err) {
       console.error("Error fetching user meta:", err);
       setIsAdmin(false);
