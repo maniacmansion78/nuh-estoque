@@ -34,6 +34,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
 import { useAuth } from "@/contexts/AuthContext";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import ReceiptScanner from "@/components/ReceiptScanner";
 
 interface BatchInfo {
   expiry_date: string;
@@ -183,13 +184,44 @@ const Movimentacoes = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
           <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          {canDoEntries && (
+            <ReceiptScanner
+              allProducts={allProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
+              onItemsConfirmed={async (confirmedItems) => {
+                let successCount = 0;
+                for (const item of confirmedItems) {
+                  const match = allProducts.find(
+                    (p) => p.name.toLowerCase() === item.name.toLowerCase()
+                  );
+                  if (match) {
+                    const success = await addMovement({
+                      product_id: match.id,
+                      type: "in",
+                      quantity: item.quantity,
+                      expiry_date: null,
+                      lote: "",
+                    });
+                    if (success) successCount++;
+                  }
+                }
+                if (successCount > 0) {
+                  toast.success(`${successCount} entradas registradas com sucesso!`);
+                }
+                const unmatched = confirmedItems.filter(
+                  (item) => !allProducts.find((p) => p.name.toLowerCase() === item.name.toLowerCase())
+                );
+                if (unmatched.length > 0) {
+                  toast.info(`${unmatched.length} itens não cadastrados foram ignorados. Cadastre-os em Produtos primeiro.`);
+                }
+              }}
+            />
+          )}
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
             buttonSize="sm"
             onProductFound={(product) => {
-              // Find matching product by name
               const match = allProducts.find(
                 (p) => p.name.toLowerCase() === product.name.toLowerCase()
               );
