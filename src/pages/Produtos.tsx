@@ -43,7 +43,7 @@ import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
-import NFeImporter from "@/components/NFeImporter";
+
 
 import { useAuth } from "@/contexts/AuthContext";
 
