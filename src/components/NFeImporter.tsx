@@ -84,7 +84,7 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
   return { items, emitente, numero };
 }
 
-const NFeImporter = ({ existingProducts, onItemsConfirmed }: NFeImporterProps) => {
+const NFeImporter = ({ existingProducts, onItemsConfirmed, confirmLabel = "Cadastrar Produtos" }: NFeImporterProps) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NFeItem[]>([]);
   const [emitente, setEmitente] = useState("");
