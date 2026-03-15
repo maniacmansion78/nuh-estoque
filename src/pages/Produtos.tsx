@@ -74,6 +74,7 @@ const Produtos = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
+  const { isAdmin } = useAuth();
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { items: dbMovements } = useMovements();
   const { items: suppliersList } = useSuppliers();
