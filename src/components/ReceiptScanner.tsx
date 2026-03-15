@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Receipt, Loader2, Camera, Upload, Trash2, Check } from "lucide-react";
+import { Receipt, Loader2, Upload, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,7 +38,7 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
   const [receiptTotal, setReceiptTotal] = useState<number | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  
 
   const reset = () => {
     setStep("capture");
@@ -164,7 +164,7 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
             </DialogTitle>
             <DialogDescription>
               {step === "capture"
-                ? "Tire uma foto ou envie uma imagem da nota fiscal"
+                ? "Envie uma imagem da nota fiscal"
                 : `${storeName ? storeName + " — " : ""}${items.length} itens encontrados`}
             </DialogDescription>
           </DialogHeader>
@@ -184,34 +184,21 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
                   <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col items-center gap-4 py-8">
                   <Button
                     variant="outline"
-                    className="h-24 flex-col gap-2"
-                    onClick={() => cameraInputRef.current?.click()}
-                  >
-                    <Camera className="h-8 w-8 text-primary" />
-                    <span className="text-xs">Tirar Foto</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-24 flex-col gap-2"
+                    className="h-24 w-full flex-col gap-2"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="h-8 w-8 text-primary" />
                     <span className="text-xs">Enviar Imagem</span>
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Envie uma foto da nota fiscal para análise por IA
+                  </p>
                 </div>
               )}
 
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileChange}
-              />
               <input
                 ref={fileInputRef}
                 type="file"

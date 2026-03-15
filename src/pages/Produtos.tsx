@@ -43,7 +43,6 @@ import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
-import ReceiptScanner from "@/components/ReceiptScanner";
 import NFeImporter from "@/components/NFeImporter";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -238,43 +237,6 @@ const Produtos = () => {
           <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {isAdmin && (
-            <ReceiptScanner
-              allProducts={items.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
-              onItemsConfirmed={async (confirmedItems) => {
-                let created = 0;
-                let skipped = 0;
-                for (const item of confirmedItems) {
-                  const exists = items.find(
-                    (p) => p.name.toLowerCase() === item.name.toLowerCase()
-                  );
-                  if (exists) {
-                    skipped++;
-                    continue;
-                  }
-                  const success = await addProduct({
-                    name: item.name,
-                    category: categoryNames[0] || "Geral",
-                    quantity: 0,
-                    unit: (["kg", "L", "un"].includes(item.unit) ? item.unit : "un") as "kg" | "L" | "un",
-                    min_quantity: 0,
-                    price: item.price || 0,
-                    expiry_date: new Date().toISOString().split("T")[0],
-                    supplier_id: "",
-                    alert_days: 3,
-                    lote: "",
-                  });
-                  if (success) created++;
-                }
-                if (created > 0) {
-                  toast.success(`${created} produto(s) cadastrado(s)! Edite categoria, unidade e qtd mínima.`);
-                }
-                if (skipped > 0) {
-                  toast.info(`${skipped} produto(s) já existiam e foram ignorados.`);
-                }
-              }}
-            />
-          )}
           {isAdmin && (
             <NFeImporter
               existingProducts={items.map((p) => ({ id: p.id, name: p.name }))}
