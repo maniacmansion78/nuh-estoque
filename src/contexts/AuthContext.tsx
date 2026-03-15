@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState("");
   const [tempPassword, setTempPassword] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [movementPermission, setMovementPermission] = useState("all");
   const [loading, setLoading] = useState(true);
 
   const fetchUserMeta = async (userId: string) => {
