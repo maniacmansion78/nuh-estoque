@@ -218,6 +218,7 @@ const Movimentacoes = () => {
               }}
             />
           )}
+          <NFeQRScanner />
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"

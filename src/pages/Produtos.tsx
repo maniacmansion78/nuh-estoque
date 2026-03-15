@@ -312,7 +312,7 @@ const Produtos = () => {
               }}
             />
           )}
-          {isAdmin && <NFeQRScanner />}
+          
           <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Novo Produto</span>
