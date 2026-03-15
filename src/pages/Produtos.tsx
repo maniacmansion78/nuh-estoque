@@ -232,11 +232,11 @@ const Produtos = () => {
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Produtos</h1>
           <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
-            buttonSize="lg"
+            buttonSize="sm"
             onProductFound={(product) => {
               setEditingItem(null);
               setForm({
@@ -248,9 +248,9 @@ const Produtos = () => {
               setDialogOpen(true);
             }}
           />
-          <Button size="lg" className="gap-2" onClick={openAdd}>
-            <Plus className="h-5 w-5" />
-            Novo Produto
+          <Button size="sm" className="gap-1.5 flex-1 sm:flex-none" onClick={openAdd}>
+            <Plus className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Novo Produto</span>
           </Button>
         </div>
       </div>
