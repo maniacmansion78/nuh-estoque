@@ -56,6 +56,7 @@ const Funcionarios = () => {
           display_name: p.display_name,
           job_title: p.job_title || "",
           role: (r?.role as "admin" | "employee") || "employee",
+          movement_permission: (p as any).movement_permission || "all",
         };
       });
       setEmployees(emps);
