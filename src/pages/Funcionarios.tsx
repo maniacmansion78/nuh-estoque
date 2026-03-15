@@ -42,7 +42,7 @@ const Funcionarios = () => {
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "" });
+  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "", movement_permission: "all" });
 
   const fetchEmployees = async () => {
     const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, job_title");
