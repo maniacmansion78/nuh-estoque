@@ -38,7 +38,7 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
   const [receiptTotal, setReceiptTotal] = useState<number | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  
 
   const reset = () => {
     setStep("capture");
