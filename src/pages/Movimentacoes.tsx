@@ -45,7 +45,7 @@ interface BatchInfo {
 }
 
 const Movimentacoes = () => {
-  const { items: dbProducts, loading: productsLoading } = useProducts();
+  const { items: dbProducts, loading: productsLoading, addProduct, fetchProducts } = useProducts();
   const { items: dbMovements, loading: movementsLoading, addMovement, deleteMovement } = useMovements();
   const { isAdmin, movementPermission } = useAuth();
 
@@ -190,12 +190,37 @@ const Movimentacoes = () => {
           {canDoEntries && (
             <ReceiptScanner
               allProducts={allProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
-              onItemsConfirmed={async (confirmedItems) => {
+            onItemsConfirmed={async (confirmedItems) => {
                 let successCount = 0;
+                let createdCount = 0;
                 for (const item of confirmedItems) {
-                  const match = allProducts.find(
+                  let match = allProducts.find(
                     (p) => p.name.toLowerCase() === item.name.toLowerCase()
                   );
+                  if (!match) {
+                    const created = await addProduct({
+                      name: item.name,
+                      category: "Outros",
+                      quantity: 0,
+                      unit: (item.unit as "kg" | "L" | "un") || "un",
+                      min_quantity: 0,
+                      price: item.price || 0,
+                      expiry_date: new Date().toISOString(),
+                      supplier_id: "",
+                      alert_days: 3,
+                      lote: "",
+                    });
+                    if (created) {
+                      createdCount++;
+                      await fetchProducts();
+                      const { data: newProd } = await (await import("@/integrations/supabase/client")).supabase
+                        .from("products")
+                        .select("id, name, unit")
+                        .eq("name", item.name)
+                        .single();
+                      if (newProd) match = { id: newProd.id, name: newProd.name, quantity: 0, unit: newProd.unit, price: item.price || 0, expiry_date: "", lote: "" };
+                    }
+                  }
                   if (match) {
                     const success = await addMovement({
                       product_id: match.id,
@@ -207,15 +232,8 @@ const Movimentacoes = () => {
                     if (success) successCount++;
                   }
                 }
-                if (successCount > 0) {
-                  toast.success(`${successCount} entradas registradas com sucesso!`);
-                }
-                const unmatched = confirmedItems.filter(
-                  (item) => !allProducts.find((p) => p.name.toLowerCase() === item.name.toLowerCase())
-                );
-                if (unmatched.length > 0) {
-                  toast.info(`${unmatched.length} itens não cadastrados foram ignorados. Cadastre-os em Produtos primeiro.`);
-                }
+                if (createdCount > 0) toast.success(`${createdCount} novos produtos cadastrados automaticamente!`);
+                if (successCount > 0) toast.success(`${successCount} entradas registradas com sucesso!`);
               }}
             />
           )}
@@ -225,10 +243,35 @@ const Movimentacoes = () => {
               confirmLabel="Dar Entrada"
               onItemsConfirmed={async (confirmedItems) => {
                 let successCount = 0;
+                let createdCount = 0;
                 for (const item of confirmedItems) {
-                  const match = allProducts.find(
+                  let match = allProducts.find(
                     (p) => p.name.toLowerCase() === item.name.toLowerCase()
                   );
+                  if (!match) {
+                    const created = await addProduct({
+                      name: item.name,
+                      category: "Outros",
+                      quantity: 0,
+                      unit: (item.unit as "kg" | "L" | "un") || "un",
+                      min_quantity: 0,
+                      price: item.price || 0,
+                      expiry_date: new Date().toISOString(),
+                      supplier_id: "",
+                      alert_days: 3,
+                      lote: "",
+                    });
+                    if (created) {
+                      createdCount++;
+                      await fetchProducts();
+                      const { data: newProd } = await (await import("@/integrations/supabase/client")).supabase
+                        .from("products")
+                        .select("id, name, unit")
+                        .eq("name", item.name)
+                        .single();
+                      if (newProd) match = { id: newProd.id, name: newProd.name, quantity: 0, unit: newProd.unit, price: item.price || 0, expiry_date: "", lote: "" };
+                    }
+                  }
                   if (match) {
                     const success = await addMovement({
                       product_id: match.id,
@@ -240,15 +283,8 @@ const Movimentacoes = () => {
                     if (success) successCount++;
                   }
                 }
-                if (successCount > 0) {
-                  toast.success(`${successCount} entradas registradas via NF-e!`);
-                }
-                const unmatched = confirmedItems.filter(
-                  (item) => !allProducts.find((p) => p.name.toLowerCase() === item.name.toLowerCase())
-                );
-                if (unmatched.length > 0) {
-                  toast.info(`${unmatched.length} itens não cadastrados foram ignorados. Cadastre-os em Produtos primeiro.`);
-                }
+                if (createdCount > 0) toast.success(`${createdCount} novos produtos cadastrados via NF-e!`);
+                if (successCount > 0) toast.success(`${successCount} entradas registradas via NF-e!`);
               }}
             />
           )}
@@ -256,10 +292,35 @@ const Movimentacoes = () => {
             allProducts={allProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
             onItemsConfirmed={async (confirmedItems) => {
               let successCount = 0;
+              let createdCount = 0;
               for (const item of confirmedItems) {
-                const match = allProducts.find(
+                let match = allProducts.find(
                   (p) => p.name.toLowerCase() === item.name.toLowerCase()
                 );
+                if (!match) {
+                  const created = await addProduct({
+                    name: item.name,
+                    category: "Outros",
+                    quantity: 0,
+                    unit: (item.unit as "kg" | "L" | "un") || "un",
+                    min_quantity: 0,
+                    price: item.price || 0,
+                    expiry_date: new Date().toISOString(),
+                    supplier_id: "",
+                    alert_days: 3,
+                    lote: "",
+                  });
+                  if (created) {
+                    createdCount++;
+                    await fetchProducts();
+                    const { data: newProd } = await (await import("@/integrations/supabase/client")).supabase
+                      .from("products")
+                      .select("id, name, unit")
+                      .eq("name", item.name)
+                      .single();
+                    if (newProd) match = { id: newProd.id, name: newProd.name, quantity: 0, unit: newProd.unit, price: item.price || 0, expiry_date: "", lote: "" };
+                  }
+                }
                 if (match) {
                   const success = await addMovement({
                     product_id: match.id,
@@ -271,15 +332,8 @@ const Movimentacoes = () => {
                   if (success) successCount++;
                 }
               }
-              if (successCount > 0) {
-                toast.success(`${successCount} entradas registradas via QR Code NF-e!`);
-              }
-              const unmatched = confirmedItems.filter(
-                (item) => !allProducts.find((p) => p.name.toLowerCase() === item.name.toLowerCase())
-              );
-              if (unmatched.length > 0) {
-                toast.info(`${unmatched.length} itens não cadastrados foram ignorados.`);
-              }
+              if (createdCount > 0) toast.success(`${createdCount} novos produtos cadastrados via QR Code!`);
+              if (successCount > 0) toast.success(`${successCount} entradas registradas via QR Code NF-e!`);
             }}
           />
           <BarcodeScanner
