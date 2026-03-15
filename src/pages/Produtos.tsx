@@ -59,7 +59,9 @@ const emptyForm: ProductForm = {
   lote: "",
 };
 
-const Produtos = () => {
+  const { isAdmin } = useAuth();
+
+  const Produtos = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
