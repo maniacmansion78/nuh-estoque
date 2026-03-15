@@ -254,7 +254,7 @@ const Produtos = () => {
                     name: item.name,
                     category: categoryNames[0] || "Geral",
                     quantity: 0,
-                    unit: item.unit || "un",
+                    unit: (["kg", "L", "un"].includes(item.unit) ? item.unit : "un") as "kg" | "L" | "un",
                     min_quantity: 0,
                     price: item.price || 0,
                     expiry_date: new Date().toISOString().split("T")[0],
