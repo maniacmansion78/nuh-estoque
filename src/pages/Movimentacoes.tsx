@@ -34,6 +34,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useMovements } from "@/hooks/useMovements";
 import { useAuth } from "@/contexts/AuthContext";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import ReceiptScanner from "@/components/ReceiptScanner";
 
 interface BatchInfo {
   expiry_date: string;
