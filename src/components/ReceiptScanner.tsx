@@ -200,14 +200,6 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
               )}
 
               <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
