@@ -58,11 +58,13 @@ const Movimentacoes = () => {
     })).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   }, [dbProducts]);
 
+  const canDoEntries = isAdmin || movementPermission === "all";
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     product_id: "",
-    type: "in" as "in" | "out",
+    type: (canDoEntries ? "in" : "out") as "in" | "out",
     quantity: 0,
     expiry_date: undefined as Date | undefined,
     selected_batch: "" as string,
