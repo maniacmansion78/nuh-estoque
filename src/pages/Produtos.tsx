@@ -42,7 +42,7 @@ import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
-import BarcodeScanner from "@/components/BarcodeScanner";
+
 
 const emptyForm: ProductForm = {
   name: "",
@@ -232,27 +232,10 @@ const Produtos = () => {
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Produtos</h1>
           <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <BarcodeScanner
-            buttonLabel="Escanear"
-            buttonVariant="outline"
-            buttonSize="sm"
-            onProductFound={(product) => {
-              setEditingItem(null);
-              setForm({
-                ...emptyForm,
-                name: product.name || "",
-                category: categoryNames.includes(product.category) ? product.category : categoryNames[0] || "",
-                expiry_date: new Date().toISOString().split("T")[0],
-              });
-              setDialogOpen(true);
-            }}
-          />
-          <Button size="sm" className="gap-1.5 flex-1 sm:flex-none" onClick={openAdd}>
+        <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Novo Produto</span>
           </Button>
-        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
