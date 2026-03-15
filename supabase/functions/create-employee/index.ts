@@ -125,7 +125,7 @@ serve(async (req) => {
     } else if (job_title) {
       const { error: updateError } = await supabaseAdmin
         .from("profiles")
-        .update({ job_title, display_name })
+        .update({ job_title, display_name, movement_permission })
         .eq("user_id", userId);
       if (updateError) {
         console.error("Profile update error:", updateError);
