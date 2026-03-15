@@ -315,7 +315,7 @@ const NFeImporter = ({ existingProducts, onItemsConfirmed, confirmLabel = "Cadas
             {items.length > 0 && (
               <Button onClick={handleConfirm} className="gap-1.5">
                 <Check className="h-4 w-4" />
-                Cadastrar Produtos
+                {confirmLabel}
               </Button>
             )}
           </DialogFooter>

@@ -36,6 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import ReceiptScanner from "@/components/ReceiptScanner";
 import NFeQRScanner from "@/components/NFeQRScanner";
+import NFeImporter from "@/components/NFeImporter";
 
 interface BatchInfo {
   expiry_date: string;
