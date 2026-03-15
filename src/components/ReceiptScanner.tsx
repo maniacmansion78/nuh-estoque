@@ -184,23 +184,18 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
                   <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col items-center gap-4 py-8">
                   <Button
                     variant="outline"
-                    className="h-24 flex-col gap-2"
-                    onClick={() => cameraInputRef.current?.click()}
-                  >
-                    <Camera className="h-8 w-8 text-primary" />
-                    <span className="text-xs">Tirar Foto</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-24 flex-col gap-2"
+                    className="h-24 w-full flex-col gap-2"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="h-8 w-8 text-primary" />
                     <span className="text-xs">Enviar Imagem</span>
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Envie uma foto da nota fiscal para análise por IA
+                  </p>
                 </div>
               )}
 
