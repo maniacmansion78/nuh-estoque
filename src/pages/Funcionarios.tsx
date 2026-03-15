@@ -96,6 +96,7 @@ const Funcionarios = () => {
           password: form.password,
           display_name: displayName,
           job_title: jobTitle,
+          movement_permission: form.movement_permission,
         },
       });
 
