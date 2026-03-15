@@ -32,6 +32,7 @@ interface Employee {
   display_name: string;
   job_title: string;
   role: "admin" | "employee";
+  movement_permission: string;
 }
 
 const Funcionarios = () => {
