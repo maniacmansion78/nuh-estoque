@@ -182,8 +182,31 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
           </DialogHeader>
 
           {step === "scan" && (
-            <div className="w-full aspect-square max-h-[350px] overflow-hidden rounded-lg bg-muted">
-              <div id={readerId} className="w-full h-full" />
+            <div className="space-y-3">
+              <div className="w-full aspect-square max-h-[300px] overflow-hidden rounded-lg bg-muted">
+                <div id={readerId} className="w-full h-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Ou cole o link da NF-e:</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://www.sefaz..."
+                    value={manualUrl}
+                    onChange={(e) => setManualUrl(e.target.value)}
+                    className="text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    disabled={!manualUrl.startsWith("http")}
+                    onClick={async () => {
+                      await stopScanner();
+                      await fetchNFeData(manualUrl.trim());
+                    }}
+                  >
+                    Buscar
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 
