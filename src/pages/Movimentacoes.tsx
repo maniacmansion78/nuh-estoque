@@ -322,13 +322,19 @@ const Movimentacoes = () => {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Tipo</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as "in" | "out", selected_batch: "" })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in">Entrada</SelectItem>
-                  <SelectItem value="out">Saída</SelectItem>
-                </SelectContent>
-              </Select>
+              {canDoEntries ? (
+                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as "in" | "out", selected_batch: "" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in">Entrada</SelectItem>
+                    <SelectItem value="out">Saída</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center h-10 px-3 rounded-md border bg-muted text-sm text-muted-foreground">
+                  Saída (apenas)
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Produto</Label>
