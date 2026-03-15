@@ -45,6 +45,7 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
 import ReceiptScanner from "@/components/ReceiptScanner";
 import NFeImporter from "@/components/NFeImporter";
+import NFeQRScanner from "@/components/NFeQRScanner";
 import { useAuth } from "@/contexts/AuthContext";
 
 const emptyForm: ProductForm = {
@@ -311,6 +312,7 @@ const Produtos = () => {
               }}
             />
           )}
+          {isAdmin && <NFeQRScanner />}
           <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Novo Produto</span>
