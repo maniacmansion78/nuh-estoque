@@ -118,7 +118,7 @@ const Funcionarios = () => {
 
       toast.success(`Funcionário ${displayName} criado com sucesso!`);
       setDialogOpen(false);
-      setForm({ display_name: "", email: "", password: "", job_title: "" });
+      setForm({ display_name: "", email: "", password: "", job_title: "", movement_permission: "all" });
       fetchEmployees();
     } catch (err: any) {
       console.error("Create employee error:", err);
