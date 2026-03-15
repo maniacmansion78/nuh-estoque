@@ -45,7 +45,7 @@ interface BatchInfo {
 }
 
 const Movimentacoes = () => {
-  const { items: dbProducts, loading: productsLoading } = useProducts();
+  const { items: dbProducts, loading: productsLoading, addProduct, fetchProducts } = useProducts();
   const { items: dbMovements, loading: movementsLoading, addMovement, deleteMovement } = useMovements();
   const { isAdmin, movementPermission } = useAuth();
 
