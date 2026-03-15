@@ -27,6 +27,7 @@ interface NFeItem {
 interface NFeImporterProps {
   existingProducts: { id: string; name: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
+  confirmLabel?: string;
 }
 
 function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; numero: string } {
@@ -83,7 +84,7 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
   return { items, emitente, numero };
 }
 
-const NFeImporter = ({ existingProducts, onItemsConfirmed }: NFeImporterProps) => {
+const NFeImporter = ({ existingProducts, onItemsConfirmed, confirmLabel = "Cadastrar Produtos" }: NFeImporterProps) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NFeItem[]>([]);
   const [emitente, setEmitente] = useState("");
@@ -314,7 +315,7 @@ const NFeImporter = ({ existingProducts, onItemsConfirmed }: NFeImporterProps) =
             {items.length > 0 && (
               <Button onClick={handleConfirm} className="gap-1.5">
                 <Check className="h-4 w-4" />
-                Cadastrar Produtos
+                {confirmLabel}
               </Button>
             )}
           </DialogFooter>
