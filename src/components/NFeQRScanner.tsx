@@ -55,6 +55,7 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
     setStep("scan");
     setItems([]);
     setScannedUrl("");
+    setManualUrl("");
   };
 
   const handleClose = () => {
