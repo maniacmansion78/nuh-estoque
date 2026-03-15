@@ -135,8 +135,8 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
     onItemsConfirmed(
       selected.map(({ name, quantity, unit, price }) => ({ name, quantity, unit, price }))
     );
-    toast.success(`${selected.length} itens prontos para entrada!`);
     handleClose();
+    // Toast is handled by the parent onItemsConfirmed callback
   };
 
   const selectedTotal = items
