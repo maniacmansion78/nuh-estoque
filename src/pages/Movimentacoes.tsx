@@ -35,6 +35,7 @@ import { useMovements } from "@/hooks/useMovements";
 import { useAuth } from "@/contexts/AuthContext";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import ReceiptScanner from "@/components/ReceiptScanner";
+import NFeQRScanner from "@/components/NFeQRScanner";
 
 interface BatchInfo {
   expiry_date: string;
@@ -217,6 +218,7 @@ const Movimentacoes = () => {
               }}
             />
           )}
+          <NFeQRScanner />
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
