@@ -9,6 +9,7 @@ interface AuthContextType {
   displayName: string;
   tempPassword: boolean;
   blocked: boolean;
+  movementPermission: string;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   clearTempPassword: () => void;
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState("");
   const [tempPassword, setTempPassword] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [movementPermission, setMovementPermission] = useState("all");
   const [loading, setLoading] = useState(true);
 
   const fetchUserMeta = async (userId: string) => {
@@ -38,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name, temp_password, blocked, trial_ends_at")
+        .select("display_name, temp_password, blocked, trial_ends_at, movement_permission")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setBlocked(false);
       setDisplayName(profile?.display_name || "");
       setTempPassword(profile?.temp_password || false);
+      setMovementPermission(profile?.movement_permission || "all");
     } catch (err) {
       console.error("Error fetching user meta:", err);
       setIsAdmin(false);
@@ -134,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearTempPassword = () => setTempPassword(false);
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, tempPassword, blocked, signIn, signOut, clearTempPassword }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, displayName, tempPassword, blocked, movementPermission, signIn, signOut, clearTempPassword }}>
       {children}
     </AuthContext.Provider>
   );

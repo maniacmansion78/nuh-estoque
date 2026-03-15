@@ -61,7 +61,7 @@ serve(async (req) => {
     const password = String(payload?.password || "");
     const display_name = String(payload?.display_name || "").trim();
     const job_title = String(payload?.job_title || "").trim();
-
+    const movement_permission = String(payload?.movement_permission || "all").trim();
     if (!email || !password || !display_name) {
       return new Response(
         JSON.stringify({ error: "Email, senha e nome são obrigatórios" }),
@@ -117,6 +117,7 @@ serve(async (req) => {
         user_id: userId,
         display_name,
         job_title: job_title || "",
+        movement_permission,
       });
       if (profileError) {
         console.error("Profile insert error:", profileError);
@@ -124,7 +125,7 @@ serve(async (req) => {
     } else if (job_title) {
       const { error: updateError } = await supabaseAdmin
         .from("profiles")
-        .update({ job_title, display_name })
+        .update({ job_title, display_name, movement_permission })
         .eq("user_id", userId);
       if (updateError) {
         console.error("Profile update error:", updateError);

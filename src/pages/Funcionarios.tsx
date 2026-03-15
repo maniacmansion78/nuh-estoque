@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -32,6 +39,7 @@ interface Employee {
   display_name: string;
   job_title: string;
   role: "admin" | "employee";
+  movement_permission: string;
 }
 
 const Funcionarios = () => {
@@ -41,10 +49,10 @@ const Funcionarios = () => {
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "" });
+  const [form, setForm] = useState({ display_name: "", email: "", password: "", job_title: "", movement_permission: "all" });
 
   const fetchEmployees = async () => {
-    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, job_title");
+    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name, job_title, movement_permission");
     const { data: roles } = await supabase.from("user_roles").select("user_id, role");
 
     if (profiles && roles) {
@@ -55,6 +63,7 @@ const Funcionarios = () => {
           display_name: p.display_name,
           job_title: p.job_title || "",
           role: (r?.role as "admin" | "employee") || "employee",
+          movement_permission: (p as any).movement_permission || "all",
         };
       });
       setEmployees(emps);
@@ -94,6 +103,7 @@ const Funcionarios = () => {
           password: form.password,
           display_name: displayName,
           job_title: jobTitle,
+          movement_permission: form.movement_permission,
         },
       });
 
@@ -115,7 +125,7 @@ const Funcionarios = () => {
 
       toast.success(`Funcionário ${displayName} criado com sucesso!`);
       setDialogOpen(false);
-      setForm({ display_name: "", email: "", password: "", job_title: "" });
+      setForm({ display_name: "", email: "", password: "", job_title: "", movement_permission: "all" });
       fetchEmployees();
     } catch (err: any) {
       console.error("Create employee error:", err);
@@ -181,12 +191,19 @@ const Funcionarios = () => {
                   {emp.job_title && (
                     <p className="truncate text-xs text-muted-foreground">{emp.job_title}</p>
                   )}
-                  <Badge
-                    variant={emp.role === "admin" ? "default" : "secondary"}
-                    className="mt-1 text-[10px]"
-                  >
-                    {emp.role === "admin" ? "Administrador" : "Funcionário"}
-                  </Badge>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <Badge
+                      variant={emp.role === "admin" ? "default" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {emp.role === "admin" ? "Administrador" : "Funcionário"}
+                    </Badge>
+                    {emp.role !== "admin" && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {emp.movement_permission === "exit_only" ? "Só saídas" : "Entradas e saídas"}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 {emp.role !== "admin" && emp.user_id !== user?.id && (
                   <Button
@@ -246,6 +263,21 @@ const Funcionarios = () => {
                 onChange={(e) => setForm({ ...form, job_title: e.target.value })}
                 placeholder="Ex: Cozinheiro, Garçom, Gerente..."
               />
+            </div>
+            <div className="grid gap-2">
+              <Label>Permissão de movimentação</Label>
+              <Select
+                value={form.movement_permission}
+                onValueChange={(val) => setForm({ ...form, movement_permission: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entradas e saídas</SelectItem>
+                  <SelectItem value="exit_only">Apenas saídas</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
