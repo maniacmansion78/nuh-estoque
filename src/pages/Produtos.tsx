@@ -274,6 +274,42 @@ const Produtos = () => {
               }}
             />
           )}
+          {isAdmin && (
+            <NFeImporter
+              existingProducts={items.map((p) => ({ id: p.id, name: p.name }))}
+              onItemsConfirmed={async (confirmedItems) => {
+                let created = 0;
+                let skipped = 0;
+                for (const item of confirmedItems) {
+                  const exists = items.find(
+                    (p) => p.name.toLowerCase() === item.name.toLowerCase()
+                  );
+                  if (exists) {
+                    skipped++;
+                    continue;
+                  }
+                  const success = await addProduct({
+                    name: item.name,
+                    category: categoryNames[0] || "Geral",
+                    quantity: 0,
+                    unit: (["kg", "L", "un"].includes(item.unit) ? item.unit : "un") as "kg" | "L" | "un",
+                    min_quantity: 0,
+                    price: item.price || 0,
+                    expiry_date: new Date().toISOString().split("T")[0],
+                    supplier_id: "",
+                    alert_days: 3,
+                    lote: "",
+                  });
+                  if (success) created++;
+                }
+                if (created > 0) {
+                  toast.success(`${created} produto(s) cadastrado(s) da NF-e!`);
+                }
+                if (skipped > 0) {
+                  toast.info(`${skipped} produto(s) já existiam e foram ignorados.`);
+                }
+              }}
+            />
           <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Novo Produto</span>
