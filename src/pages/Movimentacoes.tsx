@@ -219,6 +219,39 @@ const Movimentacoes = () => {
               }}
             />
           )}
+          {canDoEntries && (
+            <NFeImporter
+              existingProducts={allProducts.map((p) => ({ id: p.id, name: p.name }))}
+              confirmLabel="Dar Entrada"
+              onItemsConfirmed={async (confirmedItems) => {
+                let successCount = 0;
+                for (const item of confirmedItems) {
+                  const match = allProducts.find(
+                    (p) => p.name.toLowerCase() === item.name.toLowerCase()
+                  );
+                  if (match) {
+                    const success = await addMovement({
+                      product_id: match.id,
+                      type: "in",
+                      quantity: item.quantity,
+                      expiry_date: null,
+                      lote: "",
+                    });
+                    if (success) successCount++;
+                  }
+                }
+                if (successCount > 0) {
+                  toast.success(`${successCount} entradas registradas via NF-e!`);
+                }
+                const unmatched = confirmedItems.filter(
+                  (item) => !allProducts.find((p) => p.name.toLowerCase() === item.name.toLowerCase())
+                );
+                if (unmatched.length > 0) {
+                  toast.info(`${unmatched.length} itens não cadastrados foram ignorados. Cadastre-os em Produtos primeiro.`);
+                }
+              }}
+            />
+          )}
           <NFeQRScanner />
           <BarcodeScanner
             buttonLabel="Escanear"
