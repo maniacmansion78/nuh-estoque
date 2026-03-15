@@ -184,12 +184,19 @@ const Funcionarios = () => {
                   {emp.job_title && (
                     <p className="truncate text-xs text-muted-foreground">{emp.job_title}</p>
                   )}
-                  <Badge
-                    variant={emp.role === "admin" ? "default" : "secondary"}
-                    className="mt-1 text-[10px]"
-                  >
-                    {emp.role === "admin" ? "Administrador" : "Funcionário"}
-                  </Badge>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <Badge
+                      variant={emp.role === "admin" ? "default" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {emp.role === "admin" ? "Administrador" : "Funcionário"}
+                    </Badge>
+                    {emp.role !== "admin" && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {emp.movement_permission === "exit_only" ? "Só saídas" : "Entradas e saídas"}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 {emp.role !== "admin" && emp.user_id !== user?.id && (
                   <Button
