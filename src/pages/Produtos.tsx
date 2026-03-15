@@ -45,7 +45,7 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
 import ReceiptScanner from "@/components/ReceiptScanner";
 import NFeImporter from "@/components/NFeImporter";
-import NFeQRScanner from "@/components/NFeQRScanner";
+
 import { useAuth } from "@/contexts/AuthContext";
 
 const emptyForm: ProductForm = {
