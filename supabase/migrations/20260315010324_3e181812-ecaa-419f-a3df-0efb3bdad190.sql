@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN movement_permission text NOT NULL DEFAULT 'all';

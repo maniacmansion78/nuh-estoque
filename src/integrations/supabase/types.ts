@@ -161,6 +161,7 @@ export type Database = {
           display_name: string
           id: string
           job_title: string | null
+          movement_permission: string
           temp_password: boolean
           trial_ends_at: string | null
           user_id: string
@@ -171,6 +172,7 @@ export type Database = {
           display_name: string
           id?: string
           job_title?: string | null
+          movement_permission?: string
           temp_password?: boolean
           trial_ends_at?: string | null
           user_id: string
@@ -181,6 +183,7 @@ export type Database = {
           display_name?: string
           id?: string
           job_title?: string | null
+          movement_permission?: string
           temp_password?: boolean
           trial_ends_at?: string | null
           user_id?: string
