@@ -35,6 +35,7 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
   const [step, setStep] = useState<"scan" | "loading" | "review">("scan");
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [scannedUrl, setScannedUrl] = useState("");
+  const [manualUrl, setManualUrl] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const readerId = "nfe-qr-reader";
 
