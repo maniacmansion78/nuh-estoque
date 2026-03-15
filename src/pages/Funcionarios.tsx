@@ -257,6 +257,21 @@ const Funcionarios = () => {
                 placeholder="Ex: Cozinheiro, Garçom, Gerente..."
               />
             </div>
+            <div className="grid gap-2">
+              <Label>Permissão de movimentação</Label>
+              <Select
+                value={form.movement_permission}
+                onValueChange={(val) => setForm({ ...form, movement_permission: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entradas e saídas</SelectItem>
+                  <SelectItem value="exit_only">Apenas saídas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
