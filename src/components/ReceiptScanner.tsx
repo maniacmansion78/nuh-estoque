@@ -164,7 +164,7 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
             </DialogTitle>
             <DialogDescription>
               {step === "capture"
-                ? "Tire uma foto ou envie uma imagem da nota fiscal"
+                ? "Envie uma imagem da nota fiscal"
                 : `${storeName ? storeName + " — " : ""}${items.length} itens encontrados`}
             </DialogDescription>
           </DialogHeader>
