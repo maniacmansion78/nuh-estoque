@@ -9,6 +9,7 @@ interface AuthContextType {
   displayName: string;
   tempPassword: boolean;
   blocked: boolean;
+  movementPermission: string;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   clearTempPassword: () => void;
