@@ -78,7 +78,11 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
         setStep("review");
         toast.success(`${data.items.length} produtos encontrados na NF-e!`);
       } else {
-        toast.info("Não foi possível extrair produtos da SEFAZ. Abrindo no navegador...");
+        console.log("NF-e parse result:", JSON.stringify(data));
+        toast.warning(
+          `Nenhum produto extraído automaticamente (HTML: ${data?.html_length || 0} chars). Abrindo no navegador...`,
+          { duration: 5000 }
+        );
         window.open(url, "_blank");
         handleClose();
       }
