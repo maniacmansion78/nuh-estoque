@@ -248,9 +248,9 @@ const Produtos = () => {
               setDialogOpen(true);
             }}
           />
-          <Button size="lg" className="gap-2" onClick={openAdd}>
-            <Plus className="h-5 w-5" />
-            Novo Produto
+          <Button size="sm" className="gap-1.5 flex-1 sm:flex-none" onClick={openAdd}>
+            <Plus className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Novo Produto</span>
           </Button>
         </div>
       </div>
