@@ -61,7 +61,7 @@ serve(async (req) => {
     const password = String(payload?.password || "");
     const display_name = String(payload?.display_name || "").trim();
     const job_title = String(payload?.job_title || "").trim();
-
+    const movement_permission = String(payload?.movement_permission || "all").trim();
     if (!email || !password || !display_name) {
       return new Response(
         JSON.stringify({ error: "Email, senha e nome são obrigatórios" }),
