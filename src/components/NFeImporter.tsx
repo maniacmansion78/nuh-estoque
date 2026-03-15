@@ -27,6 +27,7 @@ interface NFeItem {
 interface NFeImporterProps {
   existingProducts: { id: string; name: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
+  confirmLabel?: string;
 }
 
 function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; numero: string } {
