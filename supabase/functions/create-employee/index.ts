@@ -117,6 +117,7 @@ serve(async (req) => {
         user_id: userId,
         display_name,
         job_title: job_title || "",
+        movement_permission,
       });
       if (profileError) {
         console.error("Profile insert error:", profileError);
