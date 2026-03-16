@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package, Trash2 } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Plus, CalendarIcon, Package, Trash2, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,7 @@ interface BatchInfo {
 
 const Movimentacoes = () => {
   const { items: dbProducts, loading: productsLoading, fetchProducts } = useProducts();
-  const { items: dbMovements, loading: movementsLoading, addMovement, deleteMovement } = useMovements();
+  const { items: dbMovements, loading: movementsLoading, addMovement, updateMovement, deleteMovement } = useMovements();
   const { isAdmin, movementPermission } = useAuth();
 
   const allProducts = useMemo(() => {
@@ -66,6 +66,8 @@ const Movimentacoes = () => {
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingMovId, setEditingMovId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ quantity: 0, lote: "", expiry_date: "" });
   const [form, setForm] = useState({
     product_id: "",
     type: (canDoEntries ? "in" : "out") as "in" | "out",
@@ -296,7 +298,32 @@ const Movimentacoes = () => {
     }
   };
 
-  if (productsLoading || movementsLoading) {
+  const openEditDialog = (mov: typeof dbMovements[0]) => {
+    setEditingMovId(mov.id);
+    setEditForm({
+      quantity: mov.quantity,
+      lote: mov.lote || "",
+      expiry_date: mov.expiry_date || "",
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingMovId) return;
+    if (editForm.quantity <= 0) {
+      toast.error("Quantidade deve ser maior que zero");
+      return;
+    }
+    setSaving(true);
+    const success = await updateMovement(editingMovId, {
+      quantity: editForm.quantity,
+      lote: editForm.lote.trim(),
+      expiry_date: editForm.expiry_date || null,
+    });
+    setSaving(false);
+    if (success) setEditingMovId(null);
+  };
+
+
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-muted-foreground">Carregando movimentações...</p>
@@ -410,9 +437,14 @@ const Movimentacoes = () => {
                             </span>
                           </div>
                           {isAdmin && (
-                            <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive shrink-0" onClick={() => deleteMovement(mov.id)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={() => openEditDialog(mov)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive" onClick={() => deleteMovement(mov.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
@@ -440,9 +472,14 @@ const Movimentacoes = () => {
                             </span>
                           </div>
                           {isAdmin && (
-                            <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive shrink-0" onClick={() => deleteMovement(mov.id)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={() => openEditDialog(mov)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive" onClick={() => deleteMovement(mov.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
@@ -564,6 +601,49 @@ const Movimentacoes = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
             <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Registrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Movement Dialog */}
+      <Dialog open={!!editingMovId} onOpenChange={(v) => { if (!v) setEditingMovId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Editar Movimentação</DialogTitle>
+            <DialogDescription>Altere os dados da movimentação.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={editForm.quantity || ""}
+                placeholder="0"
+                onChange={(e) => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Lote</Label>
+              <Input
+                type="text"
+                placeholder="Ex: L2024-001"
+                value={editForm.lote}
+                onChange={(e) => setEditForm({ ...editForm, lote: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Data de Validade</Label>
+              <Input
+                type="date"
+                value={editForm.expiry_date ? editForm.expiry_date.split("T")[0] : ""}
+                onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value ? new Date(e.target.value).toISOString() : "" })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingMovId(null)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
