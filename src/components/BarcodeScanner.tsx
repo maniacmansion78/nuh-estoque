@@ -136,8 +136,8 @@ const BarcodeScanner = ({
     }, 250);
   };
 
-  const handleNFeUrl = async (url: string) => {
-    if (!onNFeUrlScanned) return;
+  const handleNFeUrl = async (url: string, silentFailure = false) => {
+    if (!onNFeUrlScanned) return false;
 
     isProcessingRef.current = true;
     setProcessing(true);
@@ -153,20 +153,26 @@ const BarcodeScanner = ({
       const items = parseImportedItems(data);
 
       if (items.length === 0) {
-        toast.error("Li o código, mas não consegui extrair os produtos da nota.");
+        if (!silentFailure) {
+          toast.error("Li o código, mas não consegui extrair os produtos da nota.");
+        }
         setProcessing(false);
         isProcessingRef.current = false;
-        return;
+        return false;
       }
 
       setStatusMessage(`Registrando ${items.length} produto${items.length > 1 ? "s" : ""}...`);
       await onNFeUrlScanned(items);
       await handleClose();
+      return true;
     } catch (err) {
       console.error("NF-e barcode error:", err);
-      toast.error("Erro ao consultar a nota fiscal.");
+      if (!silentFailure) {
+        toast.error("Erro ao consultar a nota fiscal.");
+      }
       setProcessing(false);
       isProcessingRef.current = false;
+      return false;
     }
   };
 
