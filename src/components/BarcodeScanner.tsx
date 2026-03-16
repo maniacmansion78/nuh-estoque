@@ -33,7 +33,24 @@ interface BarcodeScannerProps {
 }
 
 const isUrl = (text: string) => /^https?:\/\//i.test(text) || /www\.\S+/i.test(text);
-const isNFeAccessKey = (text: string) => /^\d{44}$/.test(text.replace(/\s/g, ""));
+const isLikelyNFePayload = (text: string) => {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(text.trim());
+    } catch {
+      return text.trim();
+    }
+  })();
+  const compact = decoded.replace(/\s/g, "");
+
+  return (
+    isUrl(decoded) ||
+    /\d{44}/.test(compact) ||
+    /\b(?:chNFe|nfe)=/i.test(decoded) ||
+    /^\d{20,}$/.test(compact) ||
+    (/\|/.test(decoded) && /\d{20,}/.test(decoded))
+  );
+};
 
 const extractUrl = (text: string) => {
   const trimmed = text.trim();
@@ -43,6 +60,24 @@ const extractUrl = (text: string) => {
   const wwwMatch = trimmed.match(/www\.\S+/i);
   if (wwwMatch?.[0]) return `https://${wwwMatch[0].replace(/[),.;]+$/, "")}`;
   return "";
+};
+
+const parseImportedItems = (data: unknown) => {
+  if (!data || typeof data !== "object" || !("items" in data) || !Array.isArray((data as { items?: unknown[] }).items)) {
+    return [] as { name: string; quantity: number; unit: string; price: number }[];
+  }
+
+  return (data as { items: unknown[] }).items
+    .map((item) => {
+      const parsed = item as { name?: unknown; quantity?: unknown; unit?: unknown; price?: unknown };
+      return {
+        name: String(parsed.name || "").trim(),
+        quantity: Number(parsed.quantity) || 1,
+        unit: String(parsed.unit || "un").trim() || "un",
+        price: Number(parsed.price) || 0,
+      };
+    })
+    .filter((item) => item.name && item.quantity > 0);
 };
 
 const pickBackCamera = (cameras: CameraDevice[]) =>
@@ -101,16 +136,7 @@ const BarcodeScanner = ({
 
       if (error) throw error;
 
-      const items = Array.isArray(data?.items)
-        ? data.items
-            .map((item: any) => ({
-              name: String(item.name || "").trim(),
-              quantity: Number(item.quantity) || 1,
-              unit: String(item.unit || "un").trim() || "un",
-              price: Number(item.price) || 0,
-            }))
-            .filter((item) => item.name && item.quantity > 0)
-        : [];
+      const items = parseImportedItems(data);
 
       if (items.length === 0) {
         toast.error("Li o código, mas não consegui extrair os produtos da nota.");
@@ -119,7 +145,7 @@ const BarcodeScanner = ({
         return;
       }
 
-      setStatusMessage("Registrando entrada dos produtos...");
+      setStatusMessage(`Registrando ${items.length} produto${items.length > 1 ? "s" : ""}...`);
       await onNFeUrlScanned(items);
       await handleClose();
     } catch (err) {
@@ -209,22 +235,12 @@ const BarcodeScanner = ({
 
           const trimmed = decodedText.trim();
 
-          // NF-e URL (QR Code)
-          if (isUrl(trimmed) && onNFeUrlScanned) {
-            const url = extractUrl(trimmed);
-            if (url) {
-              toast.success("Código lido! Consultando nota...");
-              await handleNFeUrl(url);
-              return;
-            }
-          }
-
-          // NF-e 44-digit access key (barcode on receipt)
-          const cleanCode = trimmed.replace(/\s/g, "");
-          if (isNFeAccessKey(cleanCode) && onNFeUrlScanned) {
-            toast.success("Chave NF-e detectada! Consultando nota...");
-            const nfeUrl = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&nfe=${cleanCode}`;
-            await handleNFeUrl(nfeUrl);
+          // NF-e URL / payload / access key (receipt barcode or QR payload)
+          if (onNFeUrlScanned && isLikelyNFePayload(trimmed)) {
+            const extractedUrl = extractUrl(trimmed);
+            const payloadToSend = extractedUrl || trimmed;
+            toast.success("Nota detectada! Consultando itens...");
+            await handleNFeUrl(payloadToSend);
             return;
           }
 
