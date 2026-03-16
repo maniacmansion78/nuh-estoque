@@ -323,7 +323,7 @@ const Movimentacoes = () => {
     if (success) setEditingMovId(null);
   };
 
-
+  if (productsLoading || movementsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-muted-foreground">Carregando movimentações...</p>
