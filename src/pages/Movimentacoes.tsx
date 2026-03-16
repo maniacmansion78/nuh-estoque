@@ -437,9 +437,14 @@ const Movimentacoes = () => {
                             </span>
                           </div>
                           {isAdmin && (
-                            <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive shrink-0" onClick={() => deleteMovement(mov.id)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={() => openEditDialog(mov)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive" onClick={() => deleteMovement(mov.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
