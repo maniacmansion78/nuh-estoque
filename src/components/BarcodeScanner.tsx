@@ -212,6 +212,14 @@ const BarcodeScanner = ({
     }
 
     try {
+      const barcodeDigits = onlyDigits(barcode);
+      if (!foundByLookup && barcodeDigits && !hasValidGs1CheckDigit(barcodeDigits)) {
+        toast.error("Esse código não é um código de produto válido. Se for uma nota, use o QR NF-e ou o botão Nota.");
+        setProcessing(false);
+        isProcessingRef.current = false;
+        return;
+      }
+
       if (foundByLookup) {
         toast.success(`Produto encontrado: ${resolvedProduct.name}`);
       } else {
