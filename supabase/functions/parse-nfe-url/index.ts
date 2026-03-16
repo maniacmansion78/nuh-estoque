@@ -69,6 +69,60 @@ function dedupeItems(items: ParsedItem[]): ParsedItem[] {
   });
 }
 
+function extractFirstUrl(input: string): string | null {
+  const candidates = [
+    input.trim(),
+    (() => {
+      try {
+        return decodeURIComponent(input.trim());
+      } catch {
+        return input.trim();
+      }
+    })(),
+  ];
+
+  for (const candidate of candidates) {
+    if (/^https?:\/\//i.test(candidate)) return candidate;
+
+    const urlMatch = candidate.match(/https?:\/\/\S+/i);
+    if (urlMatch?.[0]) return urlMatch[0].replace(/[),.;]+$/, "");
+
+    const wwwMatch = candidate.match(/www\.\S+/i);
+    if (wwwMatch?.[0]) return `https://${wwwMatch[0].replace(/[),.;]+$/, "")}`;
+  }
+
+  return null;
+}
+
+function extractAccessKey(input: string): string | null {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(input.trim());
+    } catch {
+      return input.trim();
+    }
+  })();
+
+  const directMatch = decoded.match(/\b\d{44}\b/);
+  if (directMatch?.[0]) return directMatch[0];
+
+  const compactDigits = decoded.replace(/\D/g, "");
+  const compactMatch = compactDigits.match(/\d{44}/);
+  return compactMatch?.[0] || null;
+}
+
+function resolveNFeFetchUrl(input: string): string | null {
+  const extractedUrl = extractFirstUrl(input);
+  if (extractedUrl) return extractedUrl;
+
+  const accessKey = extractAccessKey(input);
+  if (accessKey) {
+    return `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&nfe=${accessKey}`;
+  }
+
+  return null;
+}
+
 function extractItemsWithRegex(html: string): ParsedItem[] {
   const items: ParsedItem[] = [];
   const cleanHtml = html

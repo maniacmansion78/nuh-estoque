@@ -34,6 +34,24 @@ interface BarcodeScannerProps {
 
 const isUrl = (text: string) => /^https?:\/\//i.test(text) || /www\.\S+/i.test(text);
 const isNFeAccessKey = (text: string) => /^\d{44}$/.test(text.replace(/\s/g, ""));
+const isLikelyNFePayload = (text: string) => {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(text.trim());
+    } catch {
+      return text.trim();
+    }
+  })();
+  const compact = decoded.replace(/\s/g, "");
+
+  return (
+    isUrl(decoded) ||
+    /\d{44}/.test(compact) ||
+    /\b(?:chNFe|nfe)=/i.test(decoded) ||
+    /^\d{20,}$/.test(compact) ||
+    (/\|/.test(decoded) && /\d{20,}/.test(decoded))
+  );
+};
 
 const extractUrl = (text: string) => {
   const trimmed = text.trim();
@@ -44,6 +62,19 @@ const extractUrl = (text: string) => {
   if (wwwMatch?.[0]) return `https://${wwwMatch[0].replace(/[),.;]+$/, "")}`;
   return "";
 };
+
+const parseImportedItems = (data: any) =>
+  Array.isArray(data?.items)
+    ? data.items
+        .map((item: any) => ({
+          name: String(item.name || "").trim(),
+          quantity: Number(item.quantity) || 1,
+          unit: String(item.unit || "un").trim() || "un",
+          price: Number(item.price) || 0,
+        }))
+        .filter((item: { name: string; quantity: number }) => item.name && item.quantity > 0)
+    : [];
+;
 
 const pickBackCamera = (cameras: CameraDevice[]) =>
   cameras.find((c) => /back|rear|traseira|ambiente|environment/i.test(c.label)) ||
