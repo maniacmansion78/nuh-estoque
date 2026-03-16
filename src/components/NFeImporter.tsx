@@ -91,12 +91,14 @@ const NFeImporter = ({
   const [items, setItems] = useState<NFeItem[]>([]);
   const [emitente, setEmitente] = useState("");
   const [numero, setNumero] = useState("");
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setItems([]);
     setEmitente("");
     setNumero("");
+    setLoading(false);
   };
 
   const handleClose = () => {
@@ -104,7 +106,7 @@ const NFeImporter = ({
     setTimeout(reset, 300);
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
@@ -115,19 +117,28 @@ const NFeImporter = ({
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const result = parseNFeXml(reader.result as string);
         if (result.items.length === 0) {
           toast.error("Nenhum produto encontrado no XML");
           return;
         }
-        setItems(result.items);
+
         setEmitente(result.emitente);
         setNumero(result.numero);
-        toast.success(`${result.items.length} produtos encontrados!`);
+        setLoading(true);
+
+        toast.success(`${result.items.length} produtos encontrados! Registrando entradas...`);
+
+        // Auto-register all items immediately
+        const allItems = result.items.map(({ name, quantity, unit, price }) => ({ name, quantity, unit, price }));
+        await onItemsConfirmed(allItems);
+
+        handleClose();
       } catch (err: any) {
         toast.error(err.message || "Erro ao ler o XML");
+        setLoading(false);
       }
     };
     reader.onerror = () => toast.error("Erro ao ler o arquivo");
