@@ -80,6 +80,20 @@ const parseImportedItems = (data: unknown) => {
     .filter((item) => item.name && item.quantity > 0);
 };
 
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const hasValidGs1CheckDigit = (barcode: string) => {
+  const digits = onlyDigits(barcode);
+  if (![8, 12, 13].includes(digits.length)) return false;
+
+  const body = digits.slice(0, -1).split("").map(Number).reverse();
+  const expectedCheckDigit = Number(digits.at(-1));
+  const sum = body.reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1), 0);
+  const actualCheckDigit = (10 - (sum % 10)) % 10;
+
+  return actualCheckDigit === expectedCheckDigit;
+};
+
 const pickBackCamera = (cameras: CameraDevice[]) =>
   cameras.find((c) => /back|rear|traseira|ambiente|environment/i.test(c.label)) ||
   cameras.at(-1) ||
