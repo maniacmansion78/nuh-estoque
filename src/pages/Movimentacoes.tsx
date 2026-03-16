@@ -66,6 +66,8 @@ const Movimentacoes = () => {
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingMovId, setEditingMovId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ quantity: 0, lote: "", expiry_date: "" });
   const [form, setForm] = useState({
     product_id: "",
     type: (canDoEntries ? "in" : "out") as "in" | "out",
