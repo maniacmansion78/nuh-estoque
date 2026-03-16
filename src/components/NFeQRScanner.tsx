@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { QrCode, Loader2, Trash2, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface ParsedItem {
   name: string;
@@ -28,9 +29,10 @@ interface ParsedItem {
 interface NFeQRScannerProps {
   allProducts: { id: string; name: string; unit: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => Promise<void>;
+  buttonClassName?: string;
 }
 
-const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
+const NFeQRScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: NFeQRScannerProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"scan" | "loading" | "review">("scan");
   const [items, setItems] = useState<ParsedItem[]>([]);

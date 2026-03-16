@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Receipt, Loader2, Upload, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface ExtractedItem {
   name: string;
