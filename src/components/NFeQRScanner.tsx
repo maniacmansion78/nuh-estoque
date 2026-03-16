@@ -81,18 +81,16 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
         toast.success(`${data.items.length} produtos encontrados na NF-e!`);
       } else {
         console.log("NF-e parse result:", JSON.stringify(data));
-        toast.warning(
-          `Nenhum produto extraído automaticamente (HTML: ${data?.html_length || 0} chars). Abrindo no navegador...`,
+        setStep("scan");
+        toast.error(
+          "Não consegui extrair os itens dessa nota automaticamente. Tente novamente ou use o XML da NF-e.",
           { duration: 5000 }
         );
-        window.open(url, "_blank");
-        handleClose();
       }
     } catch (err: any) {
       console.error("Parse NF-e error:", err);
-      toast.error("Erro ao consultar NF-e. Abrindo no navegador...");
-      window.open(url, "_blank");
-      handleClose();
+      setStep("scan");
+      toast.error("Erro ao consultar a nota fiscal. Tente novamente.");
     }
   };
 
