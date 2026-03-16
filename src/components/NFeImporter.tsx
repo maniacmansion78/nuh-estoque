@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileText, Trash2, Check, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface NFeItem {
   name: string;
@@ -28,19 +29,18 @@ interface NFeImporterProps {
   existingProducts: { id: string; name: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
   confirmLabel?: string;
+  buttonClassName?: string;
 }
 
 function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; numero: string } {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xmlText, "text/xml");
 
-  // Check for parse errors
   const parseError = doc.querySelector("parsererror");
   if (parseError) throw new Error("Arquivo XML inválido");
 
-  // NF-e namespace handling - try with and without namespace
   const ns = "http://www.portalfiscal.inf.br/nfe";
-  
+
   const getEl = (parent: Element, tag: string): Element | null => {
     return parent.getElementsByTagNameNS(ns, tag)[0] || parent.getElementsByTagName(tag)[0] || null;
   };
@@ -50,15 +50,12 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
     return el?.textContent?.trim() || "";
   };
 
-  // Get emitente name
   const emit = getEl(doc.documentElement, "emit");
   const emitente = emit ? (getText(emit, "xFant") || getText(emit, "xNome")) : "";
 
-  // Get NF number
   const ide = getEl(doc.documentElement, "ide");
   const numero = ide ? getText(ide, "nNF") : "";
 
-  // Get all det (product detail) elements
   const detElements = doc.getElementsByTagNameNS(ns, "det");
   const detFallback = detElements.length > 0 ? detElements : doc.getElementsByTagName("det");
 
@@ -84,7 +81,12 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
   return { items, emitente, numero };
 }
 
-const NFeImporter = ({ existingProducts, onItemsConfirmed, confirmLabel = "Cadastrar Produtos" }: NFeImporterProps) => {
+const NFeImporter = ({
+  existingProducts,
+  onItemsConfirmed,
+  confirmLabel = "Cadastrar Produtos",
+  buttonClassName,
+}: NFeImporterProps) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NFeItem[]>([]);
   const [emitente, setEmitente] = useState("");
@@ -167,12 +169,13 @@ const NFeImporter = ({ existingProducts, onItemsConfirmed, confirmLabel = "Cadas
       <Button
         variant="outline"
         size="sm"
-        className="gap-1.5"
+        className={cn("gap-1.5", buttonClassName)}
         onClick={() => setOpen(true)}
         type="button"
       >
         <FileText className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Importar NF-e</span>
+        <span className="text-xs sm:hidden">XML</span>
+        <span className="hidden text-sm sm:inline">Importar NF-e</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true); }}>

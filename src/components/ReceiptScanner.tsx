@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Receipt, Loader2, Upload, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface ExtractedItem {
   name: string;
@@ -27,9 +28,10 @@ interface ExtractedItem {
 interface ReceiptScannerProps {
   allProducts: { id: string; name: string; unit: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
+  buttonClassName?: string;
 }
 
-const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) => {
+const ReceiptScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: ReceiptScannerProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"capture" | "review">("capture");
   const [loading, setLoading] = useState(false);
@@ -148,12 +150,13 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) 
       <Button
         variant="outline"
         size="sm"
-        className="gap-1.5"
+        className={cn("gap-1.5", buttonClassName)}
         onClick={() => setOpen(true)}
         type="button"
       >
         <Receipt className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Escanear Nota</span>
+        <span className="text-xs sm:hidden">Nota</span>
+        <span className="hidden text-sm sm:inline">Escanear Nota</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (!loading) { if (!v) handleClose(); else setOpen(true); } }}>

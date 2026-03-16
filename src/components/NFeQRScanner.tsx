@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { QrCode, Loader2, Trash2, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface ParsedItem {
   name: string;
@@ -28,9 +29,10 @@ interface ParsedItem {
 interface NFeQRScannerProps {
   allProducts: { id: string; name: string; unit: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => Promise<void>;
+  buttonClassName?: string;
 }
 
-const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
+const NFeQRScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: NFeQRScannerProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"scan" | "loading" | "review">("scan");
   const [items, setItems] = useState<ParsedItem[]>([]);
@@ -159,9 +161,16 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} type="button" className="gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        type="button"
+        className={cn("gap-1.5", buttonClassName)}
+      >
         <QrCode className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Consultar NF-e</span>
+        <span className="text-xs sm:hidden">QR NF-e</span>
+        <span className="hidden text-sm sm:inline">Consultar NF-e</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (step !== "loading") { if (!v) handleClose(); else setOpen(true); } }}>
