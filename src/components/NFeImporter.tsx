@@ -31,7 +31,56 @@ interface NFeImporterProps {
   confirmLabel?: string;
   buttonClassName?: string;
 }
-...
+
+function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; numero: string } {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, "text/xml");
+
+  const parseError = doc.querySelector("parsererror");
+  if (parseError) throw new Error("Arquivo XML inválido");
+
+  const ns = "http://www.portalfiscal.inf.br/nfe";
+
+  const getEl = (parent: Element, tag: string): Element | null => {
+    return parent.getElementsByTagNameNS(ns, tag)[0] || parent.getElementsByTagName(tag)[0] || null;
+  };
+
+  const getText = (parent: Element, tag: string): string => {
+    const el = getEl(parent, tag);
+    return el?.textContent?.trim() || "";
+  };
+
+  const emit = getEl(doc.documentElement, "emit");
+  const emitente = emit ? (getText(emit, "xFant") || getText(emit, "xNome")) : "";
+
+  const ide = getEl(doc.documentElement, "ide");
+  const numero = ide ? getText(ide, "nNF") : "";
+
+  const detElements = doc.getElementsByTagNameNS(ns, "det");
+  const detFallback = detElements.length > 0 ? detElements : doc.getElementsByTagName("det");
+
+  const items: NFeItem[] = [];
+
+  for (let i = 0; i < detFallback.length; i++) {
+    const det = detFallback[i];
+    const prod = getEl(det, "prod");
+    if (!prod) continue;
+
+    const name = getText(prod, "xProd");
+    const quantity = parseFloat(getText(prod, "qCom") || getText(prod, "qTrib")) || 1;
+    const unit = getText(prod, "uCom") || getText(prod, "uTrib") || "un";
+    const price = parseFloat(getText(prod, "vUnCom") || getText(prod, "vUnTrib")) || 0;
+    const total = parseFloat(getText(prod, "vProd")) || quantity * price;
+    const ncm = getText(prod, "NCM");
+
+    if (name) {
+      items.push({ name, quantity, unit: unit.toLowerCase(), price, total, ncm, selected: true });
+    }
+  }
+
+  return { items, emitente, numero };
+}
+
 const NFeImporter = ({
   existingProducts,
   onItemsConfirmed,
