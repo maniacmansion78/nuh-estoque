@@ -69,7 +69,7 @@ const Demo = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold">Teste Grátis</h1>
             <p className="text-xs text-muted-foreground">
-              Experimente o NUH por 7 dias como administrador
+              Experimente o NUH por 17 dias como administrador
             </p>
           </div>
         </CardHeader>
