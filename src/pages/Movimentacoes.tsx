@@ -340,47 +340,16 @@ const Movimentacoes = () => {
             onNFeUrlScanned={(items) => handleImportedEntries(items, "código de barras da nota")}
             onProductFound={async (product) => {
               const productName = product.name?.trim() || (product.barcode ? `Produto ${product.barcode}` : "");
-              const match = allProducts.find(
-                (p) => p.name.toLowerCase() === productName.toLowerCase()
-              );
-
-              let selectedProduct = match;
-              let created = false;
-
-              if (!selectedProduct && productName) {
-                const result = await ensureProductForEntry({
-                  name: productName,
-                  quantity: 1,
-                  unit: "un",
-                  price: 0,
-                });
-
-                if (result.product) {
-                  selectedProduct = result.product;
-                  created = result.created;
-                  await fetchProducts();
-                }
-              }
-
-              setForm({
-                product_id: selectedProduct?.id || allProducts[0]?.id || "",
-                type: "in",
-                quantity: 0,
-                expiry_date: undefined,
-                selected_batch: "",
-                lote: "",
-              });
-              setDialogOpen(true);
-
-              if (created && selectedProduct) {
-                toast.success(`Produto ${selectedProduct.name} cadastrado automaticamente.`);
-              } else if (selectedProduct) {
-                toast.success(`Produto identificado: ${selectedProduct.name}`);
-              } else if (productName) {
-                toast.error(`Não consegui cadastrar o produto ${productName}.`);
-              } else {
+              if (!productName) {
                 toast.error("Não consegui identificar o produto pelo código de barras.");
+                return;
               }
+
+              // Use the same auto-create + entry flow as the other scanners
+              await handleImportedEntries(
+                [{ name: productName, quantity: 1, unit: "un", price: 0 }],
+                "código de barras"
+              );
             }}
           />
           <Button
