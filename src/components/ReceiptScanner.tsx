@@ -28,9 +28,10 @@ interface ExtractedItem {
 interface ReceiptScannerProps {
   allProducts: { id: string; name: string; unit: string }[];
   onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
+  buttonClassName?: string;
 }
 
-const ReceiptScanner = ({ allProducts, onItemsConfirmed }: ReceiptScannerProps) => {
+const ReceiptScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: ReceiptScannerProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"capture" | "review">("capture");
   const [loading, setLoading] = useState(false);
