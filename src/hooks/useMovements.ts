@@ -95,6 +95,25 @@ export function useMovements() {
     return true;
   };
 
+  const updateMovement = async (
+    id: string,
+    updates: { quantity?: number; expiry_date?: string | null; lote?: string }
+  ) => {
+    const { error } = await supabase
+      .from("movements")
+      .update(updates)
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao atualizar movimentação:", error);
+      toast.error("Erro ao atualizar movimentação");
+      return false;
+    }
+    toast.success("Movimentação atualizada!");
+    await fetchMovements();
+    return true;
+  };
+
   const deleteMovement = async (id: string) => {
     const { error } = await supabase.from("movements").delete().eq("id", id);
     if (error) {
@@ -107,5 +126,5 @@ export function useMovements() {
     return true;
   };
 
-  return { items, loading, addMovement, deleteMovement, fetchMovements };
+  return { items, loading, addMovement, updateMovement, deleteMovement, fetchMovements };
 }
