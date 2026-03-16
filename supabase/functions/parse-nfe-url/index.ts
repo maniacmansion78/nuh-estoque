@@ -266,16 +266,30 @@ serve(async (req) => {
   try {
     const { url } = await req.json();
 
-    if (!url || !url.startsWith("http")) {
+    if (!url || typeof url !== "string") {
       return new Response(JSON.stringify({ success: false, error: "URL inválida" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("Fetching NFC-e URL:", url);
+    // Support both full URLs and raw 44-digit NF-e access keys
+    let fetchUrl = url.trim();
+    const cleanKey = fetchUrl.replace(/\s/g, "");
+    if (/^\d{44}$/.test(cleanKey)) {
+      fetchUrl = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&nfe=${cleanKey}`;
+    }
 
-    const response = await fetch(url, {
+    if (!fetchUrl.startsWith("http")) {
+      return new Response(JSON.stringify({ success: false, error: "URL inválida" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Fetching NFC-e URL:", fetchUrl);
+
+    const response = await fetch(fetchUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
