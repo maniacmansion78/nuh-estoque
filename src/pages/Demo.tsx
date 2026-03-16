@@ -50,7 +50,7 @@ const Demo = () => {
       } else {
         toast({
           title: "Conta demo criada! 🎉",
-          description: `Sua senha temporária é seu CPF (${cleanDoc}). Você terá 7 dias de acesso.`,
+          description: `Sua senha temporária é seu CPF (${cleanDoc}). Você terá 17 dias de acesso.`,
         });
       }
       navigate("/login");
