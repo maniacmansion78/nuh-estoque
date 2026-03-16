@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Html5Qrcode, type CameraDevice } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats, type CameraDevice } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -80,6 +80,20 @@ const parseImportedItems = (data: unknown) => {
     .filter((item) => item.name && item.quantity > 0);
 };
 
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const hasValidGs1CheckDigit = (barcode: string) => {
+  const digits = onlyDigits(barcode);
+  if (![8, 12, 13].includes(digits.length)) return false;
+
+  const body = digits.slice(0, -1).split("").map(Number).reverse();
+  const expectedCheckDigit = Number(digits.at(-1));
+  const sum = body.reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1), 0);
+  const actualCheckDigit = (10 - (sum % 10)) % 10;
+
+  return actualCheckDigit === expectedCheckDigit;
+};
+
 const pickBackCamera = (cameras: CameraDevice[]) =>
   cameras.find((c) => /back|rear|traseira|ambiente|environment/i.test(c.label)) ||
   cameras.at(-1) ||
@@ -122,8 +136,8 @@ const BarcodeScanner = ({
     }, 250);
   };
 
-  const handleNFeUrl = async (url: string) => {
-    if (!onNFeUrlScanned) return;
+  const handleNFeUrl = async (url: string, silentFailure = false) => {
+    if (!onNFeUrlScanned) return false;
 
     isProcessingRef.current = true;
     setProcessing(true);
@@ -139,20 +153,26 @@ const BarcodeScanner = ({
       const items = parseImportedItems(data);
 
       if (items.length === 0) {
-        toast.error("Li o código, mas não consegui extrair os produtos da nota.");
+        if (!silentFailure) {
+          toast.error("Li o código, mas não consegui extrair os produtos da nota.");
+        }
         setProcessing(false);
         isProcessingRef.current = false;
-        return;
+        return false;
       }
 
       setStatusMessage(`Registrando ${items.length} produto${items.length > 1 ? "s" : ""}...`);
       await onNFeUrlScanned(items);
       await handleClose();
+      return true;
     } catch (err) {
       console.error("NF-e barcode error:", err);
-      toast.error("Erro ao consultar a nota fiscal.");
+      if (!silentFailure) {
+        toast.error("Erro ao consultar a nota fiscal.");
+      }
       setProcessing(false);
       isProcessingRef.current = false;
+      return false;
     }
   };
 
@@ -192,6 +212,14 @@ const BarcodeScanner = ({
     }
 
     try {
+      const barcodeDigits = onlyDigits(barcode);
+      if (!foundByLookup && barcodeDigits && !hasValidGs1CheckDigit(barcodeDigits)) {
+        toast.error("Esse código não é um código de produto válido. Se for uma nota, use o QR NF-e ou o botão Nota.");
+        setProcessing(false);
+        isProcessingRef.current = false;
+        return;
+      }
+
       if (foundByLookup) {
         toast.success(`Produto encontrado: ${resolvedProduct.name}`);
       } else {
@@ -212,7 +240,19 @@ const BarcodeScanner = ({
     if (scannerRef.current || isProcessingRef.current) return;
 
     try {
-      const scanner = new Html5Qrcode(readerId, { verbose: false });
+      const scanner = new Html5Qrcode(readerId, {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF,
+        ],
+        verbose: false,
+      });
       scannerRef.current = scanner;
 
       const cameras = await Html5Qrcode.getCameras();
@@ -225,7 +265,7 @@ const BarcodeScanner = ({
         cameraConfig,
         {
           fps: 10,
-          qrbox: { width: 260, height: 160 },
+          qrbox: { width: 260, height: 260 },
           aspectRatio: 1,
           disableFlip: false,
         },
@@ -234,17 +274,24 @@ const BarcodeScanner = ({
           await stopScanner();
 
           const trimmed = decodedText.trim();
+          const numericCode = onlyDigits(trimmed);
+          const looksLikeNotePayload = !!onNFeUrlScanned && isLikelyNFePayload(trimmed);
 
-          // NF-e URL / payload / access key (receipt barcode or QR payload)
-          if (onNFeUrlScanned && isLikelyNFePayload(trimmed)) {
-            const extractedUrl = extractUrl(trimmed);
-            const payloadToSend = extractedUrl || trimmed;
-            toast.success("Nota detectada! Consultando itens...");
-            await handleNFeUrl(payloadToSend);
+          if (looksLikeNotePayload) {
+            const handledAsNFe = await handleNFeUrl(trimmed, true);
+            if (handledAsNFe) return;
+
+            toast.error("Li um código de nota, mas não consegui extrair os itens. Tente pelo QR NF-e ou pela foto da nota.");
+            setProcessing(false);
+            isProcessingRef.current = false;
             return;
           }
 
-          // EAN barcode flow (product)
+          if (onNFeUrlScanned && numericCode.length >= 12) {
+            const handledAsNFe = await handleNFeUrl(trimmed, true);
+            if (handledAsNFe) return;
+          }
+
           await handleEanBarcode(trimmed);
         },
         () => { /* ignore scan misses */ }

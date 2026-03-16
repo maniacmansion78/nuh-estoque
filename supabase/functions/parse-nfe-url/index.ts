@@ -89,6 +89,9 @@ function extractFirstUrl(input: string): string | null {
 
     const wwwMatch = candidate.match(/www\.\S+/i);
     if (wwwMatch?.[0]) return `https://${wwwMatch[0].replace(/[),.;]+$/, "")}`;
+
+    const sefazMatch = candidate.match(/(?:[a-z0-9-]+\.)*(?:sefaz|fazenda)[a-z0-9.-]*\.[a-z]{2,}(?:\/\S*)?/i);
+    if (sefazMatch?.[0]) return `https://${sefazMatch[0].replace(/^[/:]+/, "").replace(/[),.;]+$/, "")}`;
   }
 
   return null;
