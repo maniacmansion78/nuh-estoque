@@ -604,6 +604,49 @@ const Movimentacoes = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Movement Dialog */}
+      <Dialog open={!!editingMovId} onOpenChange={(v) => { if (!v) setEditingMovId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Editar Movimentação</DialogTitle>
+            <DialogDescription>Altere os dados da movimentação.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={editForm.quantity || ""}
+                placeholder="0"
+                onChange={(e) => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Lote</Label>
+              <Input
+                type="text"
+                placeholder="Ex: L2024-001"
+                value={editForm.lote}
+                onChange={(e) => setEditForm({ ...editForm, lote: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Data de Validade</Label>
+              <Input
+                type="date"
+                value={editForm.expiry_date ? editForm.expiry_date.split("T")[0] : ""}
+                onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value ? new Date(e.target.value).toISOString() : "" })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingMovId(null)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
