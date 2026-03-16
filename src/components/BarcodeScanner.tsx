@@ -203,7 +203,10 @@ const BarcodeScanner = ({
       if (foundByLookup) {
         toast.success(`Produto encontrado: ${resolvedProduct.name}`);
       } else {
-        toast.success("Produto não encontrado na base. Cadastrando automaticamente.");
+        toast.error("Não encontrei esse produto pela leitura do código de barras.");
+        setProcessing(false);
+        isProcessingRef.current = false;
+        return;
       }
 
       await onProductFound(resolvedProduct);
