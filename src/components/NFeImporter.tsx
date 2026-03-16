@@ -145,21 +145,7 @@ const NFeImporter = ({
     reader.readAsText(file);
   };
 
-  const toggleItem = (index: number) => {
-    setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, selected: !item.selected } : item))
-    );
-  };
-
-  const updateItem = (index: number, field: keyof NFeItem, value: any) => {
-    setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const removeItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
+  const selectedTotal = items.filter((i) => i.selected).reduce((sum, i) => sum + i.total, 0);
 
   const handleConfirm = () => {
     const selected = items.filter((i) => i.selected);
