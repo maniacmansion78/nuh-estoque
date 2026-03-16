@@ -240,7 +240,19 @@ const BarcodeScanner = ({
     if (scannerRef.current || isProcessingRef.current) return;
 
     try {
-      const scanner = new Html5Qrcode(readerId, { verbose: false });
+      const scanner = new Html5Qrcode(readerId, {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF,
+        ],
+        verbose: false,
+      });
       scannerRef.current = scanner;
 
       const cameras = await Html5Qrcode.getCameras();
@@ -253,7 +265,7 @@ const BarcodeScanner = ({
         cameraConfig,
         {
           fps: 10,
-          qrbox: { width: 260, height: 160 },
+          qrbox: { width: 260, height: 260 },
           aspectRatio: 1,
           disableFlip: false,
         },
@@ -262,17 +274,24 @@ const BarcodeScanner = ({
           await stopScanner();
 
           const trimmed = decodedText.trim();
+          const numericCode = onlyDigits(trimmed);
+          const looksLikeNotePayload = !!onNFeUrlScanned && isLikelyNFePayload(trimmed);
 
-          // NF-e URL / payload / access key (receipt barcode or QR payload)
-          if (onNFeUrlScanned && isLikelyNFePayload(trimmed)) {
-            const extractedUrl = extractUrl(trimmed);
-            const payloadToSend = extractedUrl || trimmed;
-            toast.success("Nota detectada! Consultando itens...");
-            await handleNFeUrl(payloadToSend);
+          if (looksLikeNotePayload) {
+            const handledAsNFe = await handleNFeUrl(trimmed, true);
+            if (handledAsNFe) return;
+
+            toast.error("Li um código de nota, mas não consegui extrair os itens. Tente pelo QR NF-e ou pela foto da nota.");
+            setProcessing(false);
+            isProcessingRef.current = false;
             return;
           }
 
-          // EAN barcode flow (product)
+          if (onNFeUrlScanned && numericCode.length >= 12) {
+            const handledAsNFe = await handleNFeUrl(trimmed, true);
+            if (handledAsNFe) return;
+          }
+
           await handleEanBarcode(trimmed);
         },
         () => { /* ignore scan misses */ }
