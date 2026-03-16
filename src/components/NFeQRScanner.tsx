@@ -35,6 +35,7 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
   const [step, setStep] = useState<"scan" | "loading" | "review">("scan");
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [scannedUrl, setScannedUrl] = useState("");
+  const [manualUrl, setManualUrl] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const readerId = "nfe-qr-reader";
 
@@ -54,6 +55,7 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
     setStep("scan");
     setItems([]);
     setScannedUrl("");
+    setManualUrl("");
   };
 
   const handleClose = () => {
@@ -78,7 +80,11 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
         setStep("review");
         toast.success(`${data.items.length} produtos encontrados na NF-e!`);
       } else {
-        toast.info("Não foi possível extrair produtos da SEFAZ. Abrindo no navegador...");
+        console.log("NF-e parse result:", JSON.stringify(data));
+        toast.warning(
+          `Nenhum produto extraído automaticamente (HTML: ${data?.html_length || 0} chars). Abrindo no navegador...`,
+          { duration: 5000 }
+        );
         window.open(url, "_blank");
         handleClose();
       }
@@ -176,8 +182,31 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed }: NFeQRScannerProps) => {
           </DialogHeader>
 
           {step === "scan" && (
-            <div className="w-full aspect-square max-h-[350px] overflow-hidden rounded-lg bg-muted">
-              <div id={readerId} className="w-full h-full" />
+            <div className="space-y-3">
+              <div className="w-full aspect-square max-h-[300px] overflow-hidden rounded-lg bg-muted">
+                <div id={readerId} className="w-full h-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Ou cole o link da NF-e:</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://www.sefaz..."
+                    value={manualUrl}
+                    onChange={(e) => setManualUrl(e.target.value)}
+                    className="text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    disabled={!manualUrl.startsWith("http")}
+                    onClick={async () => {
+                      await stopScanner();
+                      await fetchNFeData(manualUrl.trim());
+                    }}
+                  >
+                    Buscar
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 
