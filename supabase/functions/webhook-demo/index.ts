@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
 
     // Calculate trial end date (7 days from now)
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 17);
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
