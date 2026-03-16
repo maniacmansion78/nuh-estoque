@@ -337,6 +337,7 @@ const Movimentacoes = () => {
             buttonVariant="outline"
             buttonSize="sm"
             className="w-full justify-center sm:w-auto"
+            onNFeUrlScanned={(items) => handleImportedEntries(items, "código de barras da nota")}
             onProductFound={(product) => {
               const match = allProducts.find(
                 (p) => p.name.toLowerCase() === product.name.toLowerCase()
