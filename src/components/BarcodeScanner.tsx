@@ -33,7 +33,6 @@ interface BarcodeScannerProps {
 }
 
 const isUrl = (text: string) => /^https?:\/\//i.test(text) || /www\.\S+/i.test(text);
-const isNFeAccessKey = (text: string) => /^\d{44}$/.test(text.replace(/\s/g, ""));
 const isLikelyNFePayload = (text: string) => {
   const decoded = (() => {
     try {
@@ -63,18 +62,23 @@ const extractUrl = (text: string) => {
   return "";
 };
 
-const parseImportedItems = (data: any) =>
-  Array.isArray(data?.items)
-    ? data.items
-        .map((item: any) => ({
-          name: String(item.name || "").trim(),
-          quantity: Number(item.quantity) || 1,
-          unit: String(item.unit || "un").trim() || "un",
-          price: Number(item.price) || 0,
-        }))
-        .filter((item: { name: string; quantity: number }) => item.name && item.quantity > 0)
-    : [];
-;
+const parseImportedItems = (data: unknown) => {
+  if (!data || typeof data !== "object" || !("items" in data) || !Array.isArray((data as { items?: unknown[] }).items)) {
+    return [] as { name: string; quantity: number; unit: string; price: number }[];
+  }
+
+  return (data as { items: unknown[] }).items
+    .map((item) => {
+      const parsed = item as { name?: unknown; quantity?: unknown; unit?: unknown; price?: unknown };
+      return {
+        name: String(parsed.name || "").trim(),
+        quantity: Number(parsed.quantity) || 1,
+        unit: String(parsed.unit || "un").trim() || "un",
+        price: Number(parsed.price) || 0,
+      };
+    })
+    .filter((item) => item.name && item.quantity > 0);
+};
 
 const pickBackCamera = (cameras: CameraDevice[]) =>
   cameras.find((c) => /back|rear|traseira|ambiente|environment/i.test(c.label)) ||
