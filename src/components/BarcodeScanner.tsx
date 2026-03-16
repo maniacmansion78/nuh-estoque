@@ -23,7 +23,7 @@ interface ProductData {
 
 interface BarcodeScannerProps {
   /** Called when a single product EAN barcode is scanned */
-  onProductFound: (product: ProductData) => void;
+  onProductFound: (product: ProductData) => Promise<void> | void;
   /** Called when a NF-e URL is detected (barcode on receipt) — extracts all items */
   onNFeUrlScanned?: (items: { name: string; quantity: number; unit: string; price: number }[]) => Promise<void>;
   buttonLabel?: string;
