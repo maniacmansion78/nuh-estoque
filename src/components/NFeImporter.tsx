@@ -6,12 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, Trash2, Check, Upload } from "lucide-react";
+import { FileText, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +17,6 @@ interface NFeItem {
   unit: string;
   price: number;
   total: number;
-  ncm: string;
-  selected: boolean;
 }
 
 interface NFeImporterProps {
@@ -41,14 +35,11 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
 
   const ns = "http://www.portalfiscal.inf.br/nfe";
 
-  const getEl = (parent: Element, tag: string): Element | null => {
-    return parent.getElementsByTagNameNS(ns, tag)[0] || parent.getElementsByTagName(tag)[0] || null;
-  };
+  const getEl = (parent: Element, tag: string): Element | null =>
+    parent.getElementsByTagNameNS(ns, tag)[0] || parent.getElementsByTagName(tag)[0] || null;
 
-  const getText = (parent: Element, tag: string): string => {
-    const el = getEl(parent, tag);
-    return el?.textContent?.trim() || "";
-  };
+  const getText = (parent: Element, tag: string): string =>
+    getEl(parent, tag)?.textContent?.trim() || "";
 
   const emit = getEl(doc.documentElement, "emit");
   const emitente = emit ? (getText(emit, "xFant") || getText(emit, "xNome")) : "";
@@ -71,10 +62,9 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
     const unit = getText(prod, "uCom") || getText(prod, "uTrib") || "un";
     const price = parseFloat(getText(prod, "vUnCom") || getText(prod, "vUnTrib")) || 0;
     const total = parseFloat(getText(prod, "vProd")) || quantity * price;
-    const ncm = getText(prod, "NCM");
 
     if (name) {
-      items.push({ name, quantity, unit: unit.toLowerCase(), price, total, ncm, selected: true });
+      items.push({ name, quantity, unit: unit.toLowerCase(), price, total });
     }
   }
 
@@ -82,23 +72,17 @@ function parseNFeXml(xmlText: string): { items: NFeItem[]; emitente: string; num
 }
 
 const NFeImporter = ({
-  existingProducts,
   onItemsConfirmed,
-  confirmLabel = "Cadastrar Produtos",
   buttonClassName,
 }: NFeImporterProps) => {
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<NFeItem[]>([]);
-  const [emitente, setEmitente] = useState("");
-  const [numero, setNumero] = useState("");
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
-    setItems([]);
-    setEmitente("");
-    setNumero("");
     setLoading(false);
+    setStatusMessage("");
   };
 
   const handleClose = () => {
@@ -125,19 +109,16 @@ const NFeImporter = ({
           return;
         }
 
-        setEmitente(result.emitente);
-        setNumero(result.numero);
         setLoading(true);
+        setStatusMessage(`${result.items.length} produtos encontrados. Registrando entradas...`);
 
-        toast.success(`${result.items.length} produtos encontrados! Registrando entradas...`);
-
-        // Auto-register all items immediately
         const allItems = result.items.map(({ name, quantity, unit, price }) => ({ name, quantity, unit, price }));
         await onItemsConfirmed(allItems);
 
         handleClose();
-      } catch (err: any) {
-        toast.error(err.message || "Erro ao ler o XML");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Erro ao ler o XML";
+        toast.error(message);
         setLoading(false);
       }
     };
@@ -145,29 +126,17 @@ const NFeImporter = ({
     reader.readAsText(file);
   };
 
-  const selectedTotal = items.filter((i) => i.selected).reduce((sum, i) => sum + i.total, 0);
-
-  const handleConfirm = () => {
-    const selected = items.filter((i) => i.selected);
-    if (selected.length === 0) {
-      toast.error("Selecione pelo menos um item");
-      return;
-    }
-    onItemsConfirmed(
-      selected.map(({ name, quantity, unit, price }) => ({ name, quantity, unit, price }))
-    );
-    handleClose();
-  };
-
-  const selectedTotal = items.filter((i) => i.selected).reduce((sum, i) => sum + i.total, 0);
-
   return (
     <>
       <Button
         variant="outline"
         size="sm"
         className={cn("gap-1.5", buttonClassName)}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          // Auto-open file picker
+          setTimeout(() => fileInputRef.current?.click(), 200);
+        }}
         type="button"
       >
         <FileText className="h-4 w-4" />
@@ -175,20 +144,21 @@ const NFeImporter = ({
         <span className="hidden text-sm sm:inline">Importar NF-e</span>
       </Button>
 
-      <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true); }}>
-        <DialogContent className="sm:max-w-lg max-h-[90dvh] overflow-y-auto">
+      <Dialog open={open} onOpenChange={(v) => { if (!loading) { if (!v) handleClose(); else setOpen(true); } }}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {items.length === 0 ? "Importar NF-e (XML)" : "Revisar Produtos da NF-e"}
-            </DialogTitle>
+            <DialogTitle>Importar NF-e (XML)</DialogTitle>
             <DialogDescription>
-              {items.length === 0
-                ? "Envie o arquivo XML da Nota Fiscal Eletrônica"
-                : `${emitente ? emitente + " — " : ""}${numero ? `NF ${numero} — ` : ""}${items.length} produtos`}
+              {loading ? statusMessage : "Envie o arquivo XML da Nota Fiscal para dar entrada automática."}
             </DialogDescription>
           </DialogHeader>
 
-          {items.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-12">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground text-center">{statusMessage}</p>
+            </div>
+          ) : (
             <div className="flex flex-col items-center gap-4 py-8">
               <Button
                 variant="outline"
@@ -199,126 +169,19 @@ const NFeImporter = ({
                 <span className="text-xs">Selecionar arquivo XML</span>
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Aceita arquivos XML de NF-e (modelo 55) e NFC-e (modelo 65)
+                Aceita arquivos XML de NF-e (modelo 55) e NFC-e (modelo 65).
+                Todos os produtos serão cadastrados e as entradas registradas automaticamente.
               </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xml"
-                className="hidden"
-                onChange={handleFile}
-              />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                {items.map((item, index) => {
-                  const exists = existingProducts.find(
-                    (p) => p.name.toLowerCase() === item.name.toLowerCase()
-                  );
-                  return (
-                    <div
-                      key={index}
-                      className={`flex items-start gap-2 p-2.5 rounded-lg border transition-colors ${
-                        item.selected
-                          ? "bg-primary/5 border-primary/20"
-                          : "bg-muted/30 border-transparent opacity-60"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={item.selected}
-                        onCheckedChange={() => toggleItem(index)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <Input
-                            value={item.name}
-                            onChange={(e) => updateItem(index, "name", e.target.value)}
-                            className="h-7 text-xs font-medium"
-                          />
-                          {exists ? (
-                            <span className="shrink-0 text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded">
-                              Já existe
-                            </span>
-                          ) : (
-                            <span className="shrink-0 text-[9px] bg-success/10 text-success px-1.5 py-0.5 rounded">
-                              Novo
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <div className="flex items-center gap-1">
-                            <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={item.quantity}
-                              onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}
-                              className="h-6 w-16 text-[10px]"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Label className="text-[10px] text-muted-foreground">Un:</Label>
-                            <Input
-                              value={item.unit}
-                              onChange={(e) => updateItem(index, "unit", e.target.value)}
-                              className="h-6 w-12 text-[10px]"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Label className="text-[10px] text-muted-foreground">R$:</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={item.price}
-                              onChange={(e) => updateItem(index, "price", Number(e.target.value))}
-                              className="h-6 w-20 text-[10px]"
-                            />
-                          </div>
-                          <span className="text-muted-foreground ml-auto">
-                            = R$ {item.total.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 text-destructive shrink-0"
-                        onClick={() => removeItem(index)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between text-sm border-t pt-2">
-                <span className="text-muted-foreground">
-                  {items.filter((i) => i.selected).length} de {items.length} selecionados
-                </span>
-                <span className="font-semibold">Total: R$ {selectedTotal.toFixed(2)}</span>
-              </div>
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            {items.length > 0 && (
-              <Button variant="outline" onClick={reset} className="mr-auto">
-                Outro XML
-              </Button>
-            )}
-            <Button variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            {items.length > 0 && (
-              <Button onClick={handleConfirm} className="gap-1.5">
-                <Check className="h-4 w-4" />
-                {confirmLabel}
-              </Button>
-            )}
-          </DialogFooter>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xml"
+            className="hidden"
+            onChange={handleFile}
+          />
         </DialogContent>
       </Dialog>
     </>
