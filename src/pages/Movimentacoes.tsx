@@ -298,7 +298,32 @@ const Movimentacoes = () => {
     }
   };
 
-  if (productsLoading || movementsLoading) {
+  const openEditDialog = (mov: typeof dbMovements[0]) => {
+    setEditingMovId(mov.id);
+    setEditForm({
+      quantity: mov.quantity,
+      lote: mov.lote || "",
+      expiry_date: mov.expiry_date || "",
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingMovId) return;
+    if (editForm.quantity <= 0) {
+      toast.error("Quantidade deve ser maior que zero");
+      return;
+    }
+    setSaving(true);
+    const success = await updateMovement(editingMovId, {
+      quantity: editForm.quantity,
+      lote: editForm.lote.trim(),
+      expiry_date: editForm.expiry_date || null,
+    });
+    setSaving(false);
+    if (success) setEditingMovId(null);
+  };
+
+
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-muted-foreground">Carregando movimentações...</p>
