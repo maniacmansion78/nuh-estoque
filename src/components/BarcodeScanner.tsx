@@ -209,6 +209,7 @@ const BarcodeScanner = ({
 
           const trimmed = decodedText.trim();
 
+          // NF-e URL (QR Code)
           if (isUrl(trimmed) && onNFeUrlScanned) {
             const url = extractUrl(trimmed);
             if (url) {
@@ -218,7 +219,16 @@ const BarcodeScanner = ({
             }
           }
 
-          // EAN barcode flow
+          // NF-e 44-digit access key (barcode on receipt)
+          const cleanCode = trimmed.replace(/\s/g, "");
+          if (isNFeAccessKey(cleanCode) && onNFeUrlScanned) {
+            toast.success("Chave NF-e detectada! Consultando nota...");
+            const nfeUrl = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&nfe=${cleanCode}`;
+            await handleNFeUrl(nfeUrl);
+            return;
+          }
+
+          // EAN barcode flow (product)
           await handleEanBarcode(trimmed);
         },
         () => { /* ignore scan misses */ }
