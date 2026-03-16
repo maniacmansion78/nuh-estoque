@@ -6,6 +6,27 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const normalizeBarcodeCandidates = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  const candidates = new Set<string>();
+
+  if (digits) candidates.add(digits);
+  if (digits.length === 12) candidates.add(`0${digits}`);
+  if (digits.length === 13 && digits.startsWith("0")) candidates.add(digits.slice(1));
+  if (digits.length === 8) candidates.add(`00000${digits}`);
+
+  return [...candidates];
+};
+
+const fetchProductByBarcode = async (barcode: string) => {
+  const response = await fetch(
+    `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`
+  );
+
+  const data = await response.json();
+  return { response, data };
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,34 +42,33 @@ serve(async (req) => {
       );
     }
 
-    // Query Open Food Facts API (free, no key needed)
-    const response = await fetch(
-      `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`
-    );
+    const candidates = normalizeBarcodeCandidates(String(barcode));
 
-    const data = await response.json();
+    for (const candidate of candidates) {
+      const { data } = await fetchProductByBarcode(candidate);
 
-    if (data.status === 1 && data.product) {
-      const p = data.product;
+      if (data.status === 1 && data.product) {
+        const p = data.product;
+        const category =
+          p.categories_tags?.[0]?.replace(/^[a-z]{2}:/, "") ||
+          p.food_groups_tags?.[0]?.replace(/^[a-z]{2}:/, "") ||
+          "";
 
-      // Try to get a meaningful category
-      const category =
-        p.categories_tags?.[0]?.replace(/^[a-z]{2}:/, "") ||
-        p.food_groups_tags?.[0]?.replace(/^[a-z]{2}:/, "") ||
-        "";
+        const product = {
+          name: p.product_name || p.product_name_pt || p.product_name_en || "",
+          category,
+          barcode: candidate,
+          brand: p.brands || "",
+          quantity_text: p.quantity || "",
+        };
 
-      const product = {
-        name: p.product_name || p.product_name_pt || p.product_name_en || "",
-        category: category,
-        barcode: barcode,
-        brand: p.brands || "",
-        quantity_text: p.quantity || "",
-      };
-
-      return new Response(
-        JSON.stringify({ found: true, product }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        if (product.name) {
+          return new Response(
+            JSON.stringify({ found: true, product }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
     }
 
     return new Response(
@@ -57,8 +77,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Lookup error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ found: false, error: error.message }),
+      JSON.stringify({ found: false, error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

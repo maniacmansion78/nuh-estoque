@@ -366,13 +366,12 @@ const Movimentacoes = () => {
             className="w-full justify-center sm:w-auto"
             onNFeUrlScanned={(items) => handleImportedEntries(items, "código de barras da nota")}
             onProductFound={async (product) => {
-              const productName = product.name?.trim() || (product.barcode ? `Produto ${product.barcode}` : "");
+              const productName = product.name?.trim();
               if (!productName) {
-                toast.error("Não consegui identificar o produto pelo código de barras.");
+                toast.error("Não encontrei o nome desse produto. Tente outro código ou cadastre manualmente.");
                 return;
               }
 
-              // Use the same auto-create + entry flow as the other scanners
               await handleImportedEntries(
                 [{ name: productName, quantity: 1, unit: "un", price: 0 }],
                 "código de barras"

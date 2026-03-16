@@ -82,18 +82,6 @@ const parseImportedItems = (data: unknown) => {
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
-const hasValidGs1CheckDigit = (barcode: string) => {
-  const digits = onlyDigits(barcode);
-  if (![8, 12, 13].includes(digits.length)) return false;
-
-  const body = digits.slice(0, -1).split("").map(Number).reverse();
-  const expectedCheckDigit = Number(digits.at(-1));
-  const sum = body.reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1), 0);
-  const actualCheckDigit = (10 - (sum % 10)) % 10;
-
-  return actualCheckDigit === expectedCheckDigit;
-};
-
 const pickBackCamera = (cameras: CameraDevice[]) =>
   cameras.find((c) => /back|rear|traseira|ambiente|environment/i.test(c.label)) ||
   cameras.at(-1) ||
@@ -182,7 +170,7 @@ const BarcodeScanner = ({
     setStatusMessage("Consultando produto...");
 
     const fallbackProduct: ProductData = {
-      name: `Produto ${barcode}`,
+      name: "",
       category: "Outros",
       barcode,
     };
@@ -215,7 +203,10 @@ const BarcodeScanner = ({
       if (foundByLookup) {
         toast.success(`Produto encontrado: ${resolvedProduct.name}`);
       } else {
-        toast.success("Produto não encontrado na base. Cadastrando automaticamente.");
+        toast.error("Não encontrei esse produto pela leitura do código de barras.");
+        setProcessing(false);
+        isProcessingRef.current = false;
+        return;
       }
 
       await onProductFound(resolvedProduct);
