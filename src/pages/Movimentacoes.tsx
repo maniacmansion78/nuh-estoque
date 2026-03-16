@@ -339,16 +339,17 @@ const Movimentacoes = () => {
             className="w-full justify-center sm:w-auto"
             onNFeUrlScanned={(items) => handleImportedEntries(items, "código de barras da nota")}
             onProductFound={async (product) => {
+              const productName = product.name?.trim() || (product.barcode ? `Produto ${product.barcode}` : "");
               const match = allProducts.find(
-                (p) => p.name.toLowerCase() === product.name.toLowerCase()
+                (p) => p.name.toLowerCase() === productName.toLowerCase()
               );
 
               let selectedProduct = match;
               let created = false;
 
-              if (!selectedProduct && product.name) {
+              if (!selectedProduct && productName) {
                 const result = await ensureProductForEntry({
-                  name: product.name,
+                  name: productName,
                   quantity: 1,
                   unit: "un",
                   price: 0,
@@ -375,10 +376,10 @@ const Movimentacoes = () => {
                 toast.success(`Produto ${selectedProduct.name} cadastrado automaticamente.`);
               } else if (selectedProduct) {
                 toast.success(`Produto identificado: ${selectedProduct.name}`);
-              } else if (product.name) {
-                toast.error(`Não consegui cadastrar o produto ${product.name}.`);
+              } else if (productName) {
+                toast.error(`Não consegui cadastrar o produto ${productName}.`);
               } else {
-                toast.info("Produto não encontrado no código de barras.");
+                toast.error("Não consegui identificar o produto pelo código de barras.");
               }
             }}
           />
