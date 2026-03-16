@@ -132,16 +132,7 @@ const BarcodeScanner = ({
 
       if (error) throw error;
 
-      const items = Array.isArray(data?.items)
-        ? data.items
-            .map((item: any) => ({
-              name: String(item.name || "").trim(),
-              quantity: Number(item.quantity) || 1,
-              unit: String(item.unit || "un").trim() || "un",
-              price: Number(item.price) || 0,
-            }))
-            .filter((item) => item.name && item.quantity > 0)
-        : [];
+      const items = parseImportedItems(data);
 
       if (items.length === 0) {
         toast.error("Li o código, mas não consegui extrair os produtos da nota.");
@@ -150,7 +141,7 @@ const BarcodeScanner = ({
         return;
       }
 
-      setStatusMessage("Registrando entrada dos produtos...");
+      setStatusMessage(`Registrando ${items.length} produto${items.length > 1 ? "s" : ""}...`);
       await onNFeUrlScanned(items);
       await handleClose();
     } catch (err) {
