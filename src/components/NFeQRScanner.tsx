@@ -161,9 +161,16 @@ const NFeQRScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: NFeQRS
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} type="button" className="gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        type="button"
+        className={cn("gap-1.5", buttonClassName)}
+      >
         <QrCode className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Consultar NF-e</span>
+        <span className="text-xs sm:hidden">QR NF-e</span>
+        <span className="hidden text-sm sm:inline">Consultar NF-e</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (step !== "loading") { if (!v) handleClose(); else setOpen(true); } }}>

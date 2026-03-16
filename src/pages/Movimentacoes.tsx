@@ -311,11 +311,12 @@ const Movimentacoes = () => {
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Movimentações</h1>
           <p className="text-sm text-muted-foreground">Histórico de entradas e saídas</p>
         </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
           {canDoEntries && (
             <ReceiptScanner
               allProducts={allProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
               onItemsConfirmed={(confirmedItems) => handleImportedEntries(confirmedItems, "leitura da nota")}
+              buttonClassName="w-full justify-center sm:w-auto"
             />
           )}
           {canDoEntries && (
@@ -323,16 +324,19 @@ const Movimentacoes = () => {
               existingProducts={allProducts.map((p) => ({ id: p.id, name: p.name }))}
               confirmLabel="Dar Entrada"
               onItemsConfirmed={(confirmedItems) => handleImportedEntries(confirmedItems, "NF-e XML")}
+              buttonClassName="w-full justify-center sm:w-auto"
             />
           )}
           <NFeQRScanner
             allProducts={allProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unit }))}
             onItemsConfirmed={(confirmedItems) => handleImportedEntries(confirmedItems, "QR Code NF-e")}
+            buttonClassName="w-full justify-center sm:w-auto"
           />
           <BarcodeScanner
             buttonLabel="Escanear"
             buttonVariant="outline"
             buttonSize="sm"
+            className="w-full justify-center sm:w-auto"
             onProductFound={(product) => {
               const match = allProducts.find(
                 (p) => p.name.toLowerCase() === product.name.toLowerCase()
@@ -353,10 +357,14 @@ const Movimentacoes = () => {
               }
             }}
           />
-          <Button size="sm" className="gap-1.5 flex-1 sm:flex-none sm:size-auto" onClick={() => {
-            setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
-            setDialogOpen(true);
-          }}>
+          <Button
+            size="sm"
+            className="col-span-2 gap-1.5 sm:col-span-1 sm:w-auto"
+            onClick={() => {
+              setForm({ product_id: allProducts[0]?.id || "", type: "in", quantity: 0, expiry_date: undefined, selected_batch: "", lote: "" });
+              setDialogOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Nova Movimentação</span>
           </Button>

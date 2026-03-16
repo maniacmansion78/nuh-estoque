@@ -150,12 +150,13 @@ const ReceiptScanner = ({ allProducts, onItemsConfirmed, buttonClassName }: Rece
       <Button
         variant="outline"
         size="sm"
-        className="gap-1.5"
+        className={cn("gap-1.5", buttonClassName)}
         onClick={() => setOpen(true)}
         type="button"
       >
         <Receipt className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Escanear Nota</span>
+        <span className="text-xs sm:hidden">Nota</span>
+        <span className="hidden text-sm sm:inline">Escanear Nota</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (!loading) { if (!v) handleClose(); else setOpen(true); } }}>

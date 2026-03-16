@@ -120,12 +120,13 @@ const NFeImporter = ({
       <Button
         variant="outline"
         size="sm"
-        className="gap-1.5"
+        className={cn("gap-1.5", buttonClassName)}
         onClick={() => setOpen(true)}
         type="button"
       >
         <FileText className="h-4 w-4" />
-        <span className="text-xs sm:text-sm">Importar NF-e</span>
+        <span className="text-xs sm:hidden">XML</span>
+        <span className="hidden text-sm sm:inline">Importar NF-e</span>
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true); }}>
