@@ -27,7 +27,7 @@ interface NFeItem {
 
 interface NFeImporterProps {
   existingProducts: { id: string; name: string }[];
-  onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void;
+  onItemsConfirmed: (items: { name: string; quantity: number; unit: string; price: number }[]) => void | Promise<void>;
   confirmLabel?: string;
   buttonClassName?: string;
 }
