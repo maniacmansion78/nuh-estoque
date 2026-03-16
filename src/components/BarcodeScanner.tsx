@@ -170,7 +170,7 @@ const BarcodeScanner = ({
     setStatusMessage("Consultando produto...");
 
     const fallbackProduct: ProductData = {
-      name: `Produto ${barcode}`,
+      name: "",
       category: "Outros",
       barcode,
     };
