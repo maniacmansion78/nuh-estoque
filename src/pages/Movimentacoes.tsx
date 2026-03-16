@@ -338,12 +338,31 @@ const Movimentacoes = () => {
             buttonSize="sm"
             className="w-full justify-center sm:w-auto"
             onNFeUrlScanned={(items) => handleImportedEntries(items, "código de barras da nota")}
-            onProductFound={(product) => {
+            onProductFound={async (product) => {
               const match = allProducts.find(
                 (p) => p.name.toLowerCase() === product.name.toLowerCase()
               );
+
+              let selectedProduct = match;
+              let created = false;
+
+              if (!selectedProduct && product.name) {
+                const result = await ensureProductForEntry({
+                  name: product.name,
+                  quantity: 1,
+                  unit: "un",
+                  price: 0,
+                });
+
+                if (result.product) {
+                  selectedProduct = result.product;
+                  created = result.created;
+                  await fetchProducts();
+                }
+              }
+
               setForm({
-                product_id: match?.id || allProducts[0]?.id || "",
+                product_id: selectedProduct?.id || allProducts[0]?.id || "",
                 type: "in",
                 quantity: 0,
                 expiry_date: undefined,
@@ -351,10 +370,15 @@ const Movimentacoes = () => {
                 lote: "",
               });
               setDialogOpen(true);
-              if (match) {
-                toast.success(`Produto identificado: ${match.name}`);
+
+              if (created && selectedProduct) {
+                toast.success(`Produto ${selectedProduct.name} cadastrado automaticamente.`);
+              } else if (selectedProduct) {
+                toast.success(`Produto identificado: ${selectedProduct.name}`);
               } else if (product.name) {
-                toast.info(`Produto "${product.name}" não cadastrado. Cadastre primeiro em Produtos.`);
+                toast.error(`Não consegui cadastrar o produto ${product.name}.`);
+              } else {
+                toast.info("Produto não encontrado no código de barras.");
               }
             }}
           />
