@@ -134,6 +134,15 @@ const BarcodeScanner = ({
     setProcessing(true);
     setStatusMessage("Consultando produto...");
 
+    const fallbackProduct: ProductData = {
+      name: `Produto ${barcode}`,
+      category: "Outros",
+      barcode,
+    };
+
+    let resolvedProduct = fallbackProduct;
+    let foundByLookup = false;
+
     try {
       const { data, error } = await supabase.functions.invoke("lookup-barcode", {
         body: { barcode },
@@ -141,17 +150,32 @@ const BarcodeScanner = ({
 
       if (error) throw error;
 
-      if (data?.found) {
-        toast.success(`Produto encontrado: ${data.product.name}`);
-        onProductFound(data.product);
-      } else {
-        toast.error("Produto não encontrado na base de dados. Preencha manualmente.");
-        onProductFound({ name: "", category: "", barcode });
+      if (data?.found && data.product?.name) {
+        resolvedProduct = {
+          name: String(data.product.name).trim(),
+          category: String(data.product.category || "Outros").trim() || "Outros",
+          barcode,
+          brand: data.product.brand || "",
+          quantity_text: data.product.quantity_text || "",
+        };
+        foundByLookup = true;
       }
-      await handleClose();
     } catch (err) {
       console.error("Lookup error:", err);
-      toast.error("Erro ao consultar produto. Tente novamente.");
+    }
+
+    try {
+      if (foundByLookup) {
+        toast.success(`Produto encontrado: ${resolvedProduct.name}`);
+      } else {
+        toast.success("Produto não cadastrado. Vou criar automaticamente.");
+      }
+
+      await onProductFound(resolvedProduct);
+      await handleClose();
+    } catch (err) {
+      console.error("Barcode flow error:", err);
+      toast.error("Erro ao processar o código de barras.");
       setProcessing(false);
       isProcessingRef.current = false;
     }
