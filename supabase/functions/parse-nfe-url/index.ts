@@ -327,14 +327,9 @@ serve(async (req) => {
       });
     }
 
-    // Support both full URLs and raw 44-digit NF-e access keys
-    let fetchUrl = url.trim();
-    const cleanKey = fetchUrl.replace(/\s/g, "");
-    if (/^\d{44}$/.test(cleanKey)) {
-      fetchUrl = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&nfe=${cleanKey}`;
-    }
+    const fetchUrl = resolveNFeFetchUrl(url);
 
-    if (!fetchUrl.startsWith("http")) {
+    if (!fetchUrl) {
       return new Response(JSON.stringify({ success: false, error: "URL inválida" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
