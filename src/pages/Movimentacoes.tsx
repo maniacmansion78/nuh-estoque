@@ -117,6 +117,130 @@ const Movimentacoes = () => {
     return groups;
   }, [dbMovements]);
 
+  const normalizeImportedName = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const mapImportedUnit = (unit: string): "kg" | "L" | "un" => {
+    const normalized = unit.trim().toLowerCase();
+    if (["kg", "g", "gr"].includes(normalized)) return "kg";
+    if (["l", "lt", "ml"].includes(normalized)) return "L";
+    return "un";
+  };
+
+  const ensureProductForEntry = async (item: {
+    name: string;
+    quantity: number;
+    unit: string;
+    price: number;
+  }) => {
+    const normalizedName = normalizeImportedName(item.name);
+    const existingFromState = allProducts.find(
+      (product) => normalizeImportedName(product.name) === normalizedName
+    );
+
+    if (existingFromState) {
+      return { product: existingFromState, created: false };
+    }
+
+    const { data: existingFromDb, error: lookupError } = await supabase
+      .from("products")
+      .select("id, name, unit, quantity, price, expiry_date, lote")
+      .ilike("name", item.name.trim())
+      .limit(1)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("Erro ao buscar produto importado:", lookupError);
+    }
+
+    if (existingFromDb) {
+      return {
+        product: {
+          ...existingFromDb,
+          quantity: Number(existingFromDb.quantity),
+          price: Number(existingFromDb.price),
+        },
+        created: false,
+      };
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const { data: createdProduct, error: createError } = await supabase
+      .from("products")
+      .insert({
+        name: item.name.trim(),
+        category: "Outros",
+        quantity: 0,
+        unit: mapImportedUnit(item.unit),
+        min_quantity: 0,
+        price: item.price || 0,
+        expiry_date: new Date().toISOString(),
+        supplier_id: "",
+        alert_days: 3,
+        lote: "",
+        created_by: userData.user?.id ?? null,
+      })
+      .select("id, name, unit, quantity, price, expiry_date, lote")
+      .single();
+
+    if (createError) {
+      console.error("Erro ao cadastrar produto automaticamente:", createError);
+      toast.error(`Não consegui cadastrar o produto ${item.name}.`);
+      return { product: null, created: false };
+    }
+
+    return {
+      product: {
+        ...createdProduct,
+        quantity: Number(createdProduct.quantity),
+        price: Number(createdProduct.price),
+      },
+      created: true,
+    };
+  };
+
+  const handleImportedEntries = async (
+    confirmedItems: { name: string; quantity: number; unit: string; price: number }[],
+    sourceLabel: string
+  ) => {
+    let successCount = 0;
+    let createdCount = 0;
+
+    for (const item of confirmedItems) {
+      const { product, created } = await ensureProductForEntry(item);
+      if (!product) continue;
+      if (created) createdCount++;
+
+      const success = await addMovement({
+        product_id: product.id,
+        type: "in",
+        quantity: item.quantity,
+        expiry_date: null,
+        lote: "",
+      });
+
+      if (success) successCount++;
+    }
+
+    await fetchProducts();
+
+    if (createdCount > 0) {
+      toast.success(`${createdCount} produtos foram cadastrados automaticamente.`);
+    }
+
+    if (successCount > 0) {
+      toast.success(`${successCount} entradas registradas via ${sourceLabel}.`);
+      return;
+    }
+
+    toast.error(`Não foi possível registrar entradas via ${sourceLabel}.`);
+  };
+
   const handleSave = async () => {
     if (form.quantity <= 0) { toast.error("Quantidade deve ser maior que zero"); return; }
     if (form.type === "in" && !form.expiry_date) { toast.error("Informe a data de validade"); return; }
