@@ -33,6 +33,7 @@ interface BarcodeScannerProps {
 }
 
 const isUrl = (text: string) => /^https?:\/\//i.test(text) || /www\.\S+/i.test(text);
+const isNFeAccessKey = (text: string) => /^\d{44}$/.test(text.replace(/\s/g, ""));
 
 const extractUrl = (text: string) => {
   const trimmed = text.trim();
