@@ -140,6 +140,7 @@ function AppRoutes() {
       />
       <Route path="/demo" element={user ? <Navigate to="/dashboard" replace /> : <Demo />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
+      <Route path="/banners" element={<Banners />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
