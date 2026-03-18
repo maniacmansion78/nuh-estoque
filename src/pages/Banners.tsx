@@ -9,8 +9,7 @@ interface BannerData {
   highlight: string;
   subtitle: string;
   options: { letter: string; text: string }[];
-  gradientFrom: string;
-  gradientTo: string;
+  accentColor: string;
 }
 
 const banners: BannerData[] = [
@@ -19,8 +18,7 @@ const banners: BannerData[] = [
     question: "QUAL É O",
     highlight: "MAIOR\nDESAFIO",
     subtitle: "NA GESTÃO DE ESTOQUE?",
-    gradientFrom: "#f97316",
-    gradientTo: "#ec4899",
+    accentColor: "#D4A843",
     options: [
       { letter: "A", text: "Controlar validade dos produtos." },
       { letter: "B", text: "Evitar desperdício de ingredientes." },
@@ -33,8 +31,7 @@ const banners: BannerData[] = [
     question: "O QUE MAIS",
     highlight: "PREJUDICA\nSEU LUCRO",
     subtitle: "NO RESTAURANTE?",
-    gradientFrom: "#8b5cf6",
-    gradientTo: "#ec4899",
+    accentColor: "#D4A843",
     options: [
       { letter: "A", text: "Produtos vencendo sem perceber." },
       { letter: "B", text: "Comprar ingredientes em excesso." },
@@ -47,8 +44,7 @@ const banners: BannerData[] = [
     question: "COMO VOCÊ",
     highlight: "CONTROLA\nO ESTOQUE",
     subtitle: "DO SEU NEGÓCIO HOJE?",
-    gradientFrom: "#06b6d4",
-    gradientTo: "#8b5cf6",
+    accentColor: "#D4A843",
     options: [
       { letter: "A", text: "Planilha no Excel ou papel." },
       { letter: "B", text: "Sistema genérico e complicado." },
@@ -61,8 +57,7 @@ const banners: BannerData[] = [
     question: "O QUE VOCÊ",
     highlight: "MAIS\nPRECISA",
     subtitle: "PARA CRESCER?",
-    gradientFrom: "#ef4444",
-    gradientTo: "#f97316",
+    accentColor: "#D4A843",
     options: [
       { letter: "A", text: "Alertas de estoque baixo automáticos." },
       { letter: "B", text: "Relatórios mensais prontos." },
@@ -75,8 +70,7 @@ const banners: BannerData[] = [
     question: "QUAL A MAIOR",
     highlight: "VANTAGEM\nDE UM",
     subtitle: "SISTEMA DE ESTOQUE?",
-    gradientFrom: "#10b981",
-    gradientTo: "#06b6d4",
+    accentColor: "#D4A843",
     options: [
       { letter: "A", text: "Economia de tempo e dinheiro." },
       { letter: "B", text: "Redução de desperdício." },
@@ -85,8 +79,6 @@ const banners: BannerData[] = [
     ],
   },
 ];
-
-const letterColors = ["#ec4899", "#f97316", "#8b5cf6", "#06b6d4"];
 
 function BannerCard({ banner }: { banner: BannerData }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -105,15 +97,16 @@ function BannerCard({ banner }: { banner: BannerData }) {
   }, [banner.id]);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Banner */}
+    <div className="flex flex-col items-center gap-5">
       <div
         ref={ref}
         className="relative w-[400px] h-[500px] rounded-2xl overflow-hidden flex flex-col items-center justify-between"
-        style={{ background: "linear-gradient(180deg, #f3f3f3 0%, #e8e8e8 100%)" }}
+        style={{
+          background: "linear-gradient(180deg, #1e2a4a 0%, #2d3f6e 40%, #7b8eb8 100%)",
+        }}
       >
-        {/* Top icons */}
-        <div className="flex gap-2 pt-4 text-gray-500 text-lg">
+        {/* Top social icons */}
+        <div className="flex gap-3 pt-5 text-white/40 text-base">
           <span>❤️</span>
           <span>💬</span>
           <span>📩</span>
@@ -121,20 +114,23 @@ function BannerCard({ banner }: { banner: BannerData }) {
         </div>
 
         {/* Brand */}
-        <div className="mt-1 flex items-center gap-1.5">
-          <span className="text-xs font-bold tracking-widest text-gray-700 uppercase">NUH Estoque</span>
+        <div className="mt-2 flex items-center gap-2">
+          <span
+            className="text-xs font-bold tracking-[0.25em] uppercase"
+            style={{ color: banner.accentColor }}
+          >
+            NUH Estoque
+          </span>
         </div>
 
         {/* Question */}
-        <div className="text-center px-6 mt-2">
-          <p className="text-sm font-semibold text-gray-600 tracking-wide">{banner.question}</p>
+        <div className="text-center px-6 mt-3">
+          <p className="text-sm font-semibold text-white/60 tracking-widest">
+            {banner.question}
+          </p>
           <h2
             className="text-4xl font-extrabold leading-none mt-1"
-            style={{
-              background: `linear-gradient(135deg, ${banner.gradientFrom}, ${banner.gradientTo})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
+            style={{ color: banner.accentColor }}
           >
             {banner.highlight.split("\n").map((line, i) => (
               <span key={i}>
@@ -143,33 +139,39 @@ function BannerCard({ banner }: { banner: BannerData }) {
               </span>
             ))}
           </h2>
-          <p className="text-xs font-semibold text-gray-500 mt-1 tracking-wide">
+          <p className="text-xs font-semibold text-white/50 mt-2 tracking-widest">
             {banner.subtitle}
           </p>
         </div>
 
         {/* Options */}
-        <div className="w-full px-6 pb-5 mt-3 flex flex-col gap-2.5">
-          {banner.options.map((opt, i) => (
+        <div className="w-full px-6 pb-6 mt-4 flex flex-col gap-2.5">
+          {banner.options.map((opt) => (
             <div
               key={opt.letter}
               className="flex items-center gap-3 rounded-xl px-4 py-2.5"
-              style={{ background: "rgba(60,60,60,0.85)" }}
+              style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}
             >
               <span
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white text-xs font-bold shrink-0"
-                style={{ background: letterColors[i] }}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-[#1e2a4a] text-xs font-bold shrink-0"
+                style={{ background: banner.accentColor }}
               >
                 {opt.letter}
               </span>
-              <span className="text-white text-xs font-medium leading-snug">{opt.text}</span>
+              <span className="text-white/90 text-xs font-medium leading-snug">
+                {opt.text}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Download button */}
-      <Button onClick={handleDownload} variant="outline" size="sm" className="gap-2">
+      <Button
+        onClick={handleDownload}
+        className="gap-2 rounded-full px-6 border-none text-[#1e2a4a] font-semibold"
+        style={{ background: "#D4A843" }}
+      >
         <Download className="h-4 w-4" />
         Baixar para Rede Social
       </Button>
@@ -179,19 +181,30 @@ function BannerCard({ banner }: { banner: BannerData }) {
 
 const Banners = () => {
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div
+      className="min-h-screen p-4 sm:p-8"
+      style={{
+        background: "linear-gradient(180deg, #1e2a4a 0%, #2d3f6e 50%, #7b8eb8 100%)",
+      }}
+    >
+      <div className="mx-auto max-w-6xl space-y-10">
+        {/* Header */}
         <div className="flex items-center gap-4">
-          <a href="/" className="text-muted-foreground hover:text-foreground">
+          <a href="/" className="text-white/50 hover:text-white transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </a>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Banners para Redes Sociais</h1>
-            <p className="text-sm text-muted-foreground">Clique em "Baixar" para salvar cada banner como imagem</p>
+            <h1 className="text-2xl font-bold text-white">
+              Banners para Redes Sociais
+            </h1>
+            <p className="text-sm text-white/50">
+              Clique em "Baixar" para salvar cada banner como imagem
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center">
           {banners.map((b) => (
             <BannerCard key={b.id} banner={b} />
           ))}
