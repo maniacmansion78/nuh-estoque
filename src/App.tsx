@@ -19,6 +19,7 @@ import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import ScriptVenda from "@/pages/ScriptVenda";
 import Demo from "@/pages/Demo";
+import Banners from "@/pages/Banners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -139,6 +140,7 @@ function AppRoutes() {
       />
       <Route path="/demo" element={user ? <Navigate to="/dashboard" replace /> : <Demo />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
+      <Route path="/banners" element={<Banners />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
