@@ -19,6 +19,7 @@ import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import ScriptVenda from "@/pages/ScriptVenda";
 import Demo from "@/pages/Demo";
+import Banners from "@/pages/Banners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
