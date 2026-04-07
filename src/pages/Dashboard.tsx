@@ -7,8 +7,6 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -30,7 +28,6 @@ function getDaysUntilExpiry(expiryDate: string) {
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const { items, loading } = useProducts();
 
   const totalItems = items.length;
