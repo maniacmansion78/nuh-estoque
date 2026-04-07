@@ -36,12 +36,17 @@ function getDaysUntilExpiry(expiryDate: string) {
   return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
+function formatAmount(value: number, unit: string) {
+  return `${value}${unit}`;
+}
+
 const Dashboard = () => {
   const { items, loading } = useProducts();
   const { recipes, loading: recipesLoading } = useRecipes();
   const { sales, loading: salesLoading } = useDishSales();
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
+  const [openRecipeItems, setOpenRecipeItems] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -57,8 +62,15 @@ const Dashboard = () => {
       }
       setLoadingIngredients(false);
     };
+
     load();
   }, []);
+
+  useEffect(() => {
+    if (recipes.length > 0 && openRecipeItems.length === 0) {
+      setOpenRecipeItems([recipes[0].id]);
+    }
+  }, [recipes, openRecipeItems.length]);
 
   const totalItems = items.length;
   const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
@@ -78,7 +90,6 @@ const Dashboard = () => {
     { title: "Validade Crítica", value: criticalExpiry.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
-  // Dish sales summary
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
   const todaySales = sales.filter((s) => s.date === todayStr);
@@ -88,7 +99,9 @@ const Dashboard = () => {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
       });
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
   const monthSales = sales.filter((s) => {
     try {
@@ -96,16 +109,20 @@ const Dashboard = () => {
         start: startOfMonth(today),
         end: endOfMonth(today),
       });
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
 
   const sumQty = (arr: typeof sales) => arr.reduce((sum, s) => sum + s.quantity, 0);
 
-  // Group sales by recipe for today
   const todayByRecipe: Record<string, { name: string; qty: number }> = {};
   for (const sale of todaySales) {
     if (!todayByRecipe[sale.recipe_id]) {
-      todayByRecipe[sale.recipe_id] = { name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—", qty: 0 };
+      todayByRecipe[sale.recipe_id] = {
+        name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+        qty: 0,
+      };
     }
     todayByRecipe[sale.recipe_id].qty += sale.quantity;
   }
@@ -119,7 +136,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
@@ -129,37 +145,162 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
-                {loading ? (
-                  <Skeleton className="h-8 w-12 mt-1" />
-                ) : (
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                )}
+                {loading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Alertas */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Alertas</h2>
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            <UtensilsCrossed className="h-5 w-5 text-primary" />
+            Saída de Pratos
+          </h2>
+          {salesLoading || recipesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Hoje</p>
+                  <p className="text-2xl font-bold">{sumQty(todaySales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Semana</p>
+                  <p className="text-2xl font-bold">{sumQty(weekSales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Mês</p>
+                  <p className="text-2xl font-bold">{sumQty(monthSales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+              </div>
+
+              {Object.keys(todayByRecipe).length > 0 ? (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
+                  {Object.entries(todayByRecipe).map(([id, data]) => (
+                    <div key={id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2">
+                      <span className="text-sm font-medium">{data.name}</span>
+                      <Badge variant="outline">{data.qty} porções</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhuma venda registrada hoje.</p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="mb-4 flex items-start gap-2">
+            <ChefHat className="mt-0.5 h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-lg font-semibold">Fichas Técnicas</h2>
+              <p className="text-sm text-muted-foreground">Cada prato aparece aqui com seus ingredientes logo no Dashboard.</p>
+            </div>
+          </div>
+
+          {recipesLoading || loadingIngredients ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : recipes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma ficha técnica cadastrada.</p>
+          ) : (
+            <Accordion type="multiple" value={openRecipeItems} onValueChange={setOpenRecipeItems} className="space-y-2">
+              {recipes.map((recipe) => {
+                const ingredients = (allIngredients[recipe.id] || []).sort((a, b) =>
+                  a.ingredient_name.localeCompare(b.ingredient_name)
+                );
+
+                return (
+                  <AccordionItem key={recipe.id} value={recipe.id} className="rounded-lg border border-border px-4">
+                    <AccordionTrigger className="py-3 hover:no-underline">
+                      <div className="flex w-full min-w-0 flex-col items-start gap-2 pr-4 text-left sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{recipe.name}</p>
+                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes cadastrados</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>
+                          <Badge variant="outline" className="text-xs">{recipe.portions} porções</Badge>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      {ingredients.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {ingredients.map((ingredient) => (
+                            <div key={ingredient.id} className="rounded-lg bg-muted/30 p-3">
+                              <div className="mb-2 flex items-center justify-between gap-3">
+                                <span className="text-sm font-medium">{ingredient.ingredient_name}</span>
+                                <Badge variant="outline" className="text-[11px]">R$ {ingredient.ingredient_cost.toFixed(2)}</Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                                <div className="rounded-md bg-background/70 p-2">
+                                  <p className="text-muted-foreground">Peso bruto</p>
+                                  <p className="font-medium">{formatAmount(ingredient.gross_weight, ingredient.unit)}</p>
+                                </div>
+                                <div className="rounded-md bg-background/70 p-2">
+                                  <p className="text-muted-foreground">Peso líquido</p>
+                                  <p className="font-medium">{formatAmount(ingredient.net_weight, ingredient.unit)}</p>
+                                </div>
+                                <div className="rounded-md bg-background/70 p-2 col-span-2 sm:col-span-1">
+                                  <p className="text-muted-foreground">Fator correção</p>
+                                  <p className="font-medium">{ingredient.correction_factor.toFixed(2)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="mb-4 text-lg font-semibold">Alertas</h2>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-14 w-full" />
+              ))}
             </div>
           ) : alertItems.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum alerta no momento.</p>
+            <p className="text-sm text-muted-foreground">Nenhum alerta no momento.</p>
           ) : (
             <div className="space-y-3">
               {alertItems.map((item) => {
                 const stockStatus = getProductStatus(item);
                 const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
+
                 return (
                   <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs sm:text-sm font-medium">{item.name}</p>
+                      <p className="truncate text-xs font-medium sm:text-sm">{item.name}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {stockStatus !== "ok" && (
                           <Badge
@@ -167,7 +308,8 @@ const Dashboard = () => {
                             className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
                           >
                             <TrendingDown className="mr-1 h-3 w-3" />
-                            {item.quantity}{item.unit}
+                            {item.quantity}
+                            {item.unit}
                           </Badge>
                         )}
                         {expiryStatus !== "ok" && (
@@ -185,117 +327,6 @@ const Dashboard = () => {
                 );
               })}
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Saída de Pratos */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <UtensilsCrossed className="h-5 w-5 text-primary" />
-            Saída de Pratos
-          </h2>
-          {salesLoading || recipesLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-3 sm:grid-cols-3 mb-4">
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Hoje</p>
-                  <p className="text-2xl font-bold">{sumQty(todaySales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Semana</p>
-                  <p className="text-2xl font-bold">{sumQty(weekSales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Mês</p>
-                  <p className="text-2xl font-bold">{sumQty(monthSales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
-              </div>
-              {Object.keys(todayByRecipe).length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
-                  {Object.entries(todayByRecipe).map(([id, data]) => (
-                    <div key={id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2">
-                      <span className="text-sm font-medium">{data.name}</span>
-                      <Badge variant="outline">{data.qty} porções</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {Object.keys(todayByRecipe).length === 0 && (
-                <p className="text-muted-foreground text-sm">Nenhuma venda registrada hoje.</p>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Fichas Técnicas */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <ChefHat className="h-5 w-5 text-primary" />
-            Fichas Técnicas
-          </h2>
-          {recipesLoading || loadingIngredients ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
-            </div>
-          ) : recipes.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhuma ficha técnica cadastrada.</p>
-          ) : (
-            <Accordion type="multiple" className="space-y-2">
-              {recipes.map((recipe) => {
-                const ings = (allIngredients[recipe.id] || []).sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name));
-                return (
-                  <AccordionItem key={recipe.id} value={recipe.id} className="border rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                      <div className="flex items-center gap-3 text-left w-full">
-                        <ChefHat className="h-4 w-4 text-primary shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{recipe.name}</p>
-                          <div className="flex gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>
-                            <Badge variant="outline" className="text-xs">{recipe.portions} porções</Badge>
-                            <Badge variant="outline" className="text-xs">R$ {recipe.total_cost.toFixed(2)}</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-3">
-                      {ings.length === 0 ? (
-                        <p className="text-muted-foreground text-xs">Nenhum ingrediente cadastrado.</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-muted-foreground px-3 pb-1">
-                            <span className="col-span-2">Ingrediente</span>
-                            <span className="text-right">Bruto</span>
-                            <span className="text-right">Líquido</span>
-                            <span className="text-right">Custo</span>
-                          </div>
-                          {ings.map((ing) => (
-                            <div key={ing.id} className="grid grid-cols-5 gap-2 rounded bg-muted/30 px-3 py-1.5 text-xs">
-                              <span className="col-span-2 truncate">{ing.ingredient_name}</span>
-                              <span className="text-right">{ing.gross_weight}{ing.unit}</span>
-                              <span className="text-right">{ing.net_weight}{ing.unit}</span>
-                              <span className="text-right">R$ {ing.ingredient_cost.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
           )}
         </CardContent>
       </Card>
