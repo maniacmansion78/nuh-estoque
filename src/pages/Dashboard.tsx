@@ -66,11 +66,6 @@ const Dashboard = () => {
     load();
   }, []);
 
-  useEffect(() => {
-    if (recipes.length > 0 && openRecipeItems.length === 0) {
-      setOpenRecipeItems([recipes[0].id]);
-    }
-  }, [recipes, openRecipeItems.length]);
 
   const totalItems = items.length;
   const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
@@ -229,16 +224,16 @@ const Dashboard = () => {
                 );
 
                 return (
-                  <AccordionItem key={recipe.id} value={recipe.id} className="rounded-lg border border-border px-4">
+                  <AccordionItem key={recipe.id} value={recipe.id} className="rounded-lg border border-border px-4 overflow-hidden">
                     <AccordionTrigger className="py-3 hover:no-underline">
-                      <div className="flex w-full min-w-0 flex-col items-start gap-2 pr-4 text-left sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
+                      <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-2 text-left">
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold">{recipe.name}</p>
-                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes cadastrados</p>
+                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>
-                          <Badge variant="outline" className="text-xs">{recipe.portions} porções</Badge>
+                        <div className="flex shrink-0 gap-1.5">
+                          <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
+                          <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
                         </div>
                       </div>
                     </AccordionTrigger>
