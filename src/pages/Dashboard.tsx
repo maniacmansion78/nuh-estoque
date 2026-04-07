@@ -4,7 +4,7 @@ import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, TrendingDown, UtensilsCrossed, ChefHat, BarChart3 } from "lucide-react";
+import { Package, UtensilsCrossed, ChefHat, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -14,11 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-function getProductStatus(p: { quantity: number; min_quantity: number }) {
-  if (p.quantity <= p.min_quantity * 0.5) return "critical";
-  if (p.quantity <= p.min_quantity) return "warning";
-  return "ok";
-}
 
 const Dashboard = () => {
   const { items, loading } = useProducts();
@@ -45,7 +40,6 @@ const Dashboard = () => {
   }, []);
 
   const totalItems = items.length;
-  const lowStock = items.filter((item) => getProductStatus(item) !== "ok").length;
 
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
@@ -67,7 +61,6 @@ const Dashboard = () => {
   const statsCards = [
     { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
     { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
-    { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   // Build report: qty per recipe for each period
