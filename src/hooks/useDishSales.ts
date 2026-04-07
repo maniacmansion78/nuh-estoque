@@ -35,6 +35,24 @@ export function useDishSales() {
     fetchSales();
   }, [fetchSales]);
 
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("dish_sales-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "dish_sales" },
+        () => {
+          fetchSales();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSales]);
+
   const addSale = async (recipeId: string, quantity: number, date?: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user?.id) {
@@ -56,7 +74,6 @@ export function useDishSales() {
     }
 
     toast.success("Venda registrada!");
-    await fetchSales();
     return true;
   };
 
@@ -68,7 +85,6 @@ export function useDishSales() {
       return false;
     }
     toast.success("Venda removida!");
-    await fetchSales();
     return true;
   };
 
