@@ -2,31 +2,22 @@ import { useProducts } from "@/hooks/useProducts";
 import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
 import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, TrendingDown, Clock, UtensilsCrossed, ChefHat } from "lucide-react";
+import { Package, TrendingDown, UtensilsCrossed, ChefHat, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, isWithinInterval, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 function getProductStatus(p: { quantity: number; min_quantity: number }) {
   if (p.quantity <= p.min_quantity * 0.5) return "critical";
   if (p.quantity <= p.min_quantity) return "warning";
   return "ok";
-}
-
-function getExpiryStatus(expiryDate: string, alertDays: number) {
-  const days = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (days <= Math.ceil(alertDays * 0.3)) return "critical";
-  if (days <= alertDays) return "warning";
-  return "ok";
-}
-
-function getDaysUntilExpiry(expiryDate: string) {
-  return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
 const Dashboard = () => {
@@ -56,31 +47,22 @@ const Dashboard = () => {
   const totalItems = items.length;
   const lowStock = items.filter((item) => getProductStatus(item) !== "ok").length;
 
-  const alertItems = items.filter(
-    (item) => getProductStatus(item) !== "ok" || getExpiryStatus(item.expiry_date, item.alert_days) !== "ok"
-  );
-
-  const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
-
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
+
+  const filterByInterval = (start: Date, end: Date) =>
+    sales.filter((sale) => {
+      try {
+        return isWithinInterval(parseISO(sale.date), { start, end });
+      } catch { return false; }
+    });
+
   const todaySales = sales.filter((sale) => sale.date === todayStr);
-  const weekSales = sales.filter((sale) => {
-    try {
-      return isWithinInterval(parseISO(sale.date), {
-        start: startOfWeek(today, { weekStartsOn: 1 }),
-        end: endOfWeek(today, { weekStartsOn: 1 }),
-      });
-    } catch { return false; }
-  });
-  const monthSales = sales.filter((sale) => {
-    try {
-      return isWithinInterval(parseISO(sale.date), {
-        start: startOfMonth(today),
-        end: endOfMonth(today),
-      });
-    } catch { return false; }
-  });
+  const weekSales = filterByInterval(startOfWeek(today, { weekStartsOn: 1 }), endOfWeek(today, { weekStartsOn: 1 }));
+  const biweeklySales = filterByInterval(subDays(today, 14), today);
+  const monthSales = filterByInterval(startOfMonth(today), endOfMonth(today));
+
+  const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
   const statsCards = [
     { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
@@ -88,16 +70,28 @@ const Dashboard = () => {
     { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
-  const todayByRecipe: Record<string, { name: string; qty: number }> = {};
-  for (const sale of todaySales) {
-    if (!todayByRecipe[sale.recipe_id]) {
-      todayByRecipe[sale.recipe_id] = {
-        name: recipes.find((recipe) => recipe.id === sale.recipe_id)?.name || "—",
-        qty: 0,
-      };
+  // Build report: qty per recipe for each period
+  const buildByRecipe = (filtered: typeof sales) => {
+    const map: Record<string, { name: string; qty: number }> = {};
+    for (const sale of filtered) {
+      if (!map[sale.recipe_id]) {
+        map[sale.recipe_id] = {
+          name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+          qty: 0,
+        };
+      }
+      map[sale.recipe_id].qty += sale.quantity;
     }
-    todayByRecipe[sale.recipe_id].qty += sale.quantity;
-  }
+    return Object.entries(map).sort((a, b) => b[1].qty - a[1].qty);
+  };
+
+  const reportPeriods = useMemo(() => [
+    { label: "Hoje", data: buildByRecipe(todaySales), total: sumQty(todaySales) },
+    { label: "Semana", data: buildByRecipe(weekSales), total: sumQty(weekSales) },
+    { label: "Quinzena", data: buildByRecipe(biweeklySales), total: sumQty(biweeklySales) },
+    { label: format(today, "MMMM", { locale: ptBR }), data: buildByRecipe(monthSales), total: sumQty(monthSales) },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [sales, recipes]);
 
   const fichasLoading = recipesLoading || loadingIngredients;
 
@@ -125,7 +119,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Saída de Pratos */}
+      {/* Saída de Pratos - summary */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
@@ -137,34 +131,69 @@ const Dashboard = () => {
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <>
-              <div className="mb-4 grid gap-3 sm:grid-cols-3">
-                {[
-                  { label: "Hoje", value: sumQty(todaySales) },
-                  { label: "Semana", value: sumQty(weekSales) },
-                  { label: "Mês", value: sumQty(monthSales) },
-                ].map((period) => (
-                  <div key={period.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                    <p className="text-xs text-muted-foreground">{period.label}</p>
-                    <p className="text-2xl font-bold">{period.value}</p>
-                    <p className="text-xs text-muted-foreground">pratos</p>
-                  </div>
-                ))}
-              </div>
-              {Object.keys(todayByRecipe).length > 0 ? (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
-                  {Object.entries(todayByRecipe).map(([id, data]) => (
-                    <div key={id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 px-4 py-2">
-                      <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug">{data.name}</span>
-                      <Badge variant="outline" className="shrink-0">{data.qty} porções</Badge>
-                    </div>
-                  ))}
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              {reportPeriods.map((period) => (
+                <div key={period.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground capitalize">{period.label}</p>
+                  <p className="text-2xl font-bold">{period.total}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Nenhuma venda registrada hoje.</p>
-              )}
-            </>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Relatório Mensal de Saída de Pratos */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Relatório de Saída de Pratos
+          </h2>
+          {salesLoading || recipesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : (
+            <Accordion type="multiple" defaultValue={[reportPeriods[0]?.label]} className="space-y-2">
+              {reportPeriods.map((period) => (
+                <AccordionItem key={period.label} value={period.label} className="overflow-hidden rounded-lg border border-border">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <div className="flex w-full items-center justify-between pr-2">
+                      <span className="text-sm font-semibold capitalize">{period.label}</span>
+                      <Badge variant="secondary">{period.total} pratos</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    {period.data.length === 0 ? (
+                      <p className="px-4 pb-4 text-sm text-muted-foreground">Nenhuma venda neste período.</p>
+                    ) : (
+                      <Table className="text-xs">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="py-1.5 text-xs">Prato</TableHead>
+                            <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {period.data.map(([id, d]) => (
+                            <TableRow key={id}>
+                              <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
+                              <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/30">
+                            <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
+                            <TableCell className="py-1.5 text-right font-bold text-xs">{period.total}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           )}
         </CardContent>
       </Card>
@@ -228,55 +257,6 @@ const Dashboard = () => {
                 );
               })}
             </Accordion>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Alertas */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="mb-4 text-lg font-semibold">Alertas</h2>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
-            </div>
-          ) : alertItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum alerta no momento.</p>
-          ) : (
-            <div className="space-y-3">
-              {alertItems.map((item) => {
-                const stockStatus = getProductStatus(item);
-                const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
-                const days = getDaysUntilExpiry(item.expiry_date);
-                return (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="break-words text-xs font-medium leading-snug sm:text-sm">{item.name}</p>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {stockStatus !== "ok" && (
-                          <Badge
-                            variant={stockStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
-                          >
-                            <TrendingDown className="mr-1 h-3 w-3" />
-                            {item.quantity}{item.unit}
-                          </Badge>
-                        )}
-                        {expiryStatus !== "ok" && (
-                          <Badge
-                            variant={expiryStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(expiryStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
-                          >
-                            <Clock className="mr-1 h-3 w-3" />
-                            {days}d
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </CardContent>
       </Card>

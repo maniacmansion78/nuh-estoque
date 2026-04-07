@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import logoNuh from "@/assets/logo-nuh.jpeg";
 
-const STORAGE_KEY = "nuh_remembered_credentials";
+const STORAGE_KEY = "nuh_remembered_email";
 
 const Login = () => {
   const { signIn } = useAuth();
@@ -18,12 +18,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Migrate: clear old key that stored passwords
+    localStorage.removeItem("nuh_remembered_credentials");
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const { email: savedEmail, password: savedPassword } = JSON.parse(saved);
-        setEmail(savedEmail || "");
-        setPassword(savedPassword || "");
+      const savedEmail = localStorage.getItem(STORAGE_KEY);
+      if (savedEmail) {
+        setEmail(savedEmail);
         setRememberMe(true);
       }
     } catch {}
@@ -35,7 +35,7 @@ const Login = () => {
     setLoading(true);
 
     if (rememberMe) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, password }));
+      localStorage.setItem(STORAGE_KEY, email);
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
@@ -88,7 +88,7 @@ const Login = () => {
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
               />
               <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                Lembrar meus dados
+                Lembrar meu email
               </Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
