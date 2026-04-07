@@ -112,7 +112,7 @@ const Dashboard = () => {
   const totalDishes = sumQty(sales);
 
   const statsCards = [
-    { title: "Total de Pratos", value: totalDishes, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
+    { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
     { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
     { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
   ];
