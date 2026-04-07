@@ -1,5 +1,6 @@
 import { useProducts } from "@/hooks/useProducts";
 import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
+import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +10,14 @@ import {
   Clock,
   TrendingDown,
   ChefHat,
+  UtensilsCrossed,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 
 function getProductStatus(p: { quantity: number; min_quantity: number }) {
   if (p.quantity <= p.min_quantity * 0.5) return "critical";
@@ -36,6 +39,7 @@ function getDaysUntilExpiry(expiryDate: string) {
 const Dashboard = () => {
   const { items, loading } = useProducts();
   const { recipes, loading: recipesLoading } = useRecipes();
+  const { sales, loading: salesLoading } = useDishSales();
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
 
@@ -73,6 +77,38 @@ const Dashboard = () => {
     { title: "Validade Próxima", value: expiringSoon, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
     { title: "Validade Crítica", value: criticalExpiry.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
   ];
+
+  // Dish sales summary
+  const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+  const todaySales = sales.filter((s) => s.date === todayStr);
+  const weekSales = sales.filter((s) => {
+    try {
+      return isWithinInterval(parseISO(s.date), {
+        start: startOfWeek(today, { weekStartsOn: 1 }),
+        end: endOfWeek(today, { weekStartsOn: 1 }),
+      });
+    } catch { return false; }
+  });
+  const monthSales = sales.filter((s) => {
+    try {
+      return isWithinInterval(parseISO(s.date), {
+        start: startOfMonth(today),
+        end: endOfMonth(today),
+      });
+    } catch { return false; }
+  });
+
+  const sumQty = (arr: typeof sales) => arr.reduce((sum, s) => sum + s.quantity, 0);
+
+  // Group sales by recipe for today
+  const todayByRecipe: Record<string, { name: string; qty: number }> = {};
+  for (const sale of todaySales) {
+    if (!todayByRecipe[sale.recipe_id]) {
+      todayByRecipe[sale.recipe_id] = { name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—", qty: 0 };
+    }
+    todayByRecipe[sale.recipe_id].qty += sale.quantity;
+  }
 
   return (
     <div className="space-y-6">
@@ -149,6 +185,55 @@ const Dashboard = () => {
                 );
               })}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Saída de Pratos */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5 text-primary" />
+            Saída de Pratos
+          </h2>
+          {salesLoading || recipesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-3 mb-4">
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Hoje</p>
+                  <p className="text-2xl font-bold">{sumQty(todaySales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Semana</p>
+                  <p className="text-2xl font-bold">{sumQty(weekSales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Mês</p>
+                  <p className="text-2xl font-bold">{sumQty(monthSales)}</p>
+                  <p className="text-xs text-muted-foreground">pratos</p>
+                </div>
+              </div>
+              {Object.keys(todayByRecipe).length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
+                  {Object.entries(todayByRecipe).map(([id, data]) => (
+                    <div key={id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2">
+                      <span className="text-sm font-medium">{data.name}</span>
+                      <Badge variant="outline">{data.qty} porções</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {Object.keys(todayByRecipe).length === 0 && (
+                <p className="text-muted-foreground text-sm">Nenhuma venda registrada hoje.</p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
