@@ -4,30 +4,13 @@ import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, TrendingDown, Clock, UtensilsCrossed, ChefHat } from "lucide-react";
+import { Package, TrendingDown, UtensilsCrossed, ChefHat } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
-
-function getProductStatus(p: { quantity: number; min_quantity: number }) {
-  if (p.quantity <= p.min_quantity * 0.5) return "critical";
-  if (p.quantity <= p.min_quantity) return "warning";
-  return "ok";
-}
-
-function getExpiryStatus(expiryDate: string, alertDays: number) {
-  const days = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (days <= Math.ceil(alertDays * 0.3)) return "critical";
-  if (days <= alertDays) return "warning";
-  return "ok";
-}
-
-function getDaysUntilExpiry(expiryDate: string) {
-  return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, isWithinInterval, parseISO } from "date-fns";
 
 const Dashboard = () => {
   const { items, loading } = useProducts();
@@ -54,11 +37,11 @@ const Dashboard = () => {
   }, []);
 
   const totalItems = items.length;
-  const lowStock = items.filter((item) => getProductStatus(item) !== "ok").length;
-
-  const alertItems = items.filter(
-    (item) => getProductStatus(item) !== "ok" || getExpiryStatus(item.expiry_date, item.alert_days) !== "ok"
-  );
+  const lowStock = items.filter((item) => {
+    if (item.quantity <= item.min_quantity * 0.5) return true;
+    if (item.quantity <= item.min_quantity) return true;
+    return false;
+  }).length;
 
   const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
@@ -71,6 +54,12 @@ const Dashboard = () => {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
       });
+    } catch { return false; }
+  });
+  const biweeklySales = sales.filter((sale) => {
+    try {
+      const d = parseISO(sale.date);
+      return d >= subDays(today, 15) && d <= today;
     } catch { return false; }
   });
   const monthSales = sales.filter((sale) => {
@@ -138,10 +127,11 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+              <div className="mb-4 grid gap-3 grid-cols-2 sm:grid-cols-4">
                 {[
                   { label: "Hoje", value: sumQty(todaySales) },
                   { label: "Semana", value: sumQty(weekSales) },
+                  { label: "Quinzena", value: sumQty(biweeklySales) },
                   { label: "Mês", value: sumQty(monthSales) },
                 ].map((period) => (
                   <div key={period.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
@@ -228,55 +218,6 @@ const Dashboard = () => {
                 );
               })}
             </Accordion>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Alertas */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="mb-4 text-lg font-semibold">Alertas</h2>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
-            </div>
-          ) : alertItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum alerta no momento.</p>
-          ) : (
-            <div className="space-y-3">
-              {alertItems.map((item) => {
-                const stockStatus = getProductStatus(item);
-                const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
-                const days = getDaysUntilExpiry(item.expiry_date);
-                return (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="break-words text-xs font-medium leading-snug sm:text-sm">{item.name}</p>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {stockStatus !== "ok" && (
-                          <Badge
-                            variant={stockStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
-                          >
-                            <TrendingDown className="mr-1 h-3 w-3" />
-                            {item.quantity}{item.unit}
-                          </Badge>
-                        )}
-                        {expiryStatus !== "ok" && (
-                          <Badge
-                            variant={expiryStatus === "critical" ? "destructive" : "secondary"}
-                            className={cn(expiryStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
-                          >
-                            <Clock className="mr-1 h-3 w-3" />
-                            {days}d
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </CardContent>
       </Card>
