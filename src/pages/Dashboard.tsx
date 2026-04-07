@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useProducts } from "@/hooks/useProducts";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import {
@@ -6,11 +5,9 @@ import {
   AlertTriangle,
   Clock,
   TrendingDown,
-  Plus,
-  Minus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
