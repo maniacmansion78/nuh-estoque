@@ -19,10 +19,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Token validation
+    const token = req.headers.get("x-webhook-token");
+    const expectedToken = Deno.env.get("WEBHOOK_DEMO_TOKEN");
+    if (!expectedToken || token !== expectedToken) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const payload = await req.json();
     console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
-
-    // No token validation for public demo registration
 
     // Extract buyer data (same Nexano format)
     const buyer =
