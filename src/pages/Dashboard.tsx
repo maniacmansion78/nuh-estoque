@@ -155,9 +155,9 @@ const Dashboard = () => {
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
                   {Object.entries(todayByRecipe).map(([id, data]) => (
-                    <div key={id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2">
-                      <span className="text-sm font-medium">{data.name}</span>
-                      <Badge variant="outline">{data.qty} porções</Badge>
+                    <div key={id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 px-4 py-2">
+                      <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug">{data.name}</span>
+                      <Badge variant="outline" className="shrink-0">{data.qty} porções</Badge>
                     </div>
                   ))}
                 </div>
@@ -191,12 +191,12 @@ const Dashboard = () => {
                 return (
                   <AccordionItem key={recipe.id} value={recipe.id} className="overflow-hidden rounded-lg border border-border">
                     <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                      <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-2 text-left">
-                        <div className="min-w-0 flex-1 overflow-hidden">
-                          <p className="truncate text-sm font-semibold">{recipe.name}</p>
+                      <div className="flex w-full min-w-0 flex-col gap-2 pr-2 text-left sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-sm font-semibold leading-snug">{recipe.name}</p>
                           <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
                         </div>
-                        <div className="flex shrink-0 gap-1.5">
+                        <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
                           <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
                           <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
                         </div>
@@ -207,18 +207,18 @@ const Dashboard = () => {
                         <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
                       ) : (
                         <div className="space-y-1.5">
-                          <div className="grid grid-cols-4 gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
+                          <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
                             <span>Ingrediente</span>
                             <span className="text-right">Bruto</span>
                             <span className="text-right">Líquido</span>
                             <span className="text-right">Custo</span>
                           </div>
                           {ingredients.map((ing) => (
-                            <div key={ing.id} className="grid grid-cols-4 gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
-                              <span className="truncate font-medium">{ing.ingredient_name}</span>
-                              <span className="text-right">{ing.gross_weight}{ing.unit}</span>
-                              <span className="text-right">{ing.net_weight}{ing.unit}</span>
-                              <span className="text-right">R$ {ing.ingredient_cost.toFixed(2)}</span>
+                            <div key={ing.id} className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
+                              <span className="break-words font-medium leading-snug">{ing.ingredient_name}</span>
+                              <span className="text-right whitespace-nowrap">{ing.gross_weight}{ing.unit}</span>
+                              <span className="text-right whitespace-nowrap">{ing.net_weight}{ing.unit}</span>
+                              <span className="text-right whitespace-nowrap">R$ {ing.ingredient_cost.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -251,7 +251,7 @@ const Dashboard = () => {
                 return (
                   <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium sm:text-sm">{item.name}</p>
+                      <p className="break-words text-xs font-medium leading-snug sm:text-sm">{item.name}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {stockStatus !== "ok" && (
                           <Badge
