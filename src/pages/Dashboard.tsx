@@ -1,22 +1,12 @@
 import { useProducts } from "@/hooks/useProducts";
-import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
+import { useRecipes } from "@/hooks/useRecipes";
 import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Package,
-  TrendingDown,
-  ChefHat,
-  UtensilsCrossed,
-  AlertTriangle,
-  Clock,
-} from "lucide-react";
+import { Package, TrendingDown, Clock, UtensilsCrossed } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 
 function getProductStatus(p: { quantity: number; min_quantity: number }) {
@@ -40,53 +30,38 @@ const Dashboard = () => {
   const { items, loading } = useProducts();
   const { recipes, loading: recipesLoading } = useRecipes();
   const { sales, loading: salesLoading } = useDishSales();
-  const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
-  const [loadingIngredients, setLoadingIngredients] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      setLoadingIngredients(true);
-      const { data, error } = await supabase.from("recipe_ingredients").select("*");
-      if (!error && data) {
-        const grouped: Record<string, RecipeIngredient[]> = {};
-        for (const ing of data as RecipeIngredient[]) {
-          if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
-          grouped[ing.recipe_id].push(ing);
-        }
-        setAllIngredients(grouped);
-      }
-      setLoadingIngredients(false);
-    };
-    load();
-  }, []);
 
   const totalItems = items.length;
-  const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
+  const lowStock = items.filter((item) => getProductStatus(item) !== "ok").length;
 
   const alertItems = items.filter(
-    (i) => getProductStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
+    (item) => getProductStatus(item) !== "ok" || getExpiryStatus(item.expiry_date, item.alert_days) !== "ok"
   );
 
-  const sumQty = (arr: typeof sales) => arr.reduce((sum, s) => sum + s.quantity, 0);
+  const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
-  const todaySales = sales.filter((s) => s.date === todayStr);
-  const weekSales = sales.filter((s) => {
+  const todaySales = sales.filter((sale) => sale.date === todayStr);
+  const weekSales = sales.filter((sale) => {
     try {
-      return isWithinInterval(parseISO(s.date), {
+      return isWithinInterval(parseISO(sale.date), {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
       });
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
-  const monthSales = sales.filter((s) => {
+  const monthSales = sales.filter((sale) => {
     try {
-      return isWithinInterval(parseISO(s.date), {
+      return isWithinInterval(parseISO(sale.date), {
         start: startOfMonth(today),
         end: endOfMonth(today),
       });
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
 
   const statsCards = [
@@ -99,7 +74,7 @@ const Dashboard = () => {
   for (const sale of todaySales) {
     if (!todayByRecipe[sale.recipe_id]) {
       todayByRecipe[sale.recipe_id] = {
-        name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+        name: recipes.find((recipe) => recipe.id === sale.recipe_id)?.name || "—",
         qty: 0,
       };
     }
@@ -109,11 +84,10 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Dashboard</h1>
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Tela Inicial</h1>
         <p className="text-sm text-muted-foreground sm:text-base">Visão geral do NUH Asian Food</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
@@ -130,71 +104,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* FICHAS TÉCNICAS — seção principal */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-            <ChefHat className="h-5 w-5 text-primary" />
-            Fichas Técnicas
-          </h2>
-
-          {recipesLoading || loadingIngredients ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
-            </div>
-          ) : recipes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma ficha técnica cadastrada.</p>
-          ) : (
-            <Accordion type="multiple" defaultValue={[recipes[0].id]} className="space-y-2">
-              {recipes.map((recipe) => {
-                const ingredients = (allIngredients[recipe.id] || []).sort((a, b) =>
-                  a.ingredient_name.localeCompare(b.ingredient_name)
-                );
-                return (
-                  <AccordionItem key={recipe.id} value={recipe.id} className="overflow-hidden rounded-lg border border-border">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                      <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-2 text-left">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">{recipe.name}</p>
-                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
-                        </div>
-                        <div className="flex shrink-0 gap-1.5">
-                          <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
-                          <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      {ingredients.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="grid grid-cols-4 gap-2 text-[10px] font-semibold text-muted-foreground px-2 pb-1">
-                            <span className="col-span-1">Ingrediente</span>
-                            <span className="text-right">Bruto</span>
-                            <span className="text-right">Líquido</span>
-                            <span className="text-right">Custo</span>
-                          </div>
-                          {ingredients.map((ing) => (
-                            <div key={ing.id} className="grid grid-cols-4 gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
-                              <span className="col-span-1 truncate font-medium">{ing.ingredient_name}</span>
-                              <span className="text-right">{ing.gross_weight}{ing.unit}</span>
-                              <span className="text-right">{ing.net_weight}{ing.unit}</span>
-                              <span className="text-right">R$ {ing.ingredient_cost.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Saída de Pratos */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
@@ -203,7 +112,9 @@ const Dashboard = () => {
           </h2>
           {salesLoading || recipesLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
             </div>
           ) : (
             <>
@@ -212,10 +123,10 @@ const Dashboard = () => {
                   { label: "Hoje", value: sumQty(todaySales) },
                   { label: "Semana", value: sumQty(weekSales) },
                   { label: "Mês", value: sumQty(monthSales) },
-                ].map((p) => (
-                  <div key={p.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                    <p className="text-xs text-muted-foreground">{p.label}</p>
-                    <p className="text-2xl font-bold">{p.value}</p>
+                ].map((period) => (
+                  <div key={period.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                    <p className="text-xs text-muted-foreground">{period.label}</p>
+                    <p className="text-2xl font-bold">{period.value}</p>
                     <p className="text-xs text-muted-foreground">pratos</p>
                   </div>
                 ))}
@@ -238,13 +149,14 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Alertas */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 text-lg font-semibold">Alertas</h2>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-14 w-full" />
+              ))}
             </div>
           ) : alertItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum alerta no momento.</p>
@@ -254,6 +166,7 @@ const Dashboard = () => {
                 const stockStatus = getProductStatus(item);
                 const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
+
                 return (
                   <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
                     <div className="min-w-0 flex-1">
@@ -265,7 +178,8 @@ const Dashboard = () => {
                             className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
                           >
                             <TrendingDown className="mr-1 h-3 w-3" />
-                            {item.quantity}{item.unit}
+                            {item.quantity}
+                            {item.unit}
                           </Badge>
                         )}
                         {expiryStatus !== "ok" && (

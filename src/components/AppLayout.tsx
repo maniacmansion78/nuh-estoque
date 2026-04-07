@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
+  ChefHat,
   Package,
   Truck,
   ArrowLeftRight,
@@ -20,6 +21,7 @@ import logoNuh from "@/assets/logo-nuh.jpeg";
 
 const baseNavItems = [
   { to: "/dashboard", label: "Tela Inicial", icon: LayoutDashboard },
+  { to: "/fichas-tecnicas", label: "Fichas Técnicas", icon: ChefHat },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/saida-pratos", label: "Saída de Pratos", icon: ArrowLeftRight },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },
