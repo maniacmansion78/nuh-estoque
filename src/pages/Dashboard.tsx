@@ -83,12 +83,7 @@ const Dashboard = () => {
     (i) => getProductStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
   );
 
-  const statsCards = [
-    { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
-    { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
-    { title: "Validade Próxima", value: expiringSoon, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    { title: "Validade Crítica", value: criticalExpiry.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
-  ];
+  const sumQty = (arr: typeof sales) => arr.reduce((sum, s) => sum + s.quantity, 0);
 
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
@@ -114,7 +109,13 @@ const Dashboard = () => {
     }
   });
 
-  const sumQty = (arr: typeof sales) => arr.reduce((sum, s) => sum + s.quantity, 0);
+  const totalDishes = sumQty(sales);
+
+  const statsCards = [
+    { title: "Total de Pratos", value: totalDishes, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
+    { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
+    { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
+  ];
 
   const todayByRecipe: Record<string, { name: string; qty: number }> = {};
   for (const sale of todaySales) {
@@ -136,7 +137,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="flex items-center gap-4 p-6">
