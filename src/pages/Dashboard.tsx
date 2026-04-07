@@ -184,29 +184,57 @@ const Dashboard = () => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pb-0">
-                    {period.data.length === 0 ? (
+                    {period.dishes.length === 0 ? (
                       <p className="px-4 pb-4 text-sm text-muted-foreground">Nenhuma venda neste período.</p>
                     ) : (
-                      <Table className="text-xs">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="py-1.5 text-xs">Prato</TableHead>
-                            <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {period.data.map(([id, d]) => (
-                            <TableRow key={id}>
-                              <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
-                              <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
-                            </TableRow>
-                          ))}
-                          <TableRow className="bg-muted/30">
-                            <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
-                            <TableCell className="py-1.5 text-right font-bold text-xs">{period.total}</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                      <div className="space-y-4">
+                        {/* Pratos */}
+                        <div>
+                          <p className="px-4 pt-2 text-xs font-semibold text-muted-foreground uppercase">Pratos</p>
+                          <Table className="text-xs">
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="py-1.5 text-xs">Prato</TableHead>
+                                <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {period.dishes.map(([id, d]) => (
+                                <TableRow key={id}>
+                                  <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
+                                  <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
+                                </TableRow>
+                              ))}
+                              <TableRow className="bg-muted/30">
+                                <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
+                                <TableCell className="py-1.5 text-right font-bold text-xs">{period.total}</TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </div>
+                        {/* Insumos consumidos */}
+                        {period.ingredients.length > 0 && (
+                          <div>
+                            <p className="px-4 text-xs font-semibold text-muted-foreground uppercase">Insumos Consumidos</p>
+                            <Table className="text-xs">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="py-1.5 text-xs">Insumo</TableHead>
+                                  <TableHead className="py-1.5 text-xs text-right">Consumo</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {period.ingredients.map((ing) => (
+                                  <TableRow key={ing.name}>
+                                    <TableCell className="py-1.5 font-medium text-xs break-words">{ing.name}</TableCell>
+                                    <TableCell className="py-1.5 text-right font-semibold text-xs">{ing.total} {ing.unit}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </AccordionContent>
                 </AccordionItem>
