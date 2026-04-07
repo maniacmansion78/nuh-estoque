@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from "react";
-import { Printer, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Printer, ChevronLeft, ChevronRight, Download, UtensilsCrossed, ChefHat, Radio } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -12,52 +13,98 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useProducts } from "@/hooks/useProducts";
-import { useMovements } from "@/hooks/useMovements";
+import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
+import { useDishSales } from "@/hooks/useDishSales";
+import { supabase } from "@/integrations/supabase/client";
 
 const RelatorioMovimentacoes = () => {
-  const { items: dbProducts, loading: productsLoading } = useProducts();
-  const { items: dbMovements, loading: movementsLoading } = useMovements();
+  const { recipes, loading: recipesLoading } = useRecipes();
+  const { sales, loading: salesLoading } = useDishSales();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
+  const [loadingIngredients, setLoadingIngredients] = useState(true);
+
+  useEffect(() => {
+    const loadIngredients = async () => {
+      setLoadingIngredients(true);
+      const { data, error } = await supabase.from("recipe_ingredients").select("*");
+
+      if (!error && data) {
+        const grouped: Record<string, RecipeIngredient[]> = {};
+        for (const ingredient of data as RecipeIngredient[]) {
+          if (!grouped[ingredient.recipe_id]) grouped[ingredient.recipe_id] = [];
+          grouped[ingredient.recipe_id].push(ingredient);
+        }
+        setAllIngredients(grouped);
+      }
+
+      setLoadingIngredients(false);
+    };
+
+    loadIngredients();
+  }, []);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
 
-  const report = useMemo(() => {
-    const filtered = dbMovements.filter((m) => {
-      const d = new Date(m.date);
-      return d >= monthStart && d <= monthEnd;
-    });
-
-    const map: Record<string, { name: string; unit: string; totalIn: number; totalOut: number }> = {};
-
-    for (const mov of filtered) {
-      if (!map[mov.product_id]) {
-        const product = dbProducts.find((p) => p.id === mov.product_id);
-        map[mov.product_id] = {
-          name: product?.name || "Produto removido",
-          unit: product?.unit || "",
-          totalIn: 0,
-          totalOut: 0,
-        };
+  const monthSales = useMemo(() => {
+    return sales.filter((sale) => {
+      try {
+        return isWithinInterval(parseISO(sale.date), { start: monthStart, end: monthEnd });
+      } catch {
+        return false;
       }
-      if (mov.type === "in") {
-        map[mov.product_id].totalIn += Number(mov.quantity);
-      } else {
-        map[mov.product_id].totalOut += Number(mov.quantity);
+    });
+  }, [sales, monthStart, monthEnd]);
+
+  const recipeNames = useMemo(() => {
+    return new Map(recipes.map((recipe) => [recipe.id, recipe.name]));
+  }, [recipes]);
+
+  const dishesReport = useMemo(() => {
+    const map = new Map<string, { name: string; total: number }>();
+
+    for (const sale of monthSales) {
+      const name = recipeNames.get(sale.recipe_id) || "—";
+      const current = map.get(sale.recipe_id);
+      map.set(sale.recipe_id, {
+        name,
+        total: (current?.total || 0) + sale.quantity,
+      });
+    }
+
+    return Array.from(map.entries())
+      .map(([id, value]) => ({ id, ...value }))
+      .sort((a, b) => b.total - a.total);
+  }, [monthSales, recipeNames]);
+
+  const ingredientsReport = useMemo(() => {
+    const map = new Map<string, { name: string; unit: string; total: number }>();
+
+    for (const sale of monthSales) {
+      const ingredients = allIngredients[sale.recipe_id] || [];
+
+      for (const ingredient of ingredients) {
+        const key = `${ingredient.ingredient_name}::${ingredient.unit}`;
+        const current = map.get(key);
+
+        map.set(key, {
+          name: ingredient.ingredient_name,
+          unit: ingredient.unit,
+          total: Math.round((((current?.total || 0) + ingredient.net_weight * sale.quantity) * 100)) / 100,
+        });
       }
     }
 
-    return Object.values(map)
-      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
-      .map((r) => ({
-        ...r,
-        totalIn: Math.round(r.totalIn * 100) / 100,
-        totalOut: Math.round(r.totalOut * 100) / 100,
-      }));
-  }, [dbMovements, dbProducts, monthStart, monthEnd]);
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [monthSales, allIngredients]);
+
+  const totalDishesSold = useMemo(
+    () => monthSales.reduce((sum, sale) => sum + sale.quantity, 0),
+    [monthSales]
+  );
 
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -90,14 +137,14 @@ const RelatorioMovimentacoes = () => {
         heightLeft -= 287;
       }
 
-      const filename = `relatorio-${format(currentMonth, "yyyy-MM")}.pdf`;
+      const filename = `relatorio-saida-pratos-${format(currentMonth, "yyyy-MM")}.pdf`;
       pdf.save(filename);
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
     }
   };
 
-  if (productsLoading || movementsLoading) {
+  if (recipesLoading || salesLoading || loadingIngredients) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-muted-foreground">Carregando relatório...</p>
@@ -109,14 +156,19 @@ const RelatorioMovimentacoes = () => {
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-x-hidden">
-      {/* Header - hidden on print */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
-        <div className="text-center sm:text-left">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
-            Relatório Mensal
-          </h1>
+        <div className="space-y-2 text-center sm:text-left">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
+              Relatório Mensal
+            </h1>
+            <Badge variant="secondary" className="gap-1">
+              <Radio className="h-3.5 w-3.5" />
+              Tempo real
+            </Badge>
+          </div>
           <p className="text-sm text-muted-foreground">
-            Entradas e saídas por produto
+            Saída de pratos e consumo de insumos
           </p>
         </div>
         <div className="flex gap-2">
@@ -131,7 +183,6 @@ const RelatorioMovimentacoes = () => {
         </div>
       </div>
 
-      {/* Month selector - hidden on print */}
       <div className="flex items-center justify-center gap-4 print:hidden">
         <Button variant="outline" size="icon" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
           <ChevronLeft className="h-4 w-4" />
@@ -144,44 +195,96 @@ const RelatorioMovimentacoes = () => {
         </Button>
       </div>
 
-      <div ref={reportRef} className="pdf-content">
-        {/* PDF/Print header */}
+      <div ref={reportRef} className="space-y-4 pdf-content">
         <div className="hidden print:block text-center mb-4">
-          <h1 className="text-lg font-bold">Relatório de Movimentações</h1>
+          <h1 className="text-lg font-bold">Relatório Mensal de Saída de Pratos</h1>
           <p className="text-sm capitalize">{monthLabel}</p>
         </div>
 
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="print:shadow-none">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">Pratos vendidos</p>
+              <p className="mt-1 text-2xl font-bold">{totalDishesSold}</p>
+            </CardContent>
+          </Card>
+          <Card className="print:shadow-none">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">Pratos no relatório</p>
+              <p className="mt-1 text-2xl font-bold">{dishesReport.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="print:shadow-none">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">Insumos consumidos</p>
+              <p className="mt-1 text-2xl font-bold">{ingredientsReport.length}</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card className="print:shadow-none print:border-none">
-          <CardHeader className="py-3 print:hidden">
-            <CardTitle className="text-base capitalize">{monthLabel}</CardTitle>
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-base capitalize">
+              <UtensilsCrossed className="h-4 w-4 text-primary" />
+              Pratos
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-4 print:p-0">
-            {report.length === 0 ? (
+            {dishesReport.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
-                Nenhuma movimentação neste mês.
+                Nenhuma saída de pratos neste mês.
               </p>
             ) : (
               <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="py-1.5 text-xs">Produto</TableHead>
-                    <TableHead className="py-1.5 text-xs text-center">Entrada</TableHead>
-                    <TableHead className="py-1.5 text-xs text-center">Saída</TableHead>
-                    <TableHead className="py-1.5 text-xs text-center">Saldo</TableHead>
+                    <TableHead className="py-1.5 text-xs">Prato</TableHead>
+                    <TableHead className="py-1.5 text-xs text-right">Quantidade</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {report.map((row) => (
-                    <TableRow key={row.name}>
-                      <TableCell className="py-1.5 font-medium text-xs">{row.name}</TableCell>
-                      <TableCell className="py-1.5 text-center text-success font-semibold text-xs">
-                        +{row.totalIn} {row.unit}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-center text-destructive font-semibold text-xs">
-                        -{row.totalOut} {row.unit}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-center font-semibold text-xs">
-                        {Math.round((row.totalIn - row.totalOut) * 100) / 100} {row.unit}
+                  {dishesReport.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="py-1.5 font-medium text-xs break-words">{row.name}</TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-xs">{row.total}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/30">
+                    <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
+                    <TableCell className="py-1.5 text-right font-bold text-xs">{totalDishesSold}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="print:shadow-none print:border-none">
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-base capitalize">
+              <ChefHat className="h-4 w-4 text-primary" />
+              Insumos consumidos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4 print:p-0">
+            {ingredientsReport.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum insumo consumido neste mês.
+              </p>
+            ) : (
+              <Table className="text-xs">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="py-1.5 text-xs">Insumo</TableHead>
+                    <TableHead className="py-1.5 text-xs text-right">Consumo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ingredientsReport.map((row) => (
+                    <TableRow key={`${row.name}-${row.unit}`}>
+                      <TableCell className="py-1.5 font-medium text-xs break-words">{row.name}</TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-xs">
+                        {row.total} {row.unit}
                       </TableCell>
                     </TableRow>
                   ))}
