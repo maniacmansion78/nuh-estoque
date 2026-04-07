@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
-import { useDishSales } from "@/hooks/useDishSales";
+import { useDishSales, DishSale } from "@/hooks/useDishSales";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -17,26 +18,25 @@ import {
   CalendarDays,
   Trash2,
   ShoppingBasket,
+  ChevronDown,
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useEffect } from "react";
+
+type IngredientConsumption = { name: string; totalWeight: number; unit: string };
 
 const SaidaPratos = () => {
   const { recipes, loading: recipesLoading } = useRecipes();
-  const { sales, loading: salesLoading, addSale, deleteSale, fetchSales } = useDishSales();
+  const { sales, loading: salesLoading, addSale, deleteSale } = useDishSales();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
 
-  // Load all recipe ingredients
   useEffect(() => {
     const loadIngredients = async () => {
       setLoadingIngredients(true);
-      const { data, error } = await supabase
-        .from("recipe_ingredients")
-        .select("*");
+      const { data, error } = await supabase.from("recipe_ingredients").select("*");
       if (!error && data) {
         const grouped: Record<string, RecipeIngredient[]> = {};
         for (const ing of data as RecipeIngredient[]) {
@@ -63,26 +63,51 @@ const SaidaPratos = () => {
       toast.error("Selecione ao menos um prato");
       return;
     }
-
     let success = true;
     for (const [recipeId, qty] of entries) {
       const result = await addSale(recipeId, qty, selectedDate);
       if (!result) success = false;
     }
-
     if (success) {
       setQuantities({});
       toast.success("Todas as vendas registradas!");
     }
   };
 
-  // Calculate ingredient consumption for a period
-  const calculateConsumption = (periodSales: typeof sales) => {
-    const consumption: Record<string, { name: string; totalWeight: number; unit: string }> = {};
+  // Calculate consumption per recipe
+  const calculatePerRecipe = (periodSales: DishSale[]) => {
+    const perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }> = {};
 
     for (const sale of periodSales) {
-      const ingredients = allIngredients[sale.recipe_id] || [];
-      for (const ing of ingredients) {
+      const recipe = recipes.find((r) => r.id === sale.recipe_id);
+      if (!perRecipe[sale.recipe_id]) {
+        perRecipe[sale.recipe_id] = {
+          recipeName: recipe?.name || "—",
+          totalQty: 0,
+          ingredients: {},
+        };
+      }
+      perRecipe[sale.recipe_id].totalQty += sale.quantity;
+
+      const ings = allIngredients[sale.recipe_id] || [];
+      for (const ing of ings) {
+        const key = ing.ingredient_name.toLowerCase();
+        if (!perRecipe[sale.recipe_id].ingredients[key]) {
+          perRecipe[sale.recipe_id].ingredients[key] = { name: ing.ingredient_name, totalWeight: 0, unit: ing.unit };
+        }
+        perRecipe[sale.recipe_id].ingredients[key].totalWeight += ing.net_weight * sale.quantity;
+      }
+    }
+
+    return perRecipe;
+  };
+
+  // Calculate total consumption across all recipes
+  const calculateTotal = (periodSales: DishSale[]) => {
+    const consumption: Record<string, IngredientConsumption> = {};
+    for (const sale of periodSales) {
+      const ings = allIngredients[sale.recipe_id] || [];
+      for (const ing of ings) {
         const key = ing.ingredient_name.toLowerCase();
         if (!consumption[key]) {
           consumption[key] = { name: ing.ingredient_name, totalWeight: 0, unit: ing.unit };
@@ -90,7 +115,6 @@ const SaidaPratos = () => {
         consumption[key].totalWeight += ing.net_weight * sale.quantity;
       }
     }
-
     return Object.values(consumption).sort((a, b) => a.name.localeCompare(b.name));
   };
 
@@ -113,33 +137,19 @@ const SaidaPratos = () => {
     } catch { return false; }
   });
 
-  const todayConsumption = calculateConsumption(todaySales);
-  const weekConsumption = calculateConsumption(weekSales);
-  const monthConsumption = calculateConsumption(monthSales);
-
   const loading = recipesLoading || salesLoading || loadingIngredients;
-
   const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
-            Saída de Pratos
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Registre os pratos vendidos e acompanhe o consumo de insumos
-          </p>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Saída de Pratos</h1>
+          <p className="text-sm text-muted-foreground">Registre os pratos vendidos e acompanhe o consumo de insumos</p>
         </div>
         <div className="flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-40"
-          />
+          <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-40" />
         </div>
       </div>
 
@@ -151,52 +161,29 @@ const SaidaPratos = () => {
             Registrar Vendas do Dia
           </h2>
           {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
-            </div>
+            <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
           ) : recipes.length === 0 ? (
             <p className="text-muted-foreground text-sm">Nenhuma receita cadastrada.</p>
           ) : (
             <div className="space-y-3">
               {recipes.map((recipe) => (
-                <div
-                  key={recipe.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3"
-                >
+                <div key={recipe.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm sm:text-base truncate">{recipe.name}</p>
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      {recipe.category}
-                    </Badge>
+                    <Badge variant="secondary" className="text-xs mt-1">{recipe.category}</Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8"
-                      onClick={() => updateQty(recipe.id, -1)}
-                    >
+                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(recipe.id, -1)}>
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="w-8 text-center font-bold text-lg">
-                      {quantities[recipe.id] || 0}
-                    </span>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8"
-                      onClick={() => updateQty(recipe.id, 1)}
-                    >
+                    <span className="w-8 text-center font-bold text-lg">{quantities[recipe.id] || 0}</span>
+                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(recipe.id, 1)}>
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               ))}
-              <Button
-                className="w-full mt-4 gap-2"
-                onClick={handleRegisterSales}
-                disabled={Object.values(quantities).every((q) => q === 0)}
-              >
+              <Button className="w-full mt-4 gap-2" onClick={handleRegisterSales} disabled={Object.values(quantities).every((q) => q === 0)}>
                 <UtensilsCrossed className="h-4 w-4" />
                 Registrar Vendas
               </Button>
@@ -208,23 +195,16 @@ const SaidaPratos = () => {
       {/* Sales history for selected date */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4">
-            Vendas em {format(parseISO(selectedDate), "dd/MM/yyyy")}
-          </h2>
+          <h2 className="text-lg font-semibold mb-4">Vendas em {format(parseISO(selectedDate), "dd/MM/yyyy")}</h2>
           {todaySales.length === 0 ? (
             <p className="text-muted-foreground text-sm">Nenhuma venda registrada nesta data.</p>
           ) : (
             <div className="space-y-2">
               {todaySales.map((sale) => (
-                <div
-                  key={sale.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3"
-                >
+                <div key={sale.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
                     <p className="font-medium text-sm">{getRecipeName(sale.recipe_id)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Qtd: {sale.quantity} — {format(parseISO(sale.created_at), "HH:mm")}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Qtd: {sale.quantity} — {format(parseISO(sale.created_at), "HH:mm")}</p>
                   </div>
                   <Button size="icon" variant="ghost" onClick={() => deleteSale(sale.id)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -250,13 +230,13 @@ const SaidaPratos = () => {
               <TabsTrigger value="month" className="flex-1">Mês</TabsTrigger>
             </TabsList>
             <TabsContent value="day">
-              <ConsumptionTable data={todayConsumption} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(todaySales)} total={calculateTotal(todaySales)} />
             </TabsContent>
             <TabsContent value="week">
-              <ConsumptionTable data={weekConsumption} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(weekSales)} total={calculateTotal(weekSales)} />
             </TabsContent>
             <TabsContent value="month">
-              <ConsumptionTable data={monthConsumption} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(monthSales)} total={calculateTotal(monthSales)} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -265,28 +245,78 @@ const SaidaPratos = () => {
   );
 };
 
-function ConsumptionTable({ data }: { data: { name: string; totalWeight: number; unit: string }[] }) {
-  if (data.length === 0) {
+function ConsumptionBreakdown({
+  perRecipe,
+  total,
+}: {
+  perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }>;
+  total: IngredientConsumption[];
+}) {
+  const recipeEntries = Object.entries(perRecipe);
+
+  if (recipeEntries.length === 0) {
     return <p className="text-muted-foreground text-sm py-4">Nenhum consumo registrado no período.</p>;
   }
 
   return (
-    <div className="mt-3 space-y-2">
-      {data.map((item) => (
-        <div
-          key={item.name}
-          className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-2"
-        >
-          <span className="text-sm font-medium">{item.name}</span>
-          <Badge variant="outline">
-            {item.totalWeight >= 1000
-              ? `${(item.totalWeight / 1000).toFixed(2)} kg`
-              : `${item.totalWeight.toFixed(1)} ${item.unit}`}
-          </Badge>
+    <div className="mt-3 space-y-4">
+      {/* Per-recipe breakdown */}
+      <Accordion type="multiple" className="space-y-2">
+        {recipeEntries.map(([recipeId, data]) => (
+          <AccordionItem key={recipeId} value={recipeId} className="border rounded-lg">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+              <div className="flex items-center gap-3 text-left">
+                <ChefHat className="h-4 w-4 text-primary shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold">{data.recipeName}</p>
+                  <p className="text-xs text-muted-foreground">{data.totalQty} porções vendidas</p>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-3">
+              <div className="space-y-1.5">
+                {Object.values(data.ingredients)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((ing) => (
+                    <div key={ing.name} className="flex items-center justify-between rounded bg-muted/30 px-3 py-1.5">
+                      <span className="text-xs">{ing.name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {formatWeight(ing.totalWeight, ing.unit)}
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+
+      {/* General total */}
+      <div className="border-t pt-4">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+          <ShoppingBasket className="h-4 w-4 text-primary" />
+          Total Geral de Insumos
+        </h3>
+        <div className="space-y-1.5">
+          {total.map((item) => (
+            <div key={item.name} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-2">
+              <span className="text-sm font-medium">{item.name}</span>
+              <Badge variant="outline">
+                {formatWeight(item.totalWeight, item.unit)}
+              </Badge>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
+}
+
+function formatWeight(weight: number, unit: string) {
+  if (unit === "un") return `${weight.toFixed(0)} un`;
+  if (unit === "ml" && weight >= 1000) return `${(weight / 1000).toFixed(2)} L`;
+  if (unit === "g" && weight >= 1000) return `${(weight / 1000).toFixed(2)} kg`;
+  return `${weight.toFixed(1)} ${unit}`;
 }
 
 export default SaidaPratos;
