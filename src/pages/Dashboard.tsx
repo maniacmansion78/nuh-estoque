@@ -6,11 +6,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Package,
-  AlertTriangle,
-  Clock,
   TrendingDown,
   ChefHat,
   UtensilsCrossed,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,17 +36,12 @@ function getDaysUntilExpiry(expiryDate: string) {
   return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function formatAmount(value: number, unit: string) {
-  return `${value}${unit}`;
-}
-
 const Dashboard = () => {
   const { items, loading } = useProducts();
   const { recipes, loading: recipesLoading } = useRecipes();
   const { sales, loading: salesLoading } = useDishSales();
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
-  const [openRecipeItems, setOpenRecipeItems] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -62,17 +57,11 @@ const Dashboard = () => {
       }
       setLoadingIngredients(false);
     };
-
     load();
   }, []);
 
-
   const totalItems = items.length;
   const lowStock = items.filter((i) => getProductStatus(i) !== "ok").length;
-  const expiringSoon = items.filter((i) => getExpiryStatus(i.expiry_date, i.alert_days) !== "ok").length;
-  const criticalExpiry = items.filter(
-    (i) => getExpiryStatus(i.expiry_date, i.alert_days) === "critical"
-  );
 
   const alertItems = items.filter(
     (i) => getProductStatus(i) !== "ok" || getExpiryStatus(i.expiry_date, i.alert_days) !== "ok"
@@ -89,9 +78,7 @@ const Dashboard = () => {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
       });
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   });
   const monthSales = sales.filter((s) => {
     try {
@@ -99,12 +86,8 @@ const Dashboard = () => {
         start: startOfMonth(today),
         end: endOfMonth(today),
       });
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   });
-
-  const totalDishes = sumQty(sales);
 
   const statsCards = [
     { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
@@ -125,13 +108,12 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Tela Inicial</h1>
-          <p className="text-sm text-muted-foreground sm:text-base">Visão geral do estoque do NUH Asian Food</p>
-        </div>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Dashboard</h1>
+        <p className="text-sm text-muted-foreground sm:text-base">Visão geral do NUH Asian Food</p>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
@@ -141,13 +123,78 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
-                {loading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
+                {loading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* FICHAS TÉCNICAS — seção principal */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            <ChefHat className="h-5 w-5 text-primary" />
+            Fichas Técnicas
+          </h2>
+
+          {recipesLoading || loadingIngredients ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+            </div>
+          ) : recipes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma ficha técnica cadastrada.</p>
+          ) : (
+            <Accordion type="multiple" defaultValue={[recipes[0].id]} className="space-y-2">
+              {recipes.map((recipe) => {
+                const ingredients = (allIngredients[recipe.id] || []).sort((a, b) =>
+                  a.ingredient_name.localeCompare(b.ingredient_name)
+                );
+                return (
+                  <AccordionItem key={recipe.id} value={recipe.id} className="overflow-hidden rounded-lg border border-border">
+                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                      <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-2 text-left">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold">{recipe.name}</p>
+                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
+                        </div>
+                        <div className="flex shrink-0 gap-1.5">
+                          <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
+                          <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      {ingredients.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="grid grid-cols-4 gap-2 text-[10px] font-semibold text-muted-foreground px-2 pb-1">
+                            <span className="col-span-1">Ingrediente</span>
+                            <span className="text-right">Bruto</span>
+                            <span className="text-right">Líquido</span>
+                            <span className="text-right">Custo</span>
+                          </div>
+                          {ingredients.map((ing) => (
+                            <div key={ing.id} className="grid grid-cols-4 gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
+                              <span className="col-span-1 truncate font-medium">{ing.ingredient_name}</span>
+                              <span className="text-right">{ing.gross_weight}{ing.unit}</span>
+                              <span className="text-right">{ing.net_weight}{ing.unit}</span>
+                              <span className="text-right">R$ {ing.ingredient_cost.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Saída de Pratos */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
@@ -156,30 +203,23 @@ const Dashboard = () => {
           </h2>
           {salesLoading || recipesLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
             <>
               <div className="mb-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Hoje</p>
-                  <p className="text-2xl font-bold">{sumQty(todaySales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Semana</p>
-                  <p className="text-2xl font-bold">{sumQty(weekSales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Mês</p>
-                  <p className="text-2xl font-bold">{sumQty(monthSales)}</p>
-                  <p className="text-xs text-muted-foreground">pratos</p>
-                </div>
+                {[
+                  { label: "Hoje", value: sumQty(todaySales) },
+                  { label: "Semana", value: sumQty(weekSales) },
+                  { label: "Mês", value: sumQty(monthSales) },
+                ].map((p) => (
+                  <div key={p.label} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                    <p className="text-xs text-muted-foreground">{p.label}</p>
+                    <p className="text-2xl font-bold">{p.value}</p>
+                    <p className="text-xs text-muted-foreground">pratos</p>
+                  </div>
+                ))}
               </div>
-
               {Object.keys(todayByRecipe).length > 0 ? (
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-muted-foreground">Vendas de Hoje</h3>
@@ -198,91 +238,13 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="mb-4 flex items-start gap-2">
-            <ChefHat className="mt-0.5 h-5 w-5 text-primary" />
-            <div>
-              <h2 className="text-lg font-semibold">Fichas Técnicas</h2>
-              <p className="text-sm text-muted-foreground">Cada prato aparece aqui com seus ingredientes logo no Dashboard.</p>
-            </div>
-          </div>
-
-          {recipesLoading || loadingIngredients ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
-            </div>
-          ) : recipes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma ficha técnica cadastrada.</p>
-          ) : (
-            <Accordion type="multiple" value={openRecipeItems} onValueChange={setOpenRecipeItems} className="space-y-2">
-              {recipes.map((recipe) => {
-                const ingredients = (allIngredients[recipe.id] || []).sort((a, b) =>
-                  a.ingredient_name.localeCompare(b.ingredient_name)
-                );
-
-                return (
-                  <AccordionItem key={recipe.id} value={recipe.id} className="rounded-lg border border-border px-4 overflow-hidden">
-                    <AccordionTrigger className="py-3 hover:no-underline">
-                      <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-2 text-left">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">{recipe.name}</p>
-                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
-                        </div>
-                        <div className="flex shrink-0 gap-1.5">
-                          <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
-                          <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      {ingredients.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {ingredients.map((ingredient) => (
-                            <div key={ingredient.id} className="rounded-lg bg-muted/30 p-3">
-                              <div className="mb-2 flex items-center justify-between gap-3">
-                                <span className="text-sm font-medium">{ingredient.ingredient_name}</span>
-                                <Badge variant="outline" className="text-[11px]">R$ {ingredient.ingredient_cost.toFixed(2)}</Badge>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-                                <div className="rounded-md bg-background/70 p-2">
-                                  <p className="text-muted-foreground">Peso bruto</p>
-                                  <p className="font-medium">{formatAmount(ingredient.gross_weight, ingredient.unit)}</p>
-                                </div>
-                                <div className="rounded-md bg-background/70 p-2">
-                                  <p className="text-muted-foreground">Peso líquido</p>
-                                  <p className="font-medium">{formatAmount(ingredient.net_weight, ingredient.unit)}</p>
-                                </div>
-                                <div className="rounded-md bg-background/70 p-2 col-span-2 sm:col-span-1">
-                                  <p className="text-muted-foreground">Fator correção</p>
-                                  <p className="font-medium">{ingredient.correction_factor.toFixed(2)}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          )}
-        </CardContent>
-      </Card>
-
+      {/* Alertas */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 text-lg font-semibold">Alertas</h2>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-14 w-full" />
-              ))}
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
             </div>
           ) : alertItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum alerta no momento.</p>
@@ -292,7 +254,6 @@ const Dashboard = () => {
                 const stockStatus = getProductStatus(item);
                 const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
                 const days = getDaysUntilExpiry(item.expiry_date);
-
                 return (
                   <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-2.5 sm:p-3">
                     <div className="min-w-0 flex-1">
@@ -304,8 +265,7 @@ const Dashboard = () => {
                             className={cn(stockStatus === "warning" && "border-warning/30 bg-warning/10 text-warning-foreground")}
                           >
                             <TrendingDown className="mr-1 h-3 w-3" />
-                            {item.quantity}
-                            {item.unit}
+                            {item.quantity}{item.unit}
                           </Badge>
                         )}
                         {expiryStatus !== "ok" && (
