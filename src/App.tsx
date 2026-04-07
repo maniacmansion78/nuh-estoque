@@ -12,6 +12,7 @@ import ContaBloqueada from "@/pages/ContaBloqueada";
 import Produtos from "@/pages/Produtos";
 import Fornecedores from "@/pages/Fornecedores";
 import Movimentacoes from "@/pages/Movimentacoes";
+import SaidaPratos from "@/pages/SaidaPratos";
 import RelatorioMovimentacoes from "@/pages/RelatorioMovimentacoes";
 import Funcionarios from "@/pages/Funcionarios";
 import NaoConformidadesPage from "@/pages/NaoConformidades";
@@ -84,6 +85,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <Fornecedores />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/saida-pratos"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <SaidaPratos />
             </AppLayout>
           </ProtectedRoute>
         }

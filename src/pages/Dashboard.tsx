@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useProducts } from "@/hooks/useProducts";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import {
@@ -6,11 +5,8 @@ import {
   AlertTriangle,
   Clock,
   TrendingDown,
-  Plus,
-  Minus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,7 +29,6 @@ function getDaysUntilExpiry(expiryDate: string) {
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const { items, loading } = useProducts();
 
   const totalItems = items.length;
@@ -60,14 +55,6 @@ const Dashboard = () => {
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Tela Inicial</h1>
           <p className="text-sm text-muted-foreground sm:text-base">Visão geral do estoque do NUH Asian Food</p>
-        </div>
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-3">
-          <Button size="sm" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => navigate("/movimentacoes")}>
-            <Plus className="h-4 w-4" /> Nova Entrada
-          </Button>
-          <Button size="sm" variant="outline" className="gap-1.5 text-xs sm:size-default sm:gap-2 sm:text-sm" onClick={() => navigate("/movimentacoes")}>
-            <Minus className="h-4 w-4" /> Nova Saída
-          </Button>
         </div>
       </div>
 
