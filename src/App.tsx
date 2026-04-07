@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
+import FichasTecnicas from "@/pages/FichasTecnicas";
 import AlterarSenha from "@/pages/AlterarSenha";
 import ContaBloqueada from "@/pages/ContaBloqueada";
 import Produtos from "@/pages/Produtos";
@@ -70,11 +71,11 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/produtos"
+        path="/fichas-tecnicas"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <Produtos />
+              <FichasTecnicas />
             </AppLayout>
           </ProtectedRoute>
         }
