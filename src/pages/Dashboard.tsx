@@ -66,7 +66,7 @@ const Dashboard = () => {
 
   const statsCards = [
     { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
-    { title: "Total de Produtos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
+    { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
     { title: "Estoque Baixo", value: lowStock, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
@@ -85,13 +85,31 @@ const Dashboard = () => {
     return Object.entries(map).sort((a, b) => b[1].qty - a[1].qty);
   };
 
+  // Build ingredient consumption for a period
+  const buildIngredientConsumption = (filtered: typeof sales) => {
+    const map: Record<string, { name: string; unit: string; total: number }> = {};
+    for (const sale of filtered) {
+      const ings = allIngredients[sale.recipe_id] || [];
+      for (const ing of ings) {
+        const key = ing.ingredient_name;
+        if (!map[key]) {
+          map[key] = { name: ing.ingredient_name, unit: ing.unit, total: 0 };
+        }
+        map[key].total += ing.net_weight * sale.quantity;
+      }
+    }
+    return Object.values(map)
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+      .map((i) => ({ ...i, total: Math.round(i.total * 100) / 100 }));
+  };
+
   const reportPeriods = useMemo(() => [
-    { label: "Hoje", data: buildByRecipe(todaySales), total: sumQty(todaySales) },
-    { label: "Semana", data: buildByRecipe(weekSales), total: sumQty(weekSales) },
-    { label: "Quinzena", data: buildByRecipe(biweeklySales), total: sumQty(biweeklySales) },
-    { label: format(today, "MMMM", { locale: ptBR }), data: buildByRecipe(monthSales), total: sumQty(monthSales) },
+    { label: "Hoje", dishes: buildByRecipe(todaySales), ingredients: buildIngredientConsumption(todaySales), total: sumQty(todaySales) },
+    { label: "Semana", dishes: buildByRecipe(weekSales), ingredients: buildIngredientConsumption(weekSales), total: sumQty(weekSales) },
+    { label: "Quinzena", dishes: buildByRecipe(biweeklySales), ingredients: buildIngredientConsumption(biweeklySales), total: sumQty(biweeklySales) },
+    { label: format(today, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [sales, recipes]);
+  ], [sales, recipes, allIngredients]);
 
   const fichasLoading = recipesLoading || loadingIngredients;
 
