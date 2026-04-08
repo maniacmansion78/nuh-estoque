@@ -413,6 +413,7 @@ export function NaoConformidades() {
           onOpenChange={(open) => !open && setWhatsappItem(null)}
           item={{
             ...whatsappItem,
+            photo_urls: signedPhotoMap[whatsappItem.id] || [],
             supplier_name: suppliers.find((s) => s.id === whatsappItem.supplier_id)?.name || "N/A",
           }}
         />
