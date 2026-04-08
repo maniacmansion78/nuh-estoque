@@ -114,24 +114,7 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground sm:text-base">Visão geral do NUH Asian Food</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {statsCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", stat.bg)}>
-                <stat.icon className={cn("h-6 w-6", stat.color)} />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-                {loading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Saída de Pratos - summary */}
+      {/* Saída de Pratos - summary (FIRST visible section) */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
@@ -155,6 +138,23 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {statsCards.map((stat) => (
+          <Card key={stat.title}>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", stat.bg)}>
+                <stat.icon className={cn("h-6 w-6", stat.color)} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{stat.title}</p>
+                {loading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Relatório Mensal de Saída de Pratos */}
       <Card>
