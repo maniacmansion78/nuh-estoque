@@ -41,7 +41,9 @@ const Dashboard = () => {
 
   const totalItems = items.length;
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  // Use Brasília timezone (America/Sao_Paulo) for "today"
+  const nowBrasilia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const todayStr = `${nowBrasilia.getFullYear()}-${String(nowBrasilia.getMonth() + 1).padStart(2, "0")}-${String(nowBrasilia.getDate()).padStart(2, "0")}`;
   const today = new Date(`${todayStr}T12:00:00`);
 
   // Keep dashboard periods aligned with the stored sale date format (yyyy-MM-dd)
