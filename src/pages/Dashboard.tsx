@@ -106,6 +106,34 @@ const Dashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [sales, recipes, allIngredients]);
 
+  // Build daily logs: group sales by date, showing each dish sold that day
+  const dailyLogs = useMemo(() => {
+    const byDate: Record<string, { recipe_id: string; name: string; qty: number }[]> = {};
+    for (const sale of sales) {
+      if (!byDate[sale.date]) byDate[sale.date] = [];
+      const existing = byDate[sale.date].find((d) => d.recipe_id === sale.recipe_id);
+      if (existing) {
+        existing.qty += sale.quantity;
+      } else {
+        byDate[sale.date].push({
+          recipe_id: sale.recipe_id,
+          name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+          qty: sale.quantity,
+        });
+      }
+    }
+    return Object.entries(byDate)
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .slice(0, 30)
+      .map(([date, dishes]) => ({
+        date,
+        dateFormatted: format(new Date(`${date}T12:00:00`), "dd/MM/yyyy (EEEE)", { locale: ptBR }),
+        dishes: dishes.sort((a, b) => b.qty - a.qty),
+        total: dishes.reduce((s, d) => s + d.qty, 0),
+      }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sales, recipes]);
+
   const fichasLoading = recipesLoading || loadingIngredients;
 
   return (
