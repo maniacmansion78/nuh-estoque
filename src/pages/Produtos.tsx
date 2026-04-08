@@ -5,11 +5,8 @@ import {
   Plus,
   Filter,
   Package,
-  Clock,
   Edit,
   Trash2,
-  ArrowUpRight,
-  ArrowDownRight,
   X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,18 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import {
-  getIngredientStatus,
-  getExpiryStatus,
-  getDaysUntilExpiry,
-} from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
-import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
-
 
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -77,54 +65,19 @@ const Produtos = () => {
 
   const { isAdmin } = useAuth();
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
-  const { items: dbMovements } = useMovements();
-  const { items: suppliersList } = useSuppliers();
   const { categories, addCategory, deleteCategory } = useCategories();
-  const sortedSuppliers = [...suppliersList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   const categoryNames = useMemo(() => categories.map((c) => c.name).sort((a, b) => a.localeCompare(b, "pt-BR")), [categories]);
 
-  const lotesPerProduct = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const mov of dbMovements) {
-      if (mov.lote && mov.lote.trim()) {
-        if (!map[mov.product_id]) map[mov.product_id] = [];
-        if (!map[mov.product_id].includes(mov.lote.trim())) {
-          map[mov.product_id].push(mov.lote.trim());
-        }
-      }
-    }
-    return map;
-  }, [dbMovements]);
-
-  const latestExpiryPerProduct = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const mov of dbMovements) {
-      if (mov.type === "in" && mov.expiry_date && !map[mov.product_id]) {
-        map[mov.product_id] = mov.expiry_date;
-      }
-    }
-    return map;
-  }, [dbMovements]);
-
   const filtered = useMemo(() => {
-    const base = items.filter((i) => {
-      const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
-      const matchCat = categoryFilter === "all" || i.category === categoryFilter;
-      return matchSearch && matchCat;
-    });
-
-    if (categoryFilter !== "all") {
-      return base.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-    }
-    return base.sort((a, b) => {
-      const lastA = dbMovements.find((m) => m.product_id === a.id);
-      const lastB = dbMovements.find((m) => m.product_id === b.id);
-      const dateA = lastA ? new Date(lastA.date).getTime() : 0;
-      const dateB = lastB ? new Date(lastB.date).getTime() : 0;
-      return dateB - dateA;
-    });
-  }, [items, search, categoryFilter, dbMovements]);
+    return items
+      .filter((i) => {
+        const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
+        const matchCat = categoryFilter === "all" || i.category === categoryFilter;
+        return matchSearch && matchCat;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [items, search, categoryFilter]);
 
   const openAdd = () => {
     setEditingItem(null);
@@ -197,29 +150,6 @@ const Produtos = () => {
     return success;
   };
 
-  const statusBadge = (item: Product) => {
-    const ingredient = { ...item, quantity: Number(item.quantity), min_quantity: Number(item.min_quantity) };
-    const status = getIngredientStatus(ingredient as any);
-    const expiryStatus = getExpiryStatus(item.expiry_date, item.alert_days);
-    const days = getDaysUntilExpiry(item.expiry_date);
-    const worst = status === "critical" || expiryStatus === "critical" ? "critical" : status === "warning" || expiryStatus === "warning" ? "warning" : "ok";
-
-    return (
-      <div className="flex flex-wrap gap-1">
-        <Badge
-          variant={worst === "ok" ? "default" : "destructive"}
-          className={cn(worst === "ok" && "border-success/30 bg-success/10 text-success")}
-        >
-          {worst === "ok" ? "OK" : worst === "warning" ? "Alerta" : "Crítico"}
-        </Badge>
-        {expiryStatus !== "ok" && (
-          <Badge variant="outline" className="gap-1 text-xs">
-            <Clock className="h-3 w-3" /> {days}d
-          </Badge>
-        )}
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -273,59 +203,28 @@ const Produtos = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="w-full space-y-4">
-          {filtered.map((item) => {
-            const supplier = suppliersList.find((s) => s.id === item.supplier_id);
-            const productMovements = dbMovements.filter((m) => m.product_id === item.id)
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-            return (
-              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md overflow-hidden">
+        <div className="w-full space-y-2">
+          {filtered.map((item) => (
+              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
                 <CardContent className="px-3 py-2 sm:px-4 sm:py-2.5">
-                  <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center lg:gap-6">
-                    <div className="flex items-center justify-between gap-1.5 min-w-0">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="truncate text-[11px] sm:text-sm font-semibold">{item.name}</p>
-                        <Badge variant="outline" className="shrink-0 text-[8px] sm:text-[10px] px-1 py-0">{item.category}</Badge>
-                      </div>
-                      <div className="flex gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 shrink-0">
-                        <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6" onClick={() => openEdit(item)}>
-                          <Edit className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
-                          <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        </Button>
-                      </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="truncate text-sm font-semibold">{item.name}</p>
+                      <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0">{item.category}</Badge>
+                      <span className="text-xs text-muted-foreground shrink-0">{item.unit}</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[10px] sm:text-xs sm:flex sm:flex-wrap sm:gap-4 lg:flex-1">
-                      <span><span className="text-muted-foreground">Lotes:</span> <strong className="break-all">{(lotesPerProduct[item.id] || []).length > 0 ? (lotesPerProduct[item.id]).join(", ") : "—"}</strong></span>
-                      <span><span className="text-muted-foreground">Qtd:</span> <strong>{item.quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">Mín:</span> <strong>{item.min_quantity} {item.unit}</strong></span>
-                      <span><span className="text-muted-foreground">Val:</span> <strong>{latestExpiryPerProduct[item.id] ? format(new Date(latestExpiryPerProduct[item.id]), "dd/MM/yy") : format(new Date(item.expiry_date), "dd/MM/yy")}</strong></span>
-                    </div>
-                    <div className="flex items-center gap-1.5 lg:shrink-0">
-                      {statusBadge(item)}
+                    <div className="flex gap-0.5 shrink-0">
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(item)}>
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
-
-                  {productMovements.length > 0 && (
-                    <div className="mt-1.5 border-t pt-1.5 space-y-1">
-                      {productMovements.map((mov) => (
-                        <div key={mov.id} className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-2 gap-y-0.5 items-center text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 rounded bg-muted/30">
-                          <Badge className={cn("gap-0.5 text-[8px] sm:text-[10px] px-1 py-0 shrink-0", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
-                            {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Ent</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saí</>}
-                          </Badge>
-                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity}</strong></span>
-                          <span><span className="text-muted-foreground">Data:</span> <strong>{format(new Date(mov.date), "dd/MM HH:mm")}</strong></span>
-                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy") : "—"}</strong></span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
-            );
-          })}
+          ))}
         </div>
       )}
 
@@ -371,21 +270,6 @@ const Produtos = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label>Qtd. Mínima</Label>
-              <Input type="number" value={form.min_quantity || ""} onChange={(e) => setForm({ ...form, min_quantity: Number(e.target.value) })} placeholder="0" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Dias de alerta antes do vencimento</Label>
-              <Input
-                type="number"
-                min={1}
-                onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) || 0 })}
-                value={form.alert_days || ""}
-                placeholder="Ex: 3 dias"
-              />
-              <p className="text-xs text-muted-foreground">Alerta será exibido quando faltar esse número de dias para vencer</p>
             </div>
           </div>
           <DialogFooter>
