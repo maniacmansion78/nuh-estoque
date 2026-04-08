@@ -271,21 +271,6 @@ const Produtos = () => {
                 </Select>
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label>Qtd. Mínima</Label>
-              <Input type="number" value={form.min_quantity || ""} onChange={(e) => setForm({ ...form, min_quantity: Number(e.target.value) })} placeholder="0" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Dias de alerta antes do vencimento</Label>
-              <Input
-                type="number"
-                min={1}
-                onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) || 0 })}
-                value={form.alert_days || ""}
-                placeholder="Ex: 3 dias"
-              />
-              <p className="text-xs text-muted-foreground">Alerta será exibido quando faltar esse número de dias para vencer</p>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
