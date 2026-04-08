@@ -60,7 +60,8 @@ const Dashboard = () => {
   const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
   const statsCards = [
-    { title: "Total de Pratos", value: recipes.length, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
+    { title: "Pratos Vendidos (Mês)", value: sumQty(monthSales), icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
+    { title: "Fichas Técnicas", value: recipes.length, icon: ChefHat, color: "text-primary", bg: "bg-accent" },
     { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
   ];
 
