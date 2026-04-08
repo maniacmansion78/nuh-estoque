@@ -4,7 +4,7 @@ import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, UtensilsCrossed, ChefHat, BarChart3 } from "lucide-react";
+import { Package, UtensilsCrossed, ChefHat, BarChart3, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -105,6 +105,34 @@ const Dashboard = () => {
     { label: format(today, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [sales, recipes, allIngredients]);
+
+  // Build daily logs: group sales by date, showing each dish sold that day
+  const dailyLogs = useMemo(() => {
+    const byDate: Record<string, { recipe_id: string; name: string; qty: number }[]> = {};
+    for (const sale of sales) {
+      if (!byDate[sale.date]) byDate[sale.date] = [];
+      const existing = byDate[sale.date].find((d) => d.recipe_id === sale.recipe_id);
+      if (existing) {
+        existing.qty += sale.quantity;
+      } else {
+        byDate[sale.date].push({
+          recipe_id: sale.recipe_id,
+          name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+          qty: sale.quantity,
+        });
+      }
+    }
+    return Object.entries(byDate)
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .slice(0, 30)
+      .map(([date, dishes]) => ({
+        date,
+        dateFormatted: format(new Date(`${date}T12:00:00`), "dd/MM/yyyy (EEEE)", { locale: ptBR }),
+        dishes: dishes.sort((a, b) => b.qty - a.qty),
+        total: dishes.reduce((s, d) => s + d.qty, 0),
+      }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sales, recipes]);
 
   const fichasLoading = recipesLoading || loadingIngredients;
 
@@ -297,6 +325,58 @@ const Dashboard = () => {
                   </AccordionItem>
                 );
               })}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ===== LOGS DE SAÍDA POR DIA ===== */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            <ClipboardList className="h-5 w-5 text-primary" />
+            Logs de Saída por Dia
+          </h2>
+          {salesLoading || recipesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : dailyLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum registro de saída.</p>
+          ) : (
+            <Accordion type="multiple" defaultValue={dailyLogs[0] ? [dailyLogs[0].date] : []} className="space-y-2">
+              {dailyLogs.map((day) => (
+                <AccordionItem key={day.date} value={day.date} className="overflow-hidden rounded-lg border border-border">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <div className="flex w-full items-center justify-between pr-2">
+                      <span className="text-sm font-semibold capitalize">{day.dateFormatted}</span>
+                      <Badge variant="secondary">{day.total} pratos</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    <Table className="text-xs">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="py-1.5 text-xs">Prato</TableHead>
+                          <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {day.dishes.map((d) => (
+                          <TableRow key={d.recipe_id}>
+                            <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
+                            <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/30">
+                          <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
+                          <TableCell className="py-1.5 text-right font-bold text-xs">{day.total}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
           )}
         </CardContent>
