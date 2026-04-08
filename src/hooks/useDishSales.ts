@@ -63,7 +63,7 @@ export function useDishSales() {
     const { error } = await supabase.from("dish_sales").insert({
       recipe_id: recipeId,
       quantity,
-      date: date || new Date().toISOString().split("T")[0],
+      date: date || (() => { const n = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; })(),
       user_id: userData.user.id,
     });
 
