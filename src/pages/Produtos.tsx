@@ -5,11 +5,8 @@ import {
   Plus,
   Filter,
   Package,
-  Clock,
   Edit,
   Trash2,
-  ArrowUpRight,
-  ArrowDownRight,
   X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,18 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import {
-  getIngredientStatus,
-  getExpiryStatus,
-  getDaysUntilExpiry,
-} from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useMovements } from "@/hooks/useMovements";
 import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
-import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
-
 
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -77,54 +65,19 @@ const Produtos = () => {
 
   const { isAdmin } = useAuth();
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
-  const { items: dbMovements } = useMovements();
-  const { items: suppliersList } = useSuppliers();
   const { categories, addCategory, deleteCategory } = useCategories();
-  const sortedSuppliers = [...suppliersList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   const categoryNames = useMemo(() => categories.map((c) => c.name).sort((a, b) => a.localeCompare(b, "pt-BR")), [categories]);
 
-  const lotesPerProduct = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const mov of dbMovements) {
-      if (mov.lote && mov.lote.trim()) {
-        if (!map[mov.product_id]) map[mov.product_id] = [];
-        if (!map[mov.product_id].includes(mov.lote.trim())) {
-          map[mov.product_id].push(mov.lote.trim());
-        }
-      }
-    }
-    return map;
-  }, [dbMovements]);
-
-  const latestExpiryPerProduct = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const mov of dbMovements) {
-      if (mov.type === "in" && mov.expiry_date && !map[mov.product_id]) {
-        map[mov.product_id] = mov.expiry_date;
-      }
-    }
-    return map;
-  }, [dbMovements]);
-
   const filtered = useMemo(() => {
-    const base = items.filter((i) => {
-      const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
-      const matchCat = categoryFilter === "all" || i.category === categoryFilter;
-      return matchSearch && matchCat;
-    });
-
-    if (categoryFilter !== "all") {
-      return base.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-    }
-    return base.sort((a, b) => {
-      const lastA = dbMovements.find((m) => m.product_id === a.id);
-      const lastB = dbMovements.find((m) => m.product_id === b.id);
-      const dateA = lastA ? new Date(lastA.date).getTime() : 0;
-      const dateB = lastB ? new Date(lastB.date).getTime() : 0;
-      return dateB - dateA;
-    });
-  }, [items, search, categoryFilter, dbMovements]);
+    return items
+      .filter((i) => {
+        const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
+        const matchCat = categoryFilter === "all" || i.category === categoryFilter;
+        return matchSearch && matchCat;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [items, search, categoryFilter]);
 
   const openAdd = () => {
     setEditingItem(null);
