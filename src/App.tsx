@@ -81,6 +81,16 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/produtos"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Produtos />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/fornecedores"
         element={
           <ProtectedRoute>
