@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfWeek, startOfMonth, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 
@@ -44,18 +44,18 @@ const Dashboard = () => {
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
 
-  const filterByInterval = (start: Date, end: Date) =>
-    sales.filter((sale) => {
-      try {
-        return isWithinInterval(parseISO(sale.date), { start, end });
-      } catch { return false; }
-    });
+  // Use string-based date comparison (yyyy-MM-dd) to avoid timezone issues
+  const filterByDateRange = (startDate: string, endDate: string) =>
+    sales.filter((sale) => sale.date >= startDate && sale.date <= endDate);
 
   const todaySales = sales.filter((sale) => sale.date === todayStr);
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekSales = filterByInterval(weekStart, today);
-  const biweeklySales = filterByInterval(subDays(today, 14), today);
-  const monthSales = filterByInterval(startOfMonth(today), today);
+  const weekStartStr = format(startOfWeek(today, { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const biweeklyStartStr = format(subDays(today, 14), "yyyy-MM-dd");
+  const monthStartStr = format(startOfMonth(today), "yyyy-MM-dd");
+
+  const weekSales = filterByDateRange(weekStartStr, todayStr);
+  const biweeklySales = filterByDateRange(biweeklyStartStr, todayStr);
+  const monthSales = filterByDateRange(monthStartStr, todayStr);
 
   const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
