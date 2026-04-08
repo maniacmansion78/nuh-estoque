@@ -41,10 +41,10 @@ const Dashboard = () => {
 
   const totalItems = items.length;
 
-  const today = new Date();
-  const todayStr = format(today, "yyyy-MM-dd");
+  const todayStr = new Date().toISOString().split("T")[0];
+  const today = new Date(`${todayStr}T12:00:00`);
 
-  // Use string-based date comparison (yyyy-MM-dd) to avoid timezone issues
+  // Keep dashboard periods aligned with the stored sale date format (yyyy-MM-dd)
   const filterByDateRange = (startDate: string, endDate: string) =>
     sales.filter((sale) => sale.date >= startDate && sale.date <= endDate);
 
