@@ -4,7 +4,7 @@ import { useDishSales } from "@/hooks/useDishSales";
 import { NaoConformidades } from "@/components/NaoConformidades";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, UtensilsCrossed, ChefHat, BarChart3 } from "lucide-react";
+import { Package, UtensilsCrossed, ChefHat, BarChart3, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
