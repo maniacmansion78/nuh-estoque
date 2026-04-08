@@ -330,6 +330,58 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
+      {/* ===== LOGS DE SAÍDA POR DIA ===== */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            <ClipboardList className="h-5 w-5 text-primary" />
+            Logs de Saída por Dia
+          </h2>
+          {salesLoading || recipesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : dailyLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum registro de saída.</p>
+          ) : (
+            <Accordion type="multiple" defaultValue={dailyLogs[0] ? [dailyLogs[0].date] : []} className="space-y-2">
+              {dailyLogs.map((day) => (
+                <AccordionItem key={day.date} value={day.date} className="overflow-hidden rounded-lg border border-border">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <div className="flex w-full items-center justify-between pr-2">
+                      <span className="text-sm font-semibold capitalize">{day.dateFormatted}</span>
+                      <Badge variant="secondary">{day.total} pratos</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    <Table className="text-xs">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="py-1.5 text-xs">Prato</TableHead>
+                          <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {day.dishes.map((d) => (
+                          <TableRow key={d.recipe_id}>
+                            <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
+                            <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/30">
+                          <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
+                          <TableCell className="py-1.5 text-right font-bold text-xs">{day.total}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
+
       <NaoConformidades />
     </div>
   );
