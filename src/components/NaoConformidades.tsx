@@ -149,10 +149,8 @@ export function NaoConformidades() {
             .from("non-conformities")
             .upload(path, file, { contentType: file.type });
           if (uploadError) throw uploadError;
-          const { data: urlData } = supabase.storage
-            .from("non-conformities")
-            .getPublicUrl(path);
-          uploadedUrls.push(urlData.publicUrl);
+          // Store the path, not a public URL (bucket is private)
+          uploadedUrls.push(path);
         }
         setUploading(false);
       }
