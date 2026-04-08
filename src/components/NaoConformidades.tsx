@@ -37,6 +37,26 @@ interface NonConformity {
   created_at: string;
 }
 
+// Convert stored paths to signed URLs
+async function getSignedUrls(bucket: string, paths: string[]): Promise<string[]> {
+  if (!paths || paths.length === 0) return [];
+  // Extract just the path portion from full URLs or use as-is
+  const cleanPaths = paths.map((p) => {
+    try {
+      const url = new URL(p);
+      const parts = url.pathname.split(`/object/public/${bucket}/`);
+      return parts.length > 1 ? parts[1] : p;
+    } catch {
+      return p;
+    }
+  });
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(cleanPaths, 3600);
+  if (error || !data) return [];
+  return data.map((d) => d.signedUrl).filter(Boolean);
+}
+
 export function NaoConformidades() {
   const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<NonConformity[]>([]);
