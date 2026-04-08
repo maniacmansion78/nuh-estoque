@@ -52,9 +52,10 @@ const Dashboard = () => {
     });
 
   const todaySales = sales.filter((sale) => sale.date === todayStr);
-  const weekSales = filterByInterval(startOfWeek(today, { weekStartsOn: 1 }), endOfWeek(today, { weekStartsOn: 1 }));
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekSales = filterByInterval(weekStart, today);
   const biweeklySales = filterByInterval(subDays(today, 14), today);
-  const monthSales = filterByInterval(startOfMonth(today), endOfMonth(today));
+  const monthSales = filterByInterval(startOfMonth(today), today);
 
   const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
 
