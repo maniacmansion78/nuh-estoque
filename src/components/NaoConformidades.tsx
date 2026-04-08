@@ -37,9 +37,30 @@ interface NonConformity {
   created_at: string;
 }
 
+// Convert stored paths to signed URLs
+async function getSignedUrls(bucket: string, paths: string[]): Promise<string[]> {
+  if (!paths || paths.length === 0) return [];
+  // Extract just the path portion from full URLs or use as-is
+  const cleanPaths = paths.map((p) => {
+    try {
+      const url = new URL(p);
+      const parts = url.pathname.split(`/object/public/${bucket}/`);
+      return parts.length > 1 ? parts[1] : p;
+    } catch {
+      return p;
+    }
+  });
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(cleanPaths, 3600);
+  if (error || !data) return [];
+  return data.map((d) => d.signedUrl).filter(Boolean);
+}
+
 export function NaoConformidades() {
   const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<NonConformity[]>([]);
+  const [signedPhotoMap, setSignedPhotoMap] = useState<Record<string, string[]>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -66,7 +87,18 @@ export function NaoConformidades() {
       console.error("Erro ao buscar não conformidades:", error);
       return;
     }
-    if (data) setItems(data as unknown as NonConformity[]);
+    if (data) {
+      const ncItems = data as unknown as NonConformity[];
+      setItems(ncItems);
+      // Resolve signed URLs for all items with photos
+      const photoMap: Record<string, string[]> = {};
+      await Promise.all(
+        ncItems.filter((it) => it.photo_urls?.length > 0).map(async (it) => {
+          photoMap[it.id] = await getSignedUrls("non-conformities", it.photo_urls);
+        })
+      );
+      setSignedPhotoMap(photoMap);
+    }
   };
 
   useEffect(() => {
@@ -117,10 +149,8 @@ export function NaoConformidades() {
             .from("non-conformities")
             .upload(path, file, { contentType: file.type });
           if (uploadError) throw uploadError;
-          const { data: urlData } = supabase.storage
-            .from("non-conformities")
-            .getPublicUrl(path);
-          uploadedUrls.push(urlData.publicUrl);
+          // Store the path, not a public URL (bucket is private)
+          uploadedUrls.push(path);
         }
         setUploading(false);
       }
@@ -198,7 +228,7 @@ export function NaoConformidades() {
         ) : (
           items.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
-            const photos = item.photo_urls || [];
+            const photos = signedPhotoMap[item.id] || [];
             return (
               <div
                 key={item.id}
@@ -383,6 +413,7 @@ export function NaoConformidades() {
           onOpenChange={(open) => !open && setWhatsappItem(null)}
           item={{
             ...whatsappItem,
+            photo_urls: signedPhotoMap[whatsappItem.id] || [],
             supplier_name: suppliers.find((s) => s.id === whatsappItem.supplier_id)?.name || "N/A",
           }}
         />

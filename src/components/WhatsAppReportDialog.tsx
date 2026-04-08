@@ -132,11 +132,14 @@ export function WhatsAppReportDialog({ open, onOpenChange, item }: WhatsAppRepor
 
       if (uploadErr) throw uploadErr;
 
-      const { data: urlData } = supabase.storage
+      // Use signed URL (bucket is private) with 7-day expiry for WhatsApp sharing
+      const { data: signedData, error: signedErr } = await supabase.storage
         .from("nc-reports")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7);
 
-      const pdfUrl = urlData.publicUrl;
+      if (signedErr || !signedData?.signedUrl) throw signedErr || new Error("Erro ao gerar URL");
+
+      const pdfUrl = signedData.signedUrl;
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       const message = encodeURIComponent(
         `📋 *Relatório de Não Conformidade*\n` +
