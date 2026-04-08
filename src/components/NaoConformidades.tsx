@@ -60,6 +60,7 @@ async function getSignedUrls(bucket: string, paths: string[]): Promise<string[]>
 export function NaoConformidades() {
   const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<NonConformity[]>([]);
+  const [signedPhotoMap, setSignedPhotoMap] = useState<Record<string, string[]>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
