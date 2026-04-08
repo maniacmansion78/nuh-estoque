@@ -228,7 +228,7 @@ export function NaoConformidades() {
         ) : (
           items.map((item) => {
             const supplier = suppliers.find((s) => s.id === item.supplier_id);
-            const photos = item.photo_urls || [];
+            const photos = signedPhotoMap[item.id] || [];
             return (
               <div
                 key={item.id}
