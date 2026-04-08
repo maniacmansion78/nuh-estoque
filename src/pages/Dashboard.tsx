@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, startOfWeek, startOfMonth, subDays } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 
@@ -41,20 +41,34 @@ const Dashboard = () => {
 
   const totalItems = items.length;
 
-  // Use Brasília timezone (America/Sao_Paulo) for "today"
+  // Use Brasília timezone (America/Sao_Paulo) for "today" reference
   const nowBrasilia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
   const todayStr = `${nowBrasilia.getFullYear()}-${String(nowBrasilia.getMonth() + 1).padStart(2, "0")}-${String(nowBrasilia.getDate()).padStart(2, "0")}`;
-  const today = new Date(`${todayStr}T12:00:00`);
+
+  // Helper: compute date strings for period starts using simple arithmetic to avoid timezone drift
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const dateToStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  // Week start (Monday) — getDay: 0=Sun..6=Sat
+  const dayOfWeek = nowBrasilia.getDay();
+  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const weekStart = new Date(nowBrasilia);
+  weekStart.setDate(weekStart.getDate() - diffToMonday);
+  const weekStartStr = dateToStr(weekStart);
+
+  // Biweekly (14 days back)
+  const biweeklyStart = new Date(nowBrasilia);
+  biweeklyStart.setDate(biweeklyStart.getDate() - 14);
+  const biweeklyStartStr = dateToStr(biweeklyStart);
+
+  // Month start
+  const monthStartStr = `${nowBrasilia.getFullYear()}-${pad(nowBrasilia.getMonth() + 1)}-01`;
 
   // Keep dashboard periods aligned with the stored sale date format (yyyy-MM-dd)
   const filterByDateRange = (startDate: string, endDate: string) =>
     sales.filter((sale) => sale.date >= startDate && sale.date <= endDate);
 
   const todaySales = sales.filter((sale) => sale.date === todayStr);
-  const weekStartStr = format(startOfWeek(today, { weekStartsOn: 1 }), "yyyy-MM-dd");
-  const biweeklyStartStr = format(subDays(today, 14), "yyyy-MM-dd");
-  const monthStartStr = format(startOfMonth(today), "yyyy-MM-dd");
-
   const weekSales = filterByDateRange(weekStartStr, todayStr);
   const biweeklySales = filterByDateRange(biweeklyStartStr, todayStr);
   const monthSales = filterByDateRange(monthStartStr, todayStr);
@@ -104,7 +118,7 @@ const Dashboard = () => {
     { label: "Hoje", dishes: buildByRecipe(todaySales), ingredients: buildIngredientConsumption(todaySales), total: sumQty(todaySales) },
     { label: "Semana", dishes: buildByRecipe(weekSales), ingredients: buildIngredientConsumption(weekSales), total: sumQty(weekSales) },
     { label: "Quinzena", dishes: buildByRecipe(biweeklySales), ingredients: buildIngredientConsumption(biweeklySales), total: sumQty(biweeklySales) },
-    { label: format(today, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
+    { label: format(nowBrasilia, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [sales, recipes, allIngredients]);
 
