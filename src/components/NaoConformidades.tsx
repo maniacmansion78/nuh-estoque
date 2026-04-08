@@ -87,7 +87,18 @@ export function NaoConformidades() {
       console.error("Erro ao buscar não conformidades:", error);
       return;
     }
-    if (data) setItems(data as unknown as NonConformity[]);
+    if (data) {
+      const ncItems = data as unknown as NonConformity[];
+      setItems(ncItems);
+      // Resolve signed URLs for all items with photos
+      const photoMap: Record<string, string[]> = {};
+      await Promise.all(
+        ncItems.filter((it) => it.photo_urls?.length > 0).map(async (it) => {
+          photoMap[it.id] = await getSignedUrls("non-conformities", it.photo_urls);
+        })
+      );
+      setSignedPhotoMap(photoMap);
+    }
   };
 
   useEffect(() => {
