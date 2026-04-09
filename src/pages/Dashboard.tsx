@@ -225,26 +225,18 @@ const Dashboard = () => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pb-0">
-                    <Table className="text-xs">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="py-1.5 text-xs">Prato</TableHead>
-                          <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {day.dishes.map((d) => (
-                          <TableRow key={d.recipe_id}>
-                            <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
-                            <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow className="bg-muted/30">
-                          <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
-                          <TableCell className="py-1.5 text-right font-bold text-xs">{day.total}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                    <div className="divide-y">
+                      {day.dishes.map((d) => (
+                        <div key={d.recipe_id} className="flex items-center justify-between gap-3 px-4 py-2">
+                          <span className="min-w-0 flex-1 text-xs font-medium leading-snug break-words">{d.name}</span>
+                          <span className="shrink-0 text-xs font-semibold tabular-nums">{d.qty}</span>
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between gap-3 bg-muted/30 px-4 py-2">
+                        <span className="text-xs font-bold">Total</span>
+                        <span className="text-xs font-bold tabular-nums">{day.total}</span>
+                      </div>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -281,46 +273,30 @@ const Dashboard = () => {
                       <div className="space-y-4">
                         <div>
                           <p className="px-4 pt-2 text-xs font-semibold text-muted-foreground uppercase">Pratos</p>
-                          <Table className="text-xs">
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="py-1.5 text-xs">Prato</TableHead>
-                                <TableHead className="py-1.5 text-xs text-right">Qtd</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {period.dishes.map(([id, d]) => (
-                                <TableRow key={id}>
-                                  <TableCell className="py-1.5 font-medium text-xs break-words">{d.name}</TableCell>
-                                  <TableCell className="py-1.5 text-right font-semibold text-xs">{d.qty}</TableCell>
-                                </TableRow>
-                              ))}
-                              <TableRow className="bg-muted/30">
-                                <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
-                                <TableCell className="py-1.5 text-right font-bold text-xs">{period.total}</TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
+                          <div className="divide-y">
+                            {period.dishes.map(([id, d]) => (
+                              <div key={id} className="flex items-center justify-between gap-3 px-4 py-2">
+                                <span className="min-w-0 flex-1 text-xs font-medium leading-snug break-words">{d.name}</span>
+                                <span className="shrink-0 text-xs font-semibold tabular-nums">{d.qty}</span>
+                              </div>
+                            ))}
+                            <div className="flex items-center justify-between gap-3 bg-muted/30 px-4 py-2">
+                              <span className="text-xs font-bold">Total</span>
+                              <span className="text-xs font-bold tabular-nums">{period.total}</span>
+                            </div>
+                          </div>
                         </div>
                         {period.ingredients.length > 0 && (
                           <div>
                             <p className="px-4 text-xs font-semibold text-muted-foreground uppercase">Insumos Consumidos</p>
-                            <Table className="text-xs">
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead className="py-1.5 text-xs">Insumo</TableHead>
-                                  <TableHead className="py-1.5 text-xs text-right">Consumo</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {period.ingredients.map((ing) => (
-                                  <TableRow key={ing.name}>
-                                    <TableCell className="py-1.5 font-medium text-xs break-words">{ing.name}</TableCell>
-                                    <TableCell className="py-1.5 text-right font-semibold text-xs">{ing.total} {ing.unit}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                            <div className="divide-y">
+                              {period.ingredients.map((ing) => (
+                                <div key={ing.name} className="flex items-center justify-between gap-3 px-4 py-2">
+                                  <span className="min-w-0 flex-1 text-xs font-medium leading-snug break-words">{ing.name}</span>
+                                  <span className="shrink-0 text-xs font-semibold tabular-nums whitespace-nowrap">{ing.total} {ing.unit}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
