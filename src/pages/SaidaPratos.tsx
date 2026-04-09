@@ -167,9 +167,9 @@ const SaidaPratos = () => {
           ) : (
             <div className="space-y-3">
               {recipes.map((recipe) => (
-                <div key={recipe.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+                <div key={recipe.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm sm:text-base truncate">{recipe.name}</p>
+                    <p className="font-medium text-sm sm:text-base leading-snug break-words">{recipe.name}</p>
                     <Badge variant="secondary" className="text-xs mt-1">{recipe.category}</Badge>
                   </div>
                   <div className="flex items-center gap-2">
