@@ -101,6 +101,11 @@ const RelatorioMovimentacoes = () => {
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [monthSales, allIngredients]);
 
+  const consumedIngredientsCount = useMemo(
+    () => new Set(ingredientsReport.map((ingredient) => ingredient.name)).size,
+    [ingredientsReport]
+  );
+
   const totalDishesSold = useMemo(
     () => monthSales.reduce((sum, sale) => sum + sale.quantity, 0),
     [monthSales]
@@ -216,8 +221,8 @@ const RelatorioMovimentacoes = () => {
           </Card>
           <Card className="print:shadow-none">
             <CardContent className="p-4 text-center">
-              <p className="text-xs text-muted-foreground">Insumos consumidos</p>
-              <p className="mt-1 text-2xl font-bold">{ingredientsReport.length}</p>
+              <p className="text-xs text-muted-foreground">Tipos de insumos usados</p>
+              <p className="mt-1 text-2xl font-bold">{consumedIngredientsCount}</p>
             </CardContent>
           </Card>
         </div>
