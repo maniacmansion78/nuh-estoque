@@ -268,7 +268,7 @@ const RelatorioMovimentacoes = () => {
           <CardHeader className="py-3">
             <CardTitle className="flex items-center gap-2 text-base capitalize">
               <ChefHat className="h-4 w-4 text-primary" />
-              Insumos consumidos
+              Total de insumos consumidos
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-4 print:p-0">
