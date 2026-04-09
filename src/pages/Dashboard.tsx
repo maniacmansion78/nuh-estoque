@@ -150,7 +150,7 @@ const Dashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sales, recipes]);
 
-  const fichasLoading = recipesLoading || loadingIngredients;
+  
 
   return (
     <div className="space-y-6">
