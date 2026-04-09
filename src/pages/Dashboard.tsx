@@ -221,7 +221,7 @@ const Dashboard = () => {
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
                     <div className="flex w-full items-center justify-between pr-2">
                       <span className="text-sm font-semibold capitalize">{day.dateFormatted}</span>
-                      <Badge variant="secondary">{day.total} pratos</Badge>
+                      <Badge variant="secondary" className="whitespace-nowrap">{day.total} pratos</Badge>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pb-0">
