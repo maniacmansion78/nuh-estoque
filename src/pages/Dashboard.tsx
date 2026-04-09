@@ -288,7 +288,7 @@ const Dashboard = () => {
                         </div>
                         {period.ingredients.length > 0 && (
                           <div>
-                            <p className="px-4 text-xs font-semibold text-muted-foreground uppercase">Insumos Consumidos</p>
+                            <p className="px-4 text-xs font-semibold text-muted-foreground uppercase">Total de Insumos Consumidos</p>
                             <div className="divide-y">
                               {period.ingredients.map((ing) => (
                                 <div key={ing.name} className="flex items-center justify-between gap-3 px-4 py-2">
