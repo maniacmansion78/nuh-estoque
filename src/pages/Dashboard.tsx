@@ -150,7 +150,7 @@ const Dashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sales, recipes]);
 
-  const fichasLoading = recipesLoading || loadingIngredients;
+  
 
   return (
     <div className="space-y-6">
@@ -309,68 +309,6 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* ===== FICHAS TÉCNICAS ===== */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-            <ChefHat className="h-5 w-5 text-primary" />
-            Fichas Técnicas
-          </h2>
-          {fichasLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
-            </div>
-          ) : recipes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma ficha técnica cadastrada.</p>
-          ) : (
-            <Accordion type="multiple" defaultValue={[recipes[0].id]} className="space-y-2">
-              {recipes.map((recipe) => {
-                const ingredients = (allIngredients[recipe.id] || []).sort((a, b) =>
-                  a.ingredient_name.localeCompare(b.ingredient_name)
-                );
-                return (
-                  <AccordionItem key={recipe.id} value={recipe.id} className="overflow-hidden rounded-lg border border-border">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                      <div className="flex w-full min-w-0 flex-col gap-2 pr-2 text-left sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 flex-1">
-                          <p className="break-words text-sm font-semibold leading-snug">{recipe.name}</p>
-                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
-                          <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
-                          <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      {ingredients.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
-                            <span>Ingrediente</span>
-                            <span className="text-right">Bruto</span>
-                            <span className="text-right">Líquido</span>
-                            <span className="text-right">Custo</span>
-                          </div>
-                          {ingredients.map((ing) => (
-                            <div key={ing.id} className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
-                              <span className="break-words font-medium leading-snug">{ing.ingredient_name}</span>
-                              <span className="text-right whitespace-nowrap">{ing.gross_weight}{ing.unit}</span>
-                              <span className="text-right whitespace-nowrap">{ing.net_weight}{ing.unit}</span>
-                              <span className="text-right whitespace-nowrap">R$ {ing.ingredient_cost.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          )}
-        </CardContent>
-      </Card>
 
       <NaoConformidades />
     </div>
