@@ -154,7 +154,7 @@ const Produtos = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">Carregando produtos...</p>
+        <p className="text-muted-foreground">Carregando insumos...</p>
       </div>
     );
   }
@@ -163,8 +163,10 @@ const Produtos = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Produtos</h1>
-          <p className="text-muted-foreground">Gerencie todos os produtos do estoque</p>
+          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">
+            Insumos <span className="text-lg font-normal text-muted-foreground">({items.length})</span>
+          </h1>
+          <p className="text-muted-foreground">Gerencie todos os insumos do estoque</p>
         </div>
         <div className="flex flex-wrap gap-2">
           
