@@ -137,6 +137,9 @@ const SaidaPratos = () => {
     } catch { return false; }
   });
 
+  const loading = recipesLoading || salesLoading || loadingIngredients;
+  const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
+
   const mergedTodaySales = todaySales.reduce<DishSale[]>((acc, sale) => {
     const existing = acc.find((item) => item.recipe_id === sale.recipe_id);
     if (existing) {
@@ -149,10 +152,7 @@ const SaidaPratos = () => {
     }
     acc.push({ ...sale });
     return acc;
-  }, []);
-
-  const loading = recipesLoading || salesLoading || loadingIngredients;
-  const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
+  }, []).sort((a, b) => getRecipeName(a.recipe_id).localeCompare(getRecipeName(b.recipe_id)));
 
   return (
     <div className="space-y-6">
