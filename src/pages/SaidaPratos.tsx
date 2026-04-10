@@ -137,6 +137,20 @@ const SaidaPratos = () => {
     } catch { return false; }
   });
 
+  const mergedTodaySales = todaySales.reduce<DishSale[]>((acc, sale) => {
+    const existing = acc.find((item) => item.recipe_id === sale.recipe_id);
+    if (existing) {
+      existing.quantity += sale.quantity;
+      if (sale.created_at > existing.created_at) {
+        existing.created_at = sale.created_at;
+        existing.id = sale.id;
+      }
+      return acc;
+    }
+    acc.push({ ...sale });
+    return acc;
+  }, []);
+
   const loading = recipesLoading || salesLoading || loadingIngredients;
   const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
 
