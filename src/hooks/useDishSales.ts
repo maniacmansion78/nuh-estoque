@@ -62,33 +62,25 @@ export function useDishSales() {
 
     const saleDate = date || (() => { const n = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; })();
 
-    // Check if there's already a sale for this recipe on this date
-    const existing = sales.find(s => s.recipe_id === recipeId && s.date === saleDate);
-
-    if (existing) {
-      const { error } = await supabase
-        .from("dish_sales")
-        .update({ quantity: existing.quantity + quantity })
-        .eq("id", existing.id);
-
-      if (error) {
-        console.error("Erro ao atualizar venda:", error);
-        toast.error("Erro ao atualizar venda");
-        return false;
-      }
-    } else {
-      const { error } = await supabase.from("dish_sales").insert({
+    const { data, error } = await supabase
+      .from("dish_sales")
+      .insert({
         recipe_id: recipeId,
         quantity,
         date: saleDate,
         user_id: userData.user.id,
-      });
+      })
+      .select()
+      .single();
 
-      if (error) {
-        console.error("Erro ao registrar venda:", error);
-        toast.error("Erro ao registrar venda");
-        return false;
-      }
+    if (error) {
+      console.error("Erro ao registrar venda:", error);
+      toast.error("Erro ao registrar venda");
+      return false;
+    }
+
+    if (data) {
+      setSales((prev) => [data as DishSale, ...prev]);
     }
 
     toast.success("Venda registrada!");

@@ -137,6 +137,20 @@ const SaidaPratos = () => {
     } catch { return false; }
   });
 
+  const mergedTodaySales = todaySales.reduce<DishSale[]>((acc, sale) => {
+    const existing = acc.find((item) => item.recipe_id === sale.recipe_id);
+    if (existing) {
+      existing.quantity += sale.quantity;
+      if (sale.created_at > existing.created_at) {
+        existing.created_at = sale.created_at;
+        existing.id = sale.id;
+      }
+      return acc;
+    }
+    acc.push({ ...sale });
+    return acc;
+  }, []);
+
   const loading = recipesLoading || salesLoading || loadingIngredients;
   const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
 
@@ -196,12 +210,12 @@ const SaidaPratos = () => {
       <Card>
         <CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Vendas em {format(parseISO(selectedDate), "dd/MM/yyyy")}</h2>
-          {todaySales.length === 0 ? (
+          {mergedTodaySales.length === 0 ? (
             <p className="text-muted-foreground text-sm">Nenhuma venda registrada nesta data.</p>
           ) : (
             <div className="space-y-2">
-              {todaySales.map((sale) => (
-                <div key={sale.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+              {mergedTodaySales.map((sale) => (
+                <div key={sale.recipe_id} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
                     <p className="font-medium text-sm">{getRecipeName(sale.recipe_id)}</p>
                     <p className="text-xs text-muted-foreground">Qtd: {sale.quantity} — {format(parseISO(sale.created_at), "HH:mm")}</p>
