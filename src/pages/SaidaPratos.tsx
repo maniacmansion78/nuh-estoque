@@ -167,18 +167,18 @@ const SaidaPratos = () => {
           ) : (
             <div className="space-y-3">
               {recipes.map((recipe) => (
-                <div key={recipe.id} className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-3 lg:rounded-lg lg:p-3">
+                <div key={recipe.id} className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm sm:text-base leading-snug break-words">{recipe.name}</p>
-                    <Badge variant="secondary" className="text-xs mt-1">{recipe.category}</Badge>
+                    <p className="font-medium text-sm leading-snug break-words">{recipe.name}</p>
+                    <Badge variant="secondary" className="text-xs mt-0.5">{recipe.category}</Badge>
                   </div>
-                  <div className="flex items-center justify-center gap-3 lg:gap-2">
-                    <Button size="icon" variant="outline" className="h-10 w-10 rounded-full lg:h-8 lg:w-8 lg:rounded-md" onClick={() => updateQty(recipe.id, -1)}>
-                      <Minus className="h-4 w-4" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-md" onClick={() => updateQty(recipe.id, -1)}>
+                      <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-10 text-center font-bold text-xl lg:w-8 lg:text-lg">{quantities[recipe.id] || 0}</span>
-                    <Button size="icon" variant="outline" className="h-10 w-10 rounded-full lg:h-8 lg:w-8 lg:rounded-md" onClick={() => updateQty(recipe.id, 1)}>
-                      <Plus className="h-4 w-4" />
+                    <span className="w-7 text-center font-bold text-sm">{quantities[recipe.id] || 0}</span>
+                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-md" onClick={() => updateQty(recipe.id, 1)}>
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
