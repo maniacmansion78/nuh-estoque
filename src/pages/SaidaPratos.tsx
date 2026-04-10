@@ -266,7 +266,7 @@ function ConsumptionBreakdown({
   perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }>;
   total: IngredientConsumption[];
 }) {
-  const recipeEntries = Object.entries(perRecipe);
+  const recipeEntries = Object.entries(perRecipe).sort((a, b) => a[1].recipeName.localeCompare(b[1].recipeName));
 
   if (recipeEntries.length === 0) {
     return <p className="text-muted-foreground text-sm py-4">Nenhum consumo registrado no período.</p>;
