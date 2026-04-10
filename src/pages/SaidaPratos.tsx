@@ -149,7 +149,7 @@ const SaidaPratos = () => {
     }
     acc.push({ ...sale });
     return acc;
-  }, []);
+  }, []).sort((a, b) => getRecipeName(a.recipe_id).localeCompare(getRecipeName(b.recipe_id)));
 
   const loading = recipesLoading || salesLoading || loadingIngredients;
   const getRecipeName = (id: string) => recipes.find((r) => r.id === id)?.name || "—";
