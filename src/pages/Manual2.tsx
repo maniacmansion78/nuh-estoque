@@ -17,6 +17,7 @@ import {
   Truck,
   ScanLine,
   BookOpen,
+  Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoNuh from "@/assets/logo-nuh.jpeg";
