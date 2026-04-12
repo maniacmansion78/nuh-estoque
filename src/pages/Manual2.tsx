@@ -142,21 +142,10 @@ export default function Manual2() {
             <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
             <span className="text-xl font-bold">NUH</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadPDF}>
-              <Download className="h-4 w-4" />
-              Baixar PDF
-            </Button>
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="sm">Entrar</Button>
-            </Link>
-          </div>
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadPDF}>
+            <Download className="h-4 w-4" />
+            Baixar PDF
+          </Button>
         </div>
       </nav>
 
