@@ -23,6 +23,7 @@ import ScriptVenda from "@/pages/ScriptVenda";
 import Demo from "@/pages/Demo";
 import Banners from "@/pages/Banners";
 import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
+import Manual2 from "@/pages/Manual2";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -163,6 +164,7 @@ function AppRoutes() {
       />
       <Route path="/demo" element={user ? <Navigate to="/dashboard" replace /> : <Demo />} />
       <Route path="/fichas-tecnicas-info" element={<FichasTecnicasInfo />} />
+      <Route path="/manual2" element={<Manual2 />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
       <Route path="/banners" element={<Banners />} />
       <Route path="*" element={<NotFound />} />
