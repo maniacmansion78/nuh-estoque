@@ -57,11 +57,11 @@ const modules = [
   {
     icon: Scale,
     title: "Fator de Correção (FC)",
-    desc: "Compensa perdas no preparo (cascas, ossos, aparas). Peso Líquido = Peso Bruto ÷ FC. Exemplo: 400g de frango com FC 1.15 = 348g aproveitáveis. Garante abatimento preciso do estoque.",
+    desc: "Compensa perdas no preparo (cascas, ossos, aparas). Peso Líquido = Peso Bruto ÷ FC. Exemplo: 400g de frango com FC 1.15 = 348g aproveitáveis. Garante cálculo preciso do estoque.",
   },
   {
     icon: TrendingDown,
-    title: "Abatimento Automático de Estoque",
+    title: "Computação Automática de Estoque",
     desc: "Ao registrar a venda de um prato, cada ingrediente é computado automaticamente com base na ficha técnica (quantidade × peso líquido). Sem lançamentos manuais — tudo automatizado.",
   },
   {
@@ -121,7 +121,7 @@ function handleDownloadPDF() {
   ingredients.forEach((i) => addLine(`  • ${i}`));
   y += 3;
 
-  addLine("EXEMPLO DE ABATIMENTO (10 porções)", 12, true);
+  addLine("EXEMPLO DE CONSUMO (10 porções)", 12, true);
   [
     "Macarrão: -5kg", "Frango: -3,48kg", "Cenoura: -1,67kg",
     "Repolho: -2,73kg", "Shoyu: -1L", "Óleo Gergelim: -300ml",
@@ -267,7 +267,7 @@ export default function Manual2() {
           <motion.div className="mt-8 rounded-2xl border border-border bg-white p-6" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
             <h3 className="mb-2 text-lg font-bold flex items-center gap-2">
               <TrendingDown className="h-5 w-5 text-primary" />
-              Abatimento ao vender 10 porções
+              Consumo ao vender 10 porções
             </h3>
             <p className="text-sm text-muted-foreground mb-3">
               O sistema computa todos os insumos automaticamente e desconta do estoque geral:
