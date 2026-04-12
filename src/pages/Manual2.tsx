@@ -42,7 +42,7 @@ const modules = [
   {
     icon: Utensils,
     title: "Saída de Pratos (Vendas)",
-    desc: "Registre quantos pratos foram vendidos no dia. A cada venda, todos os insumos da ficha técnica são computados e abatidos automaticamente do estoque geral — sem trabalho manual.",
+    desc: "Registre quantos pratos foram vendidos no dia. A cada venda, todos os insumos da ficha técnica são computados automaticamente no estoque geral — sem trabalho manual.",
   },
   {
     icon: CalendarDays,
