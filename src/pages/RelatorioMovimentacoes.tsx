@@ -93,7 +93,7 @@ const RelatorioMovimentacoes = () => {
         map.set(key, {
           name: ingredient.ingredient_name,
           unit: ingredient.unit,
-          total: Math.round((((current?.total || 0) + ingredient.net_weight * sale.quantity) * 100)) / 100,
+          total: Math.round((((current?.total || 0) + ingredient.gross_weight * sale.quantity) * 100)) / 100,
         });
       }
     }
