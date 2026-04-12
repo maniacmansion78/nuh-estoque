@@ -2,11 +2,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DEMO_PASSWORD = "nuh2026";
+const DEMO_PASSWORD = "NuhDemo@2026";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -22,18 +22,23 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json();
-    console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
-
     const buyer = payload?.client || payload;
 
     const name = (buyer?.name || buyer?.full_name || buyer?.nome || "").trim();
     const email = (buyer?.email || buyer?.email_address || "").trim().toLowerCase();
 
-    if (!email) {
-      return new Response(
-        JSON.stringify({ error: "Email não encontrado" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (name.length < 2 || name.length > 120) {
+      return new Response(JSON.stringify({ error: "Informe um nome válido." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!EMAIL_REGEX.test(email) || email.length > 160) {
+      return new Response(JSON.stringify({ error: "Informe um email válido." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseAdmin = createClient(
@@ -41,21 +46,93 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
-      (u: any) => u.email?.toLowerCase() === email
-    );
+    const { data: existingUsers, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers();
+    if (listUsersError) throw listUsersError;
+
+    const existingUser = existingUsers?.users?.find((user) => user.email?.toLowerCase() === email);
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 17);
+    const trialEndsAtIso = trialEndsAt.toISOString();
 
     if (existingUser) {
-      console.log("ℹ️ User already exists:", email);
+      const { data: existingProfile, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, trial_ends_at, temp_password")
+        .eq("user_id", existingUser.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+
+      const isDemoAccount = Boolean(existingProfile?.trial_ends_at) || Boolean(existingProfile?.temp_password);
+
+      if (!isDemoAccount) {
+        return new Response(
+          JSON.stringify({ status: "already_exists", message: "Este email já possui uma conta ativa." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error: resetError } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+        password: DEMO_PASSWORD,
+        email_confirm: true,
+        user_metadata: { display_name: name || email },
+      });
+
+      if (resetError) throw resetError;
+
+      const profilePayload = {
+        display_name: name || email,
+        temp_password: true,
+        blocked: false,
+        trial_ends_at: trialEndsAtIso,
+      };
+
+      if (existingProfile?.id) {
+        const { error: updateProfileError } = await supabaseAdmin
+          .from("profiles")
+          .update(profilePayload)
+          .eq("user_id", existingUser.id);
+
+        if (updateProfileError) throw updateProfileError;
+      } else {
+        const { error: insertProfileError } = await supabaseAdmin.from("profiles").insert({
+          user_id: existingUser.id,
+          ...profilePayload,
+        });
+
+        if (insertProfileError) throw insertProfileError;
+      }
+
+      const { data: existingRole, error: roleCheckError } = await supabaseAdmin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", existingUser.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleCheckError) throw roleCheckError;
+
+      if (!existingRole) {
+        const { error: roleInsertError } = await supabaseAdmin.from("user_roles").insert({
+          user_id: existingUser.id,
+          role: "admin",
+        });
+
+        if (roleInsertError) throw roleInsertError;
+      }
+
       return new Response(
-        JSON.stringify({ status: "already_exists", message: "Usuário já cadastrado" }),
+        JSON.stringify({
+          status: "demo_reset",
+          message: "Acesso demo reativado com sucesso",
+          email,
+          password: DEMO_PASSWORD,
+          trial_ends_at: trialEndsAtIso,
+        }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create user with fixed demo password
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: DEMO_PASSWORD,
@@ -63,71 +140,50 @@ Deno.serve(async (req) => {
       user_metadata: { display_name: name || email },
     });
 
-    if (createError) {
-      console.error("❌ Error creating user:", createError);
-      return new Response(
-        JSON.stringify({ error: "Erro ao criar usuário", detail: createError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (createError) throw createError;
 
     const userId = newUser.user.id;
-    console.log("✅ Demo user created:", userId);
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
-    // Wait for trigger to create profile
-    await new Promise((r) => setTimeout(r, 500));
-
-    // Calculate trial end date (17 days from now)
-    const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 17);
-
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (profile) {
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          display_name: name || email,
-          temp_password: true,
-          trial_ends_at: trialEndsAt.toISOString(),
-        })
-        .eq("user_id", userId);
-    } else {
-      await supabaseAdmin.from("profiles").insert({
+    const { error: profileUpsertError } = await supabaseAdmin.from("profiles").upsert(
+      {
         user_id: userId,
         display_name: name || email,
         temp_password: true,
-        trial_ends_at: trialEndsAt.toISOString(),
-      });
-    }
+        blocked: false,
+        trial_ends_at: trialEndsAtIso,
+      },
+      { onConflict: "user_id" }
+    );
 
-    // Assign admin role
-    await supabaseAdmin.from("user_roles").insert({
+    if (profileUpsertError) throw profileUpsertError;
+
+    const { error: roleInsertError } = await supabaseAdmin.from("user_roles").insert({
       user_id: userId,
       role: "admin",
     });
 
-    console.log("✅ Demo processed for:", email, "trial ends:", trialEndsAt.toISOString());
+    if (roleInsertError && !String(roleInsertError.message || "").toLowerCase().includes("duplicate")) {
+      throw roleInsertError;
+    }
 
     return new Response(
       JSON.stringify({
         status: "demo_created",
         message: "Conta demo criada com sucesso",
-        user_id: userId,
         email,
-        trial_ends_at: trialEndsAt.toISOString(),
+        password: DEMO_PASSWORD,
+        trial_ends_at: trialEndsAtIso,
       }),
       { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("❌ Unexpected error:", err);
-    return new Response(
-      JSON.stringify({ error: "Erro interno", detail: err.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const message = err instanceof Error ? err.message : "Erro interno";
+    console.error("webhook-demo error:", message);
+
+    return new Response(JSON.stringify({ error: "Erro interno", detail: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
