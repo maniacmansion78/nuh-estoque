@@ -315,30 +315,6 @@ export default function Manual2() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-primary py-16">
-        <motion.div className="mx-auto max-w-2xl px-4 text-center" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.h2 className="text-3xl font-bold text-primary-foreground md:text-4xl" variants={fadeUp}>
-            Pronto para começar?
-          </motion.h2>
-          <motion.p className="mt-4 text-primary-foreground/80" variants={fadeUp}>
-            Teste grátis por 30 dias. Sem compromisso.
-          </motion.p>
-          <motion.div className="mt-8 flex flex-wrap justify-center gap-4" variants={fadeUp}>
-            <Link to="/demo">
-              <Button size="lg" className="bg-white px-8 text-lg font-bold text-primary hover:bg-white/90">
-                🚀 Testar Grátis
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="border-primary-foreground/30 px-8 text-lg text-primary-foreground hover:bg-primary-foreground/10">
-                Já tenho conta
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center">
