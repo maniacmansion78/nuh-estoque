@@ -106,7 +106,7 @@ const Dashboard = () => {
         if (!map[key]) {
           map[key] = { name: ing.ingredient_name, unit: ing.unit, total: 0 };
         }
-        map[key].total += ing.net_weight * sale.quantity;
+        map[key].total += ing.gross_weight * sale.quantity;
       }
     }
     return Object.values(map)

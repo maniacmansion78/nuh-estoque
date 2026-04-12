@@ -95,7 +95,7 @@ const SaidaPratos = () => {
         if (!perRecipe[sale.recipe_id].ingredients[key]) {
           perRecipe[sale.recipe_id].ingredients[key] = { name: ing.ingredient_name, totalWeight: 0, unit: ing.unit };
         }
-        perRecipe[sale.recipe_id].ingredients[key].totalWeight += ing.net_weight * sale.quantity;
+        perRecipe[sale.recipe_id].ingredients[key].totalWeight += ing.gross_weight * sale.quantity;
       }
     }
 
@@ -112,7 +112,7 @@ const SaidaPratos = () => {
         if (!consumption[key]) {
           consumption[key] = { name: ing.ingredient_name, totalWeight: 0, unit: ing.unit };
         }
-        consumption[key].totalWeight += ing.net_weight * sale.quantity;
+        consumption[key].totalWeight += ing.gross_weight * sale.quantity;
       }
     }
     return Object.values(consumption).sort((a, b) => a.name.localeCompare(b.name));

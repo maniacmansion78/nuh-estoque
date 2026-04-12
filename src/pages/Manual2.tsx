@@ -62,7 +62,7 @@ const modules = [
   {
     icon: TrendingDown,
     title: "Computação Automática de Estoque",
-    desc: "Ao registrar a venda de um prato, cada ingrediente é computado automaticamente com base na ficha técnica (quantidade × peso líquido). Sem lançamentos manuais — tudo automatizado.",
+    desc: "Ao registrar a venda de um prato, cada ingrediente é computado automaticamente com base na ficha técnica (quantidade × peso bruto). Sem lançamentos manuais — tudo automatizado.",
   },
   {
     icon: BarChart3,
@@ -72,10 +72,9 @@ const modules = [
 ];
 
 const workflow = [
-  { step: "01", title: "Cadastre Produtos", desc: "Registre os insumos com unidade, lote e validade." },
-  { step: "02", title: "Crie Fichas Técnicas", desc: "Monte as receitas com ingredientes, peso bruto e FC." },
-  { step: "03", title: "Registre Vendas", desc: "Informe quantos pratos foram vendidos no dia." },
-  { step: "04", title: "Tudo Atualizado", desc: "Os insumos são computados automaticamente e os relatórios atualizados." },
+  { step: "01", title: "Crie Fichas Técnicas", desc: "Monte as receitas com ingredientes, peso bruto e FC." },
+  { step: "02", title: "Registre Vendas", desc: "Informe quantos pratos foram vendidos no dia." },
+  { step: "03", title: "Tudo Atualizado", desc: "Os insumos são computados automaticamente e os relatórios atualizados." },
 ];
 
 function handleDownloadPDF() {
@@ -107,25 +106,6 @@ function handleDownloadPDF() {
     addLine(m.desc);
   });
   y += 5;
-
-  addLine("EXEMPLO: FICHA TÉCNICA — YAKISOBA DE FRANGO", 14, true);
-  addLine("Porções: 4");
-  const ingredients = [
-    "Macarrão Yakisoba: 500g | FC 1.00 | Líquido 500g",
-    "Peito de Frango: 400g | FC 1.15 | Líquido 348g",
-    "Cenoura: 200g | FC 1.20 | Líquido 167g",
-    "Repolho: 300g | FC 1.10 | Líquido 273g",
-    "Molho Shoyu: 100ml | FC 1.00 | Líquido 100ml",
-    "Óleo de Gergelim: 30ml | FC 1.00 | Líquido 30ml",
-  ];
-  ingredients.forEach((i) => addLine(`  • ${i}`));
-  y += 3;
-
-  addLine("EXEMPLO DE CONSUMO (10 porções)", 12, true);
-  [
-    "Macarrão: -5kg", "Frango: -3,48kg", "Cenoura: -1,67kg",
-    "Repolho: -2,73kg", "Shoyu: -1L", "Óleo Gergelim: -300ml",
-  ].forEach((i) => addLine(`  ▸ ${i}`));
 
   addLine("© NUH — Asian Food", 9);
 
@@ -212,94 +192,6 @@ export default function Manual2() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
               </motion.div>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Exemplo Ficha Técnica */}
-      <section className="bg-muted/50 py-20">
-        <div className="mx-auto max-w-4xl px-4">
-          <motion.div className="text-center" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>Exemplo Prático</motion.h2>
-          </motion.div>
-
-          <motion.div className="mt-12 overflow-hidden rounded-2xl border border-border bg-white" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-            <div className="border-b border-border bg-primary/5 px-6 py-4">
-              <div className="flex items-center gap-3">
-                <Utensils className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-bold">Yakisoba de Frango</h3>
-                <span className="ml-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">Prato Principal</span>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">4 porções</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Ingrediente</th>
-                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Peso Bruto</th>
-                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">FC</th>
-                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Peso Líquido</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { name: "Macarrão Yakisoba", bruto: "500g", fc: "1.00", liq: "500g" },
-                    { name: "Peito de Frango", bruto: "400g", fc: "1.15", liq: "348g" },
-                    { name: "Cenoura", bruto: "200g", fc: "1.20", liq: "167g" },
-                    { name: "Repolho", bruto: "300g", fc: "1.10", liq: "273g" },
-                    { name: "Molho Shoyu", bruto: "100ml", fc: "1.00", liq: "100ml" },
-                    { name: "Óleo de Gergelim", bruto: "30ml", fc: "1.00", liq: "30ml" },
-                  ].map((row) => (
-                    <tr key={row.name} className="border-b border-border/50">
-                      <td className="px-4 py-3 font-medium">{row.name}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">{row.bruto}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">{row.fc}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">{row.liq}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-
-          {/* Abatimento */}
-          <motion.div className="mt-8 rounded-2xl border border-border bg-white p-6" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-            <h3 className="mb-2 text-lg font-bold flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-primary" />
-              Consumo ao vender 10 porções
-            </h3>
-            <p className="text-sm text-muted-foreground mb-3">
-              O sistema computa todos os insumos automaticamente e desconta do estoque geral:
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {[
-                "Macarrão Yakisoba: −5kg",
-                "Peito de Frango: −3,48kg",
-                "Cenoura: −1,67kg",
-                "Repolho: −2,73kg",
-                "Molho Shoyu: −1L",
-                "Óleo de Gergelim: −300ml",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-lg bg-destructive/5 px-4 py-2 text-sm">
-                  <Minus className="h-4 w-4 text-destructive" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Relatório */}
-          <motion.div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-6" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-            <h3 className="mb-2 text-lg font-bold flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Relatório de Consumo
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              O relatório mostra <strong>quanto de cada insumo foi consumido</strong> nos pratos vendidos.
-              Filtre por <strong>Dia, Semana, Quinzena ou Mês</strong> para ver o total de peso/volume gasto por ingrediente.
-              Ideal para planejar compras e identificar os insumos de maior consumo.
-            </p>
           </motion.div>
         </div>
       </section>
