@@ -3,8 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-webhook-token",
+    "authorization, x-client-info, apikey, content-type",
 };
+
+const DEMO_PASSWORD = "nuh2026";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,44 +21,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Token validation
-    const token = req.headers.get("x-webhook-token");
-    const expectedToken = Deno.env.get("WEBHOOK_DEMO_TOKEN");
-    if (!expectedToken || token !== expectedToken) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const payload = await req.json();
     console.log("📦 Demo webhook received:", JSON.stringify(payload, null, 2));
 
-    // Extract buyer data (same Nexano format)
-    const buyer =
-      payload?.client ||
-      payload?.data?.buyer ||
-      payload?.data?.customer ||
-      payload?.buyer ||
-      payload?.customer ||
-      payload;
+    const buyer = payload?.client || payload;
 
     const name = (buyer?.name || buyer?.full_name || buyer?.nome || "").trim();
     const email = (buyer?.email || buyer?.email_address || "").trim().toLowerCase();
-    const document = (
-      buyer?.cpf || buyer?.cnpj || buyer?.doc || buyer?.document || buyer?.documento || ""
-    ).toString().replace(/\D/g, "");
 
     if (!email) {
       return new Response(
-        JSON.stringify({ error: "Email não encontrado no payload" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!document) {
-      return new Response(
-        JSON.stringify({ error: "Documento (CPF/CNPJ) não encontrado no payload" }),
+        JSON.stringify({ error: "Email não encontrado" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -75,15 +50,15 @@ Deno.serve(async (req) => {
     if (existingUser) {
       console.log("ℹ️ User already exists:", email);
       return new Response(
-        JSON.stringify({ status: "already_exists", message: "Usuário já cadastrado", user_id: existingUser.id }),
+        JSON.stringify({ status: "already_exists", message: "Usuário já cadastrado" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create user with document as temp password
+    // Create user with fixed demo password
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password: document,
+      password: DEMO_PASSWORD,
       email_confirm: true,
       user_metadata: { display_name: name || email },
     });
@@ -102,7 +77,7 @@ Deno.serve(async (req) => {
     // Wait for trigger to create profile
     await new Promise((r) => setTimeout(r, 500));
 
-    // Calculate trial end date (7 days from now)
+    // Calculate trial end date (17 days from now)
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 17);
 
@@ -130,18 +105,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Assign admin role (demo user is the owner)
+    // Assign admin role
     await supabaseAdmin.from("user_roles").insert({
       user_id: userId,
       role: "admin",
     });
 
-    console.log("✅ Demo webhook processed for:", email, "trial ends:", trialEndsAt.toISOString());
+    console.log("✅ Demo processed for:", email, "trial ends:", trialEndsAt.toISOString());
 
     return new Response(
       JSON.stringify({
         status: "demo_created",
-        message: "Usuário demo criado com sucesso",
+        message: "Conta demo criada com sucesso",
         user_id: userId,
         email,
         trial_ends_at: trialEndsAt.toISOString(),
