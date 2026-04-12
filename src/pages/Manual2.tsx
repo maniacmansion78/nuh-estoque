@@ -157,7 +157,7 @@ export default function Manual2() {
             <motion.h2 className="text-3xl font-bold md:text-4xl" variants={fadeUp}>Como Funciona</motion.h2>
           </motion.div>
 
-          <motion.div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
             {workflow.map((w) => (
               <motion.div key={w.step} className="flex gap-4 rounded-xl border border-border bg-white p-5" variants={fadeUp}>
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
