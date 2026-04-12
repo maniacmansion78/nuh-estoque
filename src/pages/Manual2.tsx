@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
-import { useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ChefHat,
   Scale,
-  Calculator,
   TrendingDown,
   ArrowLeft,
   Check,
   Utensils,
-  DollarSign,
   Package,
   BarChart3,
   BookOpen,
@@ -35,17 +32,17 @@ const modules = [
   {
     icon: Package,
     title: "Cadastro de Produtos (Insumos)",
-    desc: "Registre todos os insumos do seu estoque com nome, categoria, preço, unidade, fornecedor, lote e validade. Defina alertas de estoque mínimo e vencimento. Escaneie código de barras para busca automática.",
+    desc: "Registre todos os insumos do estoque com nome, categoria, unidade, fornecedor, lote e validade. Defina alertas de estoque mínimo e vencimento. Escaneie código de barras para busca automática.",
   },
   {
     icon: ChefHat,
     title: "Fichas Técnicas (Receitas)",
-    desc: "Monte receitas com ingredientes, peso bruto e fator de correção (FC). O sistema calcula automaticamente o peso líquido, o custo de cada ingrediente e o custo por porção do prato.",
+    desc: "Monte receitas com ingredientes, peso bruto e fator de correção (FC). O sistema calcula automaticamente o peso líquido de cada ingrediente utilizado na receita.",
   },
   {
     icon: Utensils,
     title: "Saída de Pratos (Vendas)",
-    desc: "Registre quantos pratos foram vendidos no dia. A cada venda registrada, todos os insumos da ficha técnica são computados e abatidos automaticamente do estoque geral — sem trabalho manual.",
+    desc: "Registre quantos pratos foram vendidos no dia. A cada venda, todos os insumos da ficha técnica são computados e abatidos automaticamente do estoque geral — sem trabalho manual.",
   },
   {
     icon: CalendarDays,
@@ -58,14 +55,9 @@ const modules = [
     desc: "Relatório detalhado que mostra exatamente quanto de cada insumo foi consumido nos pratos vendidos. Saiba o total de peso/volume gasto por ingrediente em qualquer período.",
   },
   {
-    icon: Calculator,
-    title: "Custo Real por Porção",
-    desc: "O custo total da receita é a soma de todos os ingredientes. Dividido pelo número de porções, você tem o custo unitário exato de cada prato. Compare com o preço de venda e conheça sua margem.",
-  },
-  {
     icon: Scale,
     title: "Fator de Correção (FC)",
-    desc: "Compensa perdas no preparo (cascas, ossos, aparas). Peso Líquido = Peso Bruto ÷ FC. Exemplo: 400g de frango com FC 1.15 = 348g aproveitáveis. Garante custo e abatimento precisos.",
+    desc: "Compensa perdas no preparo (cascas, ossos, aparas). Peso Líquido = Peso Bruto ÷ FC. Exemplo: 400g de frango com FC 1.15 = 348g aproveitáveis. Garante abatimento preciso do estoque.",
   },
   {
     icon: TrendingDown,
@@ -80,7 +72,7 @@ const modules = [
 ];
 
 const workflow = [
-  { step: "01", title: "Cadastre Produtos", desc: "Registre os insumos com preço, unidade, lote e validade." },
+  { step: "01", title: "Cadastre Produtos", desc: "Registre os insumos com unidade, lote e validade." },
   { step: "02", title: "Crie Fichas Técnicas", desc: "Monte as receitas com ingredientes, peso bruto e FC." },
   { step: "03", title: "Registre Vendas", desc: "Informe quantos pratos foram vendidos no dia." },
   { step: "04", title: "Tudo Atualizado", desc: "Os insumos são abatidos automaticamente e os relatórios atualizados." },
@@ -117,14 +109,14 @@ function handleDownloadPDF() {
   y += 5;
 
   addLine("EXEMPLO: FICHA TÉCNICA — YAKISOBA DE FRANGO", 14, true);
-  addLine("Porções: 4 | Custo Total: R$ 32,80 | Custo/Porção: R$ 8,20");
+  addLine("Porções: 4");
   const ingredients = [
-    "Macarrão Yakisoba: 500g | FC 1.00 | Líq 500g | R$ 8,50",
-    "Peito de Frango: 400g | FC 1.15 | Líq 348g | R$ 12,00",
-    "Cenoura: 200g | FC 1.20 | Líq 167g | R$ 2,40",
-    "Repolho: 300g | FC 1.10 | Líq 273g | R$ 3,60",
-    "Molho Shoyu: 100ml | FC 1.00 | Líq 100ml | R$ 4,30",
-    "Óleo de Gergelim: 30ml | FC 1.00 | Líq 30ml | R$ 2,00",
+    "Macarrão Yakisoba: 500g | FC 1.00 | Líquido 500g",
+    "Peito de Frango: 400g | FC 1.15 | Líquido 348g",
+    "Cenoura: 200g | FC 1.20 | Líquido 167g",
+    "Repolho: 300g | FC 1.10 | Líquido 273g",
+    "Molho Shoyu: 100ml | FC 1.00 | Líquido 100ml",
+    "Óleo de Gergelim: 30ml | FC 1.00 | Líquido 30ml",
   ];
   ingredients.forEach((i) => addLine(`  • ${i}`));
   y += 3;
@@ -249,34 +241,32 @@ export default function Manual2() {
                 <h3 className="text-lg font-bold">Yakisoba de Frango</h3>
                 <span className="ml-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">Prato Principal</span>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">4 porções | Custo Total: R$ 32,80 | Custo/Porção: R$ 8,20</p>
+              <p className="mt-1 text-sm text-muted-foreground">4 porções</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Ingrediente</th>
-                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Bruto</th>
+                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Peso Bruto</th>
                     <th className="px-4 py-3 text-center font-medium text-muted-foreground">FC</th>
-                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Líquido</th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Custo</th>
+                    <th className="px-4 py-3 text-center font-medium text-muted-foreground">Peso Líquido</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { name: "Macarrão Yakisoba", bruto: "500g", fc: "1.00", liq: "500g", custo: "R$ 8,50" },
-                    { name: "Peito de Frango", bruto: "400g", fc: "1.15", liq: "348g", custo: "R$ 12,00" },
-                    { name: "Cenoura", bruto: "200g", fc: "1.20", liq: "167g", custo: "R$ 2,40" },
-                    { name: "Repolho", bruto: "300g", fc: "1.10", liq: "273g", custo: "R$ 3,60" },
-                    { name: "Molho Shoyu", bruto: "100ml", fc: "1.00", liq: "100ml", custo: "R$ 4,30" },
-                    { name: "Óleo de Gergelim", bruto: "30ml", fc: "1.00", liq: "30ml", custo: "R$ 2,00" },
+                    { name: "Macarrão Yakisoba", bruto: "500g", fc: "1.00", liq: "500g" },
+                    { name: "Peito de Frango", bruto: "400g", fc: "1.15", liq: "348g" },
+                    { name: "Cenoura", bruto: "200g", fc: "1.20", liq: "167g" },
+                    { name: "Repolho", bruto: "300g", fc: "1.10", liq: "273g" },
+                    { name: "Molho Shoyu", bruto: "100ml", fc: "1.00", liq: "100ml" },
+                    { name: "Óleo de Gergelim", bruto: "30ml", fc: "1.00", liq: "30ml" },
                   ].map((row) => (
                     <tr key={row.name} className="border-b border-border/50">
                       <td className="px-4 py-3 font-medium">{row.name}</td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{row.bruto}</td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{row.fc}</td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{row.liq}</td>
-                      <td className="px-4 py-3 text-right font-medium">{row.custo}</td>
                     </tr>
                   ))}
                 </tbody>
