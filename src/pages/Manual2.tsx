@@ -62,7 +62,7 @@ const modules = [
   {
     icon: TrendingDown,
     title: "Abatimento Automático de Estoque",
-    desc: "Ao registrar a venda de um prato, cada ingrediente é abatido do estoque com base na ficha técnica (quantidade × peso líquido). Sem lançamentos manuais — tudo automatizado.",
+    desc: "Ao registrar a venda de um prato, cada ingrediente é computado automaticamente com base na ficha técnica (quantidade × peso líquido). Sem lançamentos manuais — tudo automatizado.",
   },
   {
     icon: BarChart3,
@@ -75,7 +75,7 @@ const workflow = [
   { step: "01", title: "Cadastre Produtos", desc: "Registre os insumos com unidade, lote e validade." },
   { step: "02", title: "Crie Fichas Técnicas", desc: "Monte as receitas com ingredientes, peso bruto e FC." },
   { step: "03", title: "Registre Vendas", desc: "Informe quantos pratos foram vendidos no dia." },
-  { step: "04", title: "Tudo Atualizado", desc: "Os insumos são abatidos automaticamente e os relatórios atualizados." },
+  { step: "04", title: "Tudo Atualizado", desc: "Os insumos são computados automaticamente e os relatórios atualizados." },
 ];
 
 function handleDownloadPDF() {
