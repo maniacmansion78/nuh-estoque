@@ -46,10 +46,11 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Use getUserByEmail instead of listUsers for reliability
-    const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-    
-    const existingUser = getUserError ? null : userData?.user;
+    // List users and find by email
+    const { data: existingUsers, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    if (listUsersError) throw listUsersError;
+
+    const existingUser = existingUsers?.users?.find((user) => user.email?.toLowerCase() === email);
 
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 30);
