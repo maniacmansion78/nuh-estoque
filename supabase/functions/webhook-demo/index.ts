@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     const existingUser = existingUsers?.users?.find((user) => user.email?.toLowerCase() === email);
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 17);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
     const trialEndsAtIso = trialEndsAt.toISOString();
 
     if (existingUser) {
