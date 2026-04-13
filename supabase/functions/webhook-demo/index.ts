@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DEMO_PASSWORD = "NuhDemo@2026";
+const DEMO_PASSWORD = "nuhdemo2026";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req) => {
