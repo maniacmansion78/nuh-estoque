@@ -46,12 +46,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: existingUsers, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers();
+    // List users and find by email
+    const { data: existingUsers, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     if (listUsersError) throw listUsersError;
 
     const existingUser = existingUsers?.users?.find((user) => user.email?.toLowerCase() === email);
+
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 17);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
     const trialEndsAtIso = trialEndsAt.toISOString();
 
     if (existingUser) {
@@ -92,33 +94,27 @@ Deno.serve(async (req) => {
           .from("profiles")
           .update(profilePayload)
           .eq("user_id", existingUser.id);
-
         if (updateProfileError) throw updateProfileError;
       } else {
         const { error: insertProfileError } = await supabaseAdmin.from("profiles").insert({
           user_id: existingUser.id,
           ...profilePayload,
         });
-
         if (insertProfileError) throw insertProfileError;
       }
 
-      const { data: existingRole, error: roleCheckError } = await supabaseAdmin
+      const { data: existingRole } = await supabaseAdmin
         .from("user_roles")
         .select("id")
         .eq("user_id", existingUser.id)
         .eq("role", "admin")
         .maybeSingle();
 
-      if (roleCheckError) throw roleCheckError;
-
       if (!existingRole) {
-        const { error: roleInsertError } = await supabaseAdmin.from("user_roles").insert({
+        await supabaseAdmin.from("user_roles").insert({
           user_id: existingUser.id,
           role: "admin",
         });
-
-        if (roleInsertError) throw roleInsertError;
       }
 
       return new Response(
@@ -133,6 +129,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Create new user
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: DEMO_PASSWORD,

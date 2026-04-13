@@ -20,7 +20,7 @@ import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import ScriptVenda from "@/pages/ScriptVenda";
-import Demo from "@/pages/Demo";
+
 import Banners from "@/pages/Banners";
 import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
 import Manual2 from "@/pages/Manual2";
