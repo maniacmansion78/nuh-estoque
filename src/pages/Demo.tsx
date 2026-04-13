@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,31 +18,52 @@ const Demo = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/webhook-demo`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ client: { name, email } }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Erro ao criar conta demo");
+      const { data, error } = await supabase.functions.invoke("webhook-demo", {
+        body: { client: { name, email } },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Erro ao preparar acesso demo");
       }
-      if (data.status === "already_exists") {
-        toast({ title: "Usuário já cadastrado", description: "Faça login com suas credenciais." });
-      } else {
+
+      if (data?.status === "already_exists") {
         toast({
-          title: "Conta demo criada! 🎉",
-          description: "Sua senha temporária é: nuh2026. Você terá 17 dias de acesso.",
+          title: "Conta já existente",
+          description: "Esse email já possui acesso. Faça login com sua senha atual.",
+          variant: "destructive",
         });
+        navigate("/login");
+        return;
       }
-      navigate("/login");
+
+      const password = data?.password;
+      if (!password) {
+        throw new Error("Senha demo não recebida.");
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        throw new Error(signInError.message || "Conta criada, mas o login automático falhou.");
+      }
+
+      toast({
+        title: data?.status === "demo_reset" ? "Acesso demo reativado" : "Conta demo criada! 🎉",
+        description: `Você entrou com a senha temporária ${password}.`,
+      });
+
+      navigate("/alterar-senha", { replace: true });
     } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: err.message || "Não foi possível entrar no demo.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -54,9 +76,7 @@ const Demo = () => {
           <img src={logoNuh} alt="NUH Logo" className="h-20 w-20 rounded-full object-cover" />
           <div className="text-center">
             <h1 className="text-2xl font-bold">Teste Grátis</h1>
-            <p className="text-xs text-muted-foreground">
-              Experimente o NUH por 17 dias como administrador
-            </p>
+            <p className="text-xs text-muted-foreground">Experimente o NUH por 17 dias como administrador</p>
           </div>
         </CardHeader>
         <CardContent>
@@ -69,13 +89,12 @@ const Demo = () => {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
+            <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Senha temporária do demo: <strong>NuhDemo@2026</strong>
+            </div>
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? "Criando conta..." : "Começar teste grátis"}
+              {loading ? "Entrando..." : "Criar e entrar no demo"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Já tem conta?{" "}
-              <a href="/login" className="text-primary underline">Entrar</a>
-            </p>
           </form>
         </CardContent>
       </Card>
