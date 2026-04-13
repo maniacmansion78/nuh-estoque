@@ -90,7 +90,7 @@ const Demo = () => {
               <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              Senha temporária do demo: <strong>NuhDemo@2026</strong>
+              Senha temporária do demo: <strong>nuhdemo2026</strong>
             </div>
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading ? "Entrando..." : "Criar e entrar no demo"}
