@@ -162,7 +162,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/demo" element={user ? <Navigate to="/dashboard" replace /> : <Demo />} />
+      <Route path="/demo" element={<Navigate to="/login" replace />} />
       <Route path="/fichas-tecnicas-info" element={<FichasTecnicasInfo />} />
       <Route path="/manual2" element={<Manual2 />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
