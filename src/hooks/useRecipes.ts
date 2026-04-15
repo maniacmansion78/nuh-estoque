@@ -28,8 +28,6 @@ export interface Recipe {
 export interface NewIngredient {
   ingredient_name: string;
   gross_weight: number;
-  correction_factor: number;
-  unit_cost: number;
   unit: string;
 }
 
@@ -77,21 +75,13 @@ export function useRecipes() {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id || null;
 
-    const ingredients = form.ingredients.map((ing) => {
-      const netWeight = ing.gross_weight / (ing.correction_factor || 1);
-      const ingredientCost = netWeight * ing.unit_cost;
-      return { ...ing, net_weight: netWeight, ingredient_cost: ingredientCost };
-    });
-
-    const totalCost = ingredients.reduce((sum, ing) => sum + ing.ingredient_cost, 0);
-
     const { data: recipe, error: recipeError } = await supabase
       .from("recipes")
       .insert({
         name: form.name.trim(),
         category: form.category,
         portions: form.portions,
-        total_cost: totalCost,
+        total_cost: 0,
         created_by: userId,
       })
       .select()
@@ -103,15 +93,15 @@ export function useRecipes() {
       return false;
     }
 
-    if (ingredients.length > 0) {
-      const rows = ingredients.map((ing) => ({
+    if (form.ingredients.length > 0) {
+      const rows = form.ingredients.map((ing) => ({
         recipe_id: recipe.id,
         ingredient_name: ing.ingredient_name.trim(),
         gross_weight: ing.gross_weight,
-        correction_factor: ing.correction_factor,
-        net_weight: ing.net_weight,
-        unit_cost: ing.unit_cost,
-        ingredient_cost: ing.ingredient_cost,
+        correction_factor: 1,
+        net_weight: ing.gross_weight,
+        unit_cost: 0,
+        ingredient_cost: 0,
         unit: ing.unit,
       }));
 
@@ -130,21 +120,13 @@ export function useRecipes() {
   };
 
   const updateRecipe = async (id: string, form: RecipeForm) => {
-    const ingredients = form.ingredients.map((ing) => {
-      const netWeight = ing.gross_weight / (ing.correction_factor || 1);
-      const ingredientCost = netWeight * ing.unit_cost;
-      return { ...ing, net_weight: netWeight, ingredient_cost: ingredientCost };
-    });
-
-    const totalCost = ingredients.reduce((sum, ing) => sum + ing.ingredient_cost, 0);
-
     const { error: recipeError } = await supabase
       .from("recipes")
       .update({
         name: form.name.trim(),
         category: form.category,
         portions: form.portions,
-        total_cost: totalCost,
+        total_cost: 0,
       })
       .eq("id", id);
 
@@ -154,7 +136,6 @@ export function useRecipes() {
       return false;
     }
 
-    // Delete old ingredients and re-insert
     const { error: delError } = await supabase
       .from("recipe_ingredients")
       .delete()
@@ -164,15 +145,15 @@ export function useRecipes() {
       console.error("Erro ao remover ingredientes antigos:", delError);
     }
 
-    if (ingredients.length > 0) {
-      const rows = ingredients.map((ing) => ({
+    if (form.ingredients.length > 0) {
+      const rows = form.ingredients.map((ing) => ({
         recipe_id: id,
         ingredient_name: ing.ingredient_name.trim(),
         gross_weight: ing.gross_weight,
-        correction_factor: ing.correction_factor,
-        net_weight: ing.net_weight,
-        unit_cost: ing.unit_cost,
-        ingredient_cost: ing.ingredient_cost,
+        correction_factor: 1,
+        net_weight: ing.gross_weight,
+        unit_cost: 0,
+        ingredient_cost: 0,
         unit: ing.unit,
       }));
 
@@ -189,7 +170,6 @@ export function useRecipes() {
   };
 
   const deleteRecipe = async (id: string) => {
-    // ingredients cascade via FK? Let's delete manually to be safe
     await supabase.from("recipe_ingredients").delete().eq("recipe_id", id);
     const { error } = await supabase.from("recipes").delete().eq("id", id);
     if (error) {

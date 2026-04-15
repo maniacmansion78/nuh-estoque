@@ -60,8 +60,6 @@ const FichasTecnicas = () => {
     const ings = (allIngredients[recipe.id] || []).map((ing) => ({
       ingredient_name: ing.ingredient_name,
       gross_weight: ing.gross_weight,
-      correction_factor: ing.correction_factor,
-      unit_cost: ing.unit_cost,
       unit: ing.unit,
     }));
     setEditingRecipe({ id: recipe.id, name: recipe.name, category: recipe.category, portions: recipe.portions, ingredients: ings });
@@ -87,7 +85,7 @@ const FichasTecnicas = () => {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Fichas Técnicas</h1>
-          <p className="text-sm text-muted-foreground sm:text-base">Cadastre e consulte os ingredientes e custos de cada prato.</p>
+          <p className="text-sm text-muted-foreground sm:text-base">Cadastre e consulte os ingredientes de cada prato.</p>
         </div>
         <Button onClick={handleCreate} className="shrink-0 gap-2">
           <Plus className="h-4 w-4" /> Nova Receita
@@ -122,7 +120,7 @@ const FichasTecnicas = () => {
                       <div className="flex w-full min-w-0 flex-col gap-2 pr-2 text-left sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0 flex-1">
                           <p className="break-words text-sm font-semibold leading-snug">{recipe.name}</p>
-                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes · R$ {recipe.total_cost.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">{ingredients.length} ingredientes</p>
                         </div>
                         <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
                           <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
@@ -147,18 +145,14 @@ const FichasTecnicas = () => {
                         <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
                       ) : (
                         <div className="space-y-1.5">
-                          <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
+                          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
                             <span>Ingrediente</span>
-                            <span className="text-right">Bruto</span>
-                            <span className="text-right">Líquido</span>
-                            <span className="text-right">Custo</span>
+                            <span className="text-right">Quantidade</span>
                           </div>
                           {ingredients.map((ingredient) => (
-                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.8fr))] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
+                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
                               <span className="break-words font-medium leading-snug">{ingredient.ingredient_name}</span>
                               <span className="text-right whitespace-nowrap">{ingredient.gross_weight}{ingredient.unit}</span>
-                              <span className="text-right whitespace-nowrap">{ingredient.net_weight}{ingredient.unit}</span>
-                              <span className="text-right whitespace-nowrap">R$ {ingredient.ingredient_cost.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
