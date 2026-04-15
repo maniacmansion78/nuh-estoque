@@ -61,6 +61,7 @@ const FichasTecnicas = () => {
       ingredient_name: ing.ingredient_name,
       gross_weight: ing.gross_weight,
       unit: ing.unit,
+      unit_cost: ing.unit_cost,
     }));
     setEditingRecipe({ id: recipe.id, name: recipe.name, category: recipe.category, portions: recipe.portions, ingredients: ings });
     setFormOpen(true);
@@ -125,6 +126,7 @@ const FichasTecnicas = () => {
                         <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
                           <Badge variant="secondary" className="text-[10px]">{recipe.category}</Badge>
                           <Badge variant="outline" className="text-[10px]">{recipe.portions}p</Badge>
+                          <Badge className="text-[10px]">R$ {recipe.total_cost.toFixed(2)}</Badge>
                         </div>
                       </div>
                     </AccordionTrigger>
@@ -145,14 +147,18 @@ const FichasTecnicas = () => {
                         <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
                       ) : (
                         <div className="space-y-1.5">
-                          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
+                          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
                             <span>Ingrediente</span>
                             <span className="text-right">Quantidade</span>
+                            <span className="text-right">Custo Unit.</span>
+                            <span className="text-right">Subtotal</span>
                           </div>
                           {ingredients.map((ingredient) => (
-                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
+                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
                               <span className="break-words font-medium leading-snug">{ingredient.ingredient_name}</span>
                               <span className="text-right whitespace-nowrap">{ingredient.gross_weight}{ingredient.unit}</span>
+                              <span className="text-right whitespace-nowrap">R$ {ingredient.unit_cost.toFixed(2)}</span>
+                              <span className="text-right whitespace-nowrap">R$ {ingredient.ingredient_cost.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>

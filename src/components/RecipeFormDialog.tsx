@@ -27,11 +27,12 @@ const emptyIngredient = (): NewIngredient => ({
   ingredient_name: "",
   gross_weight: 0,
   unit: "g",
+  unit_cost: 0,
 });
 
 export default function RecipeFormDialog({ open, onOpenChange, onSave, initialData, title }: Props) {
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("Pratos Principais");
+  const [category, setCategory] = useState("Prato Principal");
   const [portions, setPortions] = useState(1);
   const [ingredients, setIngredients] = useState<NewIngredient[]>([emptyIngredient()]);
   const [saving, setSaving] = useState(false);
@@ -48,7 +49,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
       );
     } else if (open) {
       setName("");
-      setCategory("Pratos Principais");
+      setCategory("Prato Principal");
       setPortions(1);
       setIngredients([emptyIngredient()]);
     }
@@ -65,6 +66,8 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
   const removeIngredient = (index: number) => {
     setIngredients((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const totalCost = ingredients.reduce((sum, ing) => sum + (ing.gross_weight * ing.unit_cost), 0);
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -122,7 +125,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
               {ingredients.map((ing, i) => (
                 <div key={i} className="rounded-lg border bg-muted/30 p-3">
                   <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-4">
                       <div>
                         <Label className="text-xs">Ingrediente</Label>
                         <Input
@@ -152,6 +155,16 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label className="text-xs">Custo Unit. (R$)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={ing.unit_cost || ""}
+                          onChange={(e) => updateIngredient(i, "unit_cost", Number(e.target.value))}
+                        />
+                      </div>
                     </div>
                     <div className="flex items-end">
                       <Button type="button" size="icon" variant="ghost" className="text-destructive" onClick={() => removeIngredient(i)} disabled={ingredients.length <= 1}>
@@ -159,12 +172,20 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                       </Button>
                     </div>
                   </div>
+                  {ing.gross_weight > 0 && ing.unit_cost > 0 && (
+                    <p className="mt-1 text-right text-xs text-muted-foreground">
+                      Subtotal: R$ {(ing.gross_weight * ing.unit_cost).toFixed(2)}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">
+              Custo Total: <span className="text-primary">R$ {totalCost.toFixed(2)}</span>
+            </p>
             <Button onClick={handleSave} disabled={saving || !name.trim()}>
               {saving ? "Salvando..." : "Salvar Receita"}
             </Button>
