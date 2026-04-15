@@ -188,6 +188,10 @@ export function useRecipes() {
       }
     }
 
+    // Ensure new ingredients also exist as products (insumos)
+    const { data: userData } = await supabase.auth.getUser();
+    await ensureProductsExist(form.ingredients, userData?.user?.id || null);
+
     toast.success("Receita atualizada!");
     await fetchRecipes();
     return true;
