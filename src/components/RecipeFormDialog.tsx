@@ -67,7 +67,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
     setIngredients((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const totalCost = ingredients.reduce((sum, ing) => sum + (ing.gross_weight * ing.unit_cost), 0);
+  const totalCost = ingredients.reduce((sum, ing) => sum + ing.unit_cost, 0);
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -156,7 +156,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs">Custo Unit. (R$)</Label>
+                        <Label className="text-xs">Custo (R$)</Label>
                         <Input
                           type="number"
                           min={0}
@@ -172,11 +172,6 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                       </Button>
                     </div>
                   </div>
-                  {ing.gross_weight > 0 && ing.unit_cost > 0 && (
-                    <p className="mt-1 text-right text-xs text-muted-foreground">
-                      Subtotal: R$ {(ing.gross_weight * ing.unit_cost).toFixed(2)}
-                    </p>
-                  )}
                 </div>
               ))}
             </div>
