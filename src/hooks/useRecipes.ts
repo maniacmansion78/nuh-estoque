@@ -71,6 +71,27 @@ export function useRecipes() {
     return ingredients as RecipeIngredient[];
   }, []);
 
+  const ensureProductsExist = async (ingredients: NewIngredient[], userId: string | null) => {
+    if (ingredients.length === 0) return;
+    const names = ingredients.map((i) => i.ingredient_name.trim().toLowerCase());
+    const { data: existing } = await supabase
+      .from("products")
+      .select("name");
+    const existingNames = new Set((existing || []).map((p) => p.name.toLowerCase()));
+    const newProducts = ingredients.filter(
+      (ing) => ing.ingredient_name.trim() && !existingNames.has(ing.ingredient_name.trim().toLowerCase())
+    );
+    if (newProducts.length > 0) {
+      const rows = newProducts.map((ing) => ({
+        name: ing.ingredient_name.trim(),
+        unit: ing.unit,
+        quantity: 0,
+        created_by: userId,
+      }));
+      await supabase.from("products").insert(rows);
+    }
+  };
+
   const addRecipe = async (form: RecipeForm) => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id || null;
@@ -113,6 +134,9 @@ export function useRecipes() {
         return false;
       }
     }
+
+    // Ensure ingredients also exist as products (insumos)
+    await ensureProductsExist(form.ingredients, userId);
 
     toast.success("Receita cadastrada com sucesso!");
     await fetchRecipes();
@@ -163,6 +187,10 @@ export function useRecipes() {
         toast.error("Receita atualizada, mas houve erro ao salvar ingredientes");
       }
     }
+
+    // Ensure new ingredients also exist as products (insumos)
+    const { data: userData } = await supabase.auth.getUser();
+    await ensureProductsExist(form.ingredients, userData?.user?.id || null);
 
     toast.success("Receita atualizada!");
     await fetchRecipes();
