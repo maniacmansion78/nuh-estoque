@@ -97,7 +97,7 @@ export function useRecipes() {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id || null;
 
-    const totalCost = form.ingredients.reduce((sum, ing) => sum + (ing.gross_weight * ing.unit_cost), 0);
+    const totalCost = form.ingredients.reduce((sum, ing) => sum + ing.unit_cost, 0);
 
     const { data: recipe, error: recipeError } = await supabase
       .from("recipes")
@@ -125,7 +125,7 @@ export function useRecipes() {
         correction_factor: 1,
         net_weight: ing.gross_weight,
         unit_cost: ing.unit_cost,
-        ingredient_cost: ing.gross_weight * ing.unit_cost,
+        ingredient_cost: ing.unit_cost,
         unit: ing.unit,
       }));
 
