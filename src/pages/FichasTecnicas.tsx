@@ -147,17 +147,15 @@ const FichasTecnicas = () => {
                         <p className="text-xs text-muted-foreground">Nenhum ingrediente cadastrado.</p>
                       ) : (
                         <div className="space-y-1.5">
-                          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
+                          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-2 pb-1 text-[10px] font-semibold text-muted-foreground">
                             <span>Ingrediente</span>
                             <span className="text-right">Quantidade</span>
-                            <span className="text-right">Custo Unit.</span>
-                            <span className="text-right">Subtotal</span>
+                            <span className="text-right">Custo</span>
                           </div>
                           {ingredients.map((ingredient) => (
-                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
+                            <div key={ingredient.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-2 rounded bg-muted/30 px-2 py-1.5 text-xs">
                               <span className="break-words font-medium leading-snug">{ingredient.ingredient_name}</span>
                               <span className="text-right whitespace-nowrap">{ingredient.gross_weight}{ingredient.unit}</span>
-                              <span className="text-right whitespace-nowrap">R$ {ingredient.unit_cost.toFixed(2)}</span>
                               <span className="text-right whitespace-nowrap">R$ {ingredient.ingredient_cost.toFixed(2)}</span>
                             </div>
                           ))}
