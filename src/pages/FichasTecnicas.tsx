@@ -60,8 +60,6 @@ const FichasTecnicas = () => {
     const ings = (allIngredients[recipe.id] || []).map((ing) => ({
       ingredient_name: ing.ingredient_name,
       gross_weight: ing.gross_weight,
-      correction_factor: ing.correction_factor,
-      unit_cost: ing.unit_cost,
       unit: ing.unit,
     }));
     setEditingRecipe({ id: recipe.id, name: recipe.name, category: recipe.category, portions: recipe.portions, ingredients: ings });
