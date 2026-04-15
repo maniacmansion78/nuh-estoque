@@ -29,6 +29,7 @@ export interface NewIngredient {
   ingredient_name: string;
   gross_weight: number;
   unit: string;
+  unit_cost: number;
 }
 
 export interface RecipeForm {
@@ -96,13 +97,15 @@ export function useRecipes() {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id || null;
 
+    const totalCost = form.ingredients.reduce((sum, ing) => sum + (ing.gross_weight * ing.unit_cost), 0);
+
     const { data: recipe, error: recipeError } = await supabase
       .from("recipes")
       .insert({
         name: form.name.trim(),
         category: form.category,
         portions: form.portions,
-        total_cost: 0,
+        total_cost: totalCost,
         created_by: userId,
       })
       .select()
@@ -121,8 +124,8 @@ export function useRecipes() {
         gross_weight: ing.gross_weight,
         correction_factor: 1,
         net_weight: ing.gross_weight,
-        unit_cost: 0,
-        ingredient_cost: 0,
+        unit_cost: ing.unit_cost,
+        ingredient_cost: ing.gross_weight * ing.unit_cost,
         unit: ing.unit,
       }));
 
@@ -144,13 +147,15 @@ export function useRecipes() {
   };
 
   const updateRecipe = async (id: string, form: RecipeForm) => {
+    const totalCost = form.ingredients.reduce((sum, ing) => sum + (ing.gross_weight * ing.unit_cost), 0);
+
     const { error: recipeError } = await supabase
       .from("recipes")
       .update({
         name: form.name.trim(),
         category: form.category,
         portions: form.portions,
-        total_cost: 0,
+        total_cost: totalCost,
       })
       .eq("id", id);
 
@@ -176,8 +181,8 @@ export function useRecipes() {
         gross_weight: ing.gross_weight,
         correction_factor: 1,
         net_weight: ing.gross_weight,
-        unit_cost: 0,
-        ingredient_cost: 0,
+        unit_cost: ing.unit_cost,
+        ingredient_cost: ing.gross_weight * ing.unit_cost,
         unit: ing.unit,
       }));
 
