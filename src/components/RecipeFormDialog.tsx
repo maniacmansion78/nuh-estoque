@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2 } from "lucide-react";
 import type { NewIngredient, RecipeForm } from "@/hooks/useRecipes";
 
-const CATEGORIES = ["Entradas", "Pratos Principais", "Massas", "Arroz", "Sobremesas"];
+const CATEGORIES = ["Entrada", "Prato Principal", "Massa", "Arroz", "Sobremesa"];
 const UNITS = ["g", "kg", "ml", "L", "un"];
 
 interface Props {
