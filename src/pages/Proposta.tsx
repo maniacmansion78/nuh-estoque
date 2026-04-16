@@ -2,12 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 export default function Proposta() {
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/Proposta_NUH.pdf";
-    link.download = "Proposta_NUH_Asian_Food.pdf";
-    link.click();
-  };
 
   return (
     <div className="min-h-screen bg-[#111111] text-[#FFD700] font-mono">
@@ -135,14 +129,20 @@ VENCIMENTO:
    Sistema no ar em até 24h após pagamento`}
 
         <div className="text-center my-8">
-          <Button
-            onClick={handleDownload}
-            size="lg"
-            className="bg-[#FFD700] px-8 text-lg font-bold text-[#111111] hover:bg-[#FFD700]/90"
+          <a
+            href="/Proposta_NUH.pdf"
+            download="Proposta_NUH_Asian_Food.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Download className="mr-2 h-5 w-5" />
-            Baixar Proposta em PDF
-          </Button>
+            <Button
+              size="lg"
+              className="bg-[#FFD700] px-8 text-lg font-bold text-[#111111] hover:bg-[#FFD700]/90"
+            >
+              <Download className="mr-2 h-5 w-5" />
+              Baixar Proposta em PDF
+            </Button>
+          </a>
         </div>
 
 {`© 2026 Eduardo Sommer Bertão. Todos os direitos reservados.
