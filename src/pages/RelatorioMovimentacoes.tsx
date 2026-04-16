@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Printer, ChevronLeft, ChevronRight, Download, UtensilsCrossed, ChefHat, Radio } from "lucide-react";
+import { Printer, ChevronLeft, ChevronRight, Download, UtensilsCrossed, ChefHat, Radio, Trash2 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
 import { useDishSales } from "@/hooks/useDishSales";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const RelatorioMovimentacoes = () => {
   const { recipes, loading: recipesLoading } = useRecipes();
@@ -122,6 +134,27 @@ const RelatorioMovimentacoes = () => {
     [dishesReport]
   );
 
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetMonth = async () => {
+    if (monthSales.length === 0) return;
+    setResetting(true);
+    try {
+      const ids = monthSales.map((s) => s.id);
+      const { error } = await supabase.from("dish_sales").delete().in("id", ids);
+      if (error) {
+        console.error("Erro ao zerar vendas:", error);
+        toast.error("Erro ao zerar vendas do mês");
+      } else {
+        toast.success("Vendas do mês zeradas com sucesso!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro inesperado");
+    }
+    setResetting(false);
+  };
+
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -187,7 +220,7 @@ const RelatorioMovimentacoes = () => {
             Saída de pratos e consumo de insumos
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button size="lg" className="gap-2" onClick={handleDownloadPDF}>
             <Download className="h-5 w-5" />
             Baixar PDF
@@ -196,6 +229,28 @@ const RelatorioMovimentacoes = () => {
             <Printer className="h-5 w-5" />
             Imprimir
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="lg" variant="destructive" className="gap-2" disabled={monthSales.length === 0 || resetting}>
+                <Trash2 className="h-5 w-5" />
+                Zerar mês
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Zerar vendas de {monthLabel}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação é <strong>definitiva e irreversível</strong>. Todos os {monthSales.length} registros de saída de pratos deste mês serão excluídos permanentemente do sistema, incluindo o Dashboard e a página de Saída de Pratos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetMonth} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Sim, zerar tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
