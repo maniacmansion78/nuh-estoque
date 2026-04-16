@@ -261,16 +261,20 @@ const SaidaPratos = () => {
             <TabsList className="w-full">
               <TabsTrigger value="day" className="flex-1">Hoje</TabsTrigger>
               <TabsTrigger value="week" className="flex-1">Semana</TabsTrigger>
+              <TabsTrigger value="biweekly" className="flex-1">Quinzena</TabsTrigger>
               <TabsTrigger value="month" className="flex-1">Mês</TabsTrigger>
             </TabsList>
             <TabsContent value="day">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(todaySales)} total={calculateTotal(todaySales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(todaySales)} total={calculateTotal(todaySales)} costTotal={calculateCostTotal(todaySales)} />
             </TabsContent>
             <TabsContent value="week">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(weekSales)} total={calculateTotal(weekSales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(weekSales)} total={calculateTotal(weekSales)} costTotal={calculateCostTotal(weekSales)} />
+            </TabsContent>
+            <TabsContent value="biweekly">
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(biweeklySales)} total={calculateTotal(biweeklySales)} costTotal={calculateCostTotal(biweeklySales)} />
             </TabsContent>
             <TabsContent value="month">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(monthSales)} total={calculateTotal(monthSales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(monthSales)} total={calculateTotal(monthSales)} costTotal={calculateCostTotal(monthSales)} />
             </TabsContent>
           </Tabs>
         </CardContent>
