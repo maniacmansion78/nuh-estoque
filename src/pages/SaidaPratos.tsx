@@ -234,17 +234,33 @@ const SaidaPratos = () => {
             <p className="text-muted-foreground text-sm">Nenhuma venda registrada nesta data.</p>
           ) : (
             <div className="space-y-2">
-              {mergedTodaySales.map((sale) => (
-                <div key={sale.recipe_id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <div>
-                    <p className="font-medium text-sm">{getRecipeName(sale.recipe_id)}</p>
-                    <p className="text-xs text-muted-foreground">Qtd: {sale.quantity} — {format(parseISO(sale.created_at), "HH:mm")}</p>
+              {mergedTodaySales.map((sale) => {
+                const recipe = recipes.find((r) => r.id === sale.recipe_id);
+                const saleCost = (recipe?.total_cost || 0) * sale.quantity;
+                return (
+                  <div key={sale.recipe_id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="font-medium text-sm">{getRecipeName(sale.recipe_id)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Qtd: {sale.quantity} — {format(parseISO(sale.created_at), "HH:mm")} — <span className="font-semibold text-primary">R$ {saleCost.toFixed(2)}</span>
+                      </p>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => deleteSale(sale.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button size="icon" variant="ghost" onClick={() => deleteSale(sale.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
+              {/* Total do dia */}
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center justify-between">
+                <span className="text-sm font-bold">Total do dia</span>
+                <span className="text-sm font-bold text-primary">
+                  R$ {mergedTodaySales.reduce((sum, s) => {
+                    const r = recipes.find((rec) => rec.id === s.recipe_id);
+                    return sum + (r?.total_cost || 0) * s.quantity;
+                  }, 0).toFixed(2)}
+                </span>
+              </div>
             </div>
           )}
         </CardContent>
