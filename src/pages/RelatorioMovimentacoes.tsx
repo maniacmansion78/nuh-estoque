@@ -262,6 +262,7 @@ const RelatorioMovimentacoes = () => {
                   <TableRow>
                     <TableHead className="py-1.5 text-xs">Prato</TableHead>
                     <TableHead className="py-1.5 text-xs text-right">Quantidade</TableHead>
+                    <TableHead className="py-1.5 text-xs text-right">Custo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -269,11 +270,13 @@ const RelatorioMovimentacoes = () => {
                     <TableRow key={row.id}>
                       <TableCell className="py-1.5 font-medium text-xs break-words">{row.name}</TableCell>
                       <TableCell className="py-1.5 text-right font-semibold text-xs">{row.total}</TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-xs">R$ {row.totalCost.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/30">
                     <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
                     <TableCell className="py-1.5 text-right font-bold text-xs">{totalDishesSold}</TableCell>
+                    <TableCell className="py-1.5 text-right font-bold text-xs text-primary">R$ {totalCost.toFixed(2)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
