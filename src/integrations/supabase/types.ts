@@ -153,6 +153,7 @@ export type Database = {
           min_quantity: number
           name: string
           price: number
+          price_per_kg: number
           quantity: number
           supplier_id: string
           unit: string
@@ -168,6 +169,7 @@ export type Database = {
           min_quantity?: number
           name: string
           price?: number
+          price_per_kg?: number
           quantity?: number
           supplier_id?: string
           unit?: string
@@ -183,6 +185,7 @@ export type Database = {
           min_quantity?: number
           name?: string
           price?: number
+          price_per_kg?: number
           quantity?: number
           supplier_id?: string
           unit?: string
