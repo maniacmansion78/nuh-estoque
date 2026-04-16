@@ -154,6 +154,7 @@ export type Database = {
           name: string
           price: number
           price_per_kg: number
+          price_per_liter: number
           quantity: number
           supplier_id: string
           unit: string
@@ -170,6 +171,7 @@ export type Database = {
           name: string
           price?: number
           price_per_kg?: number
+          price_per_liter?: number
           quantity?: number
           supplier_id?: string
           unit?: string
@@ -186,6 +188,7 @@ export type Database = {
           name?: string
           price?: number
           price_per_kg?: number
+          price_per_liter?: number
           quantity?: number
           supplier_id?: string
           unit?: string

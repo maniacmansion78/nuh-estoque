@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS price_per_liter numeric NOT NULL DEFAULT 0;
