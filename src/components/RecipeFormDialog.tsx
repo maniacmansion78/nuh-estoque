@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import type { NewIngredient, RecipeForm } from "@/hooks/useRecipes";
+import { useProducts } from "@/hooks/useProducts";
 
 const CATEGORIES = ["Entrada", "Prato Principal", "Massa", "Arroz", "Sobremesa"];
 const UNITS = ["g", "kg", "ml", "L", "un"];
@@ -30,7 +31,15 @@ const emptyIngredient = (): NewIngredient => ({
   unit_cost: 0,
 });
 
+// Convert quantity+unit into grams (for unit-based pricing only g/kg make sense)
+const toGrams = (qty: number, unit: string) => {
+  if (unit === "kg") return qty * 1000;
+  if (unit === "g") return qty;
+  return 0; // ml/L/un — não calculável por preço/kg
+};
+
 export default function RecipeFormDialog({ open, onOpenChange, onSave, initialData, title }: Props) {
+  const { items: products } = useProducts();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Prato Principal");
   const [portions, setPortions] = useState(1);
@@ -43,9 +52,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
       setCategory(initialData.category);
       setPortions(initialData.portions);
       setIngredients(
-        initialData.ingredients.length > 0
-          ? initialData.ingredients
-          : [emptyIngredient()]
+        initialData.ingredients.length > 0 ? initialData.ingredients : [emptyIngredient()]
       );
     } else if (open) {
       setName("");
@@ -55,10 +62,37 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
     }
   }, [open, initialData]);
 
+  // Lookup price_per_kg by name (case-insensitive)
+  const productByName = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach((p) => {
+      map.set(p.name.trim().toLowerCase(), p.price_per_kg ?? 0);
+    });
+    return map;
+  }, [products]);
+
+  const getPricePerKg = (ingName: string) =>
+    productByName.get(ingName.trim().toLowerCase()) ?? 0;
+
+  const recalcCost = (ing: NewIngredient): number => {
+    const pricePerKg = getPricePerKg(ing.ingredient_name);
+    if (!pricePerKg) return ing.unit_cost;
+    const grams = toGrams(ing.gross_weight, ing.unit);
+    return Number(((grams / 1000) * pricePerKg).toFixed(2));
+  };
+
   const updateIngredient = (index: number, field: keyof NewIngredient, value: string | number) => {
     setIngredients((prev) => {
       const copy = [...prev];
       copy[index] = { ...copy[index], [field]: value };
+      // Auto-calculate when name/weight/unit changes and a price_per_kg exists
+      if (field === "ingredient_name" || field === "gross_weight" || field === "unit") {
+        const pricePerKg = getPricePerKg(copy[index].ingredient_name);
+        if (pricePerKg > 0) {
+          const grams = toGrams(copy[index].gross_weight, copy[index].unit);
+          copy[index].unit_cost = Number(((grams / 1000) * pricePerKg).toFixed(2));
+        }
+      }
       return copy;
     });
   };
@@ -73,12 +107,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
     if (!name.trim()) return;
     const validIngredients = ingredients.filter((ing) => ing.ingredient_name.trim());
     setSaving(true);
-    const ok = await onSave({
-      name,
-      category,
-      portions,
-      ingredients: validIngredients,
-    });
+    const ok = await onSave({ name, category, portions, ingredients: validIngredients });
     setSaving(false);
     if (ok) onOpenChange(false);
   };
@@ -121,63 +150,98 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
               </Button>
             </div>
 
-            <div className="space-y-3">
-              {ingredients.map((ing, i) => (
-                <div key={i} className="rounded-lg border bg-muted/30 p-3">
-                  <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                    <div className="grid gap-2 sm:grid-cols-4">
-                      <div>
-                        <Label className="text-xs">Ingrediente</Label>
-                        <Input
-                          value={ing.ingredient_name}
-                          onChange={(e) => updateIngredient(i, "ingredient_name", e.target.value)}
-                          placeholder="Nome"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Quantidade</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          value={ing.gross_weight || ""}
-                          onChange={(e) => updateIngredient(i, "gross_weight", Number(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Unidade</Label>
-                        <Select value={ing.unit} onValueChange={(v) => updateIngredient(i, "unit", v)}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {UNITS.map((u) => (
-                              <SelectItem key={u} value={u}>{u}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Custo (R$)</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          value={ing.unit_cost || ""}
-                          onChange={(e) => updateIngredient(i, "unit_cost", Number(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-end">
-                      <Button type="button" size="icon" variant="ghost" className="text-destructive" onClick={() => removeIngredient(i)} disabled={ingredients.length <= 1}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+            <datalist id="ingredient-products">
+              {products.map((p) => (
+                <option key={p.id} value={p.name} />
               ))}
+            </datalist>
+
+            <div className="space-y-3">
+              {ingredients.map((ing, i) => {
+                const pricePerKg = getPricePerKg(ing.ingredient_name);
+                const grams = toGrams(ing.gross_weight, ing.unit);
+                const percent = pricePerKg > 0 && grams > 0 ? (grams / 1000) * 100 : 0;
+                const autoCalc = pricePerKg > 0;
+
+                return (
+                  <div key={i} className="rounded-lg border bg-muted/30 p-3">
+                    <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <div className="grid gap-2 sm:grid-cols-4">
+                        <div>
+                          <Label className="text-xs">Ingrediente</Label>
+                          <Input
+                            list="ingredient-products"
+                            value={ing.ingredient_name}
+                            onChange={(e) => updateIngredient(i, "ingredient_name", e.target.value)}
+                            placeholder="Nome"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Quantidade</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={ing.gross_weight || ""}
+                            onChange={(e) => updateIngredient(i, "gross_weight", Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Unidade</Label>
+                          <Select value={ing.unit} onValueChange={(v) => updateIngredient(i, "unit", v)}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {UNITS.map((u) => (
+                                <SelectItem key={u} value={u}>{u}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Custo (R$)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={ing.unit_cost || ""}
+                            onChange={(e) => updateIngredient(i, "unit_cost", Number(e.target.value))}
+                            disabled={autoCalc}
+                            className={autoCalc ? "bg-muted" : ""}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <Button type="button" size="icon" variant="ghost" className="text-destructive" onClick={() => removeIngredient(i)} disabled={ingredients.length <= 1}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {autoCalc && (
+                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Preço KG:</span> R$ {pricePerKg.toFixed(2)}
+                        {grams > 0 && (
+                          <>
+                            {" • "}
+                            <span className="font-medium text-foreground">{grams}g</span> ({percent.toFixed(1)}% de 1kg)
+                            {" = "}
+                            <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {!autoCalc && ing.ingredient_name.trim() && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        💡 Cadastre o <strong>Preço por KG</strong> deste insumo em "Insumos" para cálculo automático.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
             <p className="text-sm font-semibold">
               Custo Total: <span className="text-primary">R$ {totalCost.toFixed(2)}</span>
             </p>

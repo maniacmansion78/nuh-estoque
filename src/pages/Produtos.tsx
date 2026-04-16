@@ -41,6 +41,7 @@ const emptyForm: ProductForm = {
   supplier_id: "s1",
   alert_days: 3,
   lote: "",
+  price_per_kg: 0,
 };
 
 const Produtos = () => {
@@ -80,6 +81,7 @@ const Produtos = () => {
       supplier_id: item.supplier_id,
       alert_days: item.alert_days,
       lote: item.lote,
+      price_per_kg: item.price_per_kg ?? 0,
     });
     setDialogOpen(true);
   };
@@ -204,6 +206,20 @@ const Produtos = () => {
                   <SelectItem value="un">un</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Preço por KG (R$)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price_per_kg || ""}
+                onChange={(e) => setForm({ ...form, price_per_kg: Number(e.target.value) || 0 })}
+                placeholder="Ex: 50.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Usado para calcular automaticamente o custo nas receitas com base nas gramas.
+              </p>
             </div>
           </div>
           <DialogFooter>
