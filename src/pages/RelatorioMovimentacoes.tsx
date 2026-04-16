@@ -117,6 +117,11 @@ const RelatorioMovimentacoes = () => {
     [monthSales]
   );
 
+  const totalCost = useMemo(
+    () => dishesReport.reduce((sum, d) => sum + d.totalCost, 0),
+    [dishesReport]
+  );
+
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
