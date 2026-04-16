@@ -31,11 +31,18 @@ const emptyIngredient = (): NewIngredient => ({
   unit_cost: 0,
 });
 
-// Convert quantity+unit into grams (for unit-based pricing only g/kg make sense)
+// Convert quantity+unit into grams (for price/kg)
 const toGrams = (qty: number, unit: string) => {
   if (unit === "kg") return qty * 1000;
   if (unit === "g") return qty;
-  return 0; // ml/L/un — não calculável por preço/kg
+  return 0;
+};
+
+// Convert quantity+unit into milliliters (for price/L)
+const toMl = (qty: number, unit: string) => {
+  if (unit === "L") return qty * 1000;
+  if (unit === "ml") return qty;
+  return 0;
 };
 
 export default function RecipeFormDialog({ open, onOpenChange, onSave, initialData, title }: Props) {
@@ -62,36 +69,42 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
     }
   }, [open, initialData]);
 
-  // Lookup price_per_kg by name (case-insensitive)
+  // Lookup price_per_kg & price_per_liter by name (case-insensitive)
   const productByName = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { kg: number; liter: number }>();
     products.forEach((p) => {
-      map.set(p.name.trim().toLowerCase(), p.price_per_kg ?? 0);
+      map.set(p.name.trim().toLowerCase(), {
+        kg: p.price_per_kg ?? 0,
+        liter: p.price_per_liter ?? 0,
+      });
     });
     return map;
   }, [products]);
 
-  const getPricePerKg = (ingName: string) =>
-    productByName.get(ingName.trim().toLowerCase()) ?? 0;
+  const getPrices = (ingName: string) =>
+    productByName.get(ingName.trim().toLowerCase()) ?? { kg: 0, liter: 0 };
 
-  const recalcCost = (ing: NewIngredient): number => {
-    const pricePerKg = getPricePerKg(ing.ingredient_name);
-    if (!pricePerKg) return ing.unit_cost;
-    const grams = toGrams(ing.gross_weight, ing.unit);
-    return Number(((grams / 1000) * pricePerKg).toFixed(2));
+  const computeAutoCost = (ing: NewIngredient): number => {
+    const { kg, liter } = getPrices(ing.ingredient_name);
+    // Liquids
+    if ((ing.unit === "ml" || ing.unit === "L") && liter > 0) {
+      const ml = toMl(ing.gross_weight, ing.unit);
+      return Number(((ml / 1000) * liter).toFixed(2));
+    }
+    // Solids
+    if ((ing.unit === "g" || ing.unit === "kg") && kg > 0) {
+      const grams = toGrams(ing.gross_weight, ing.unit);
+      return Number(((grams / 1000) * kg).toFixed(2));
+    }
+    return ing.unit_cost;
   };
 
   const updateIngredient = (index: number, field: keyof NewIngredient, value: string | number) => {
     setIngredients((prev) => {
       const copy = [...prev];
       copy[index] = { ...copy[index], [field]: value };
-      // Auto-calculate when name/weight/unit changes and a price_per_kg exists
       if (field === "ingredient_name" || field === "gross_weight" || field === "unit") {
-        const pricePerKg = getPricePerKg(copy[index].ingredient_name);
-        if (pricePerKg > 0) {
-          const grams = toGrams(copy[index].gross_weight, copy[index].unit);
-          copy[index].unit_cost = Number(((grams / 1000) * pricePerKg).toFixed(2));
-        }
+        copy[index].unit_cost = computeAutoCost(copy[index]);
       }
       return copy;
     });
@@ -158,10 +171,17 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
 
             <div className="space-y-3">
               {ingredients.map((ing, i) => {
-                const pricePerKg = getPricePerKg(ing.ingredient_name);
+                const { kg: pricePerKg, liter: pricePerLiter } = getPrices(ing.ingredient_name);
+                const isLiquid = ing.unit === "ml" || ing.unit === "L";
+                const isSolid = ing.unit === "g" || ing.unit === "kg";
                 const grams = toGrams(ing.gross_weight, ing.unit);
-                const percent = pricePerKg > 0 && grams > 0 ? (grams / 1000) * 100 : 0;
-                const autoCalc = pricePerKg > 0;
+                const ml = toMl(ing.gross_weight, ing.unit);
+                const autoCalc = (isSolid && pricePerKg > 0) || (isLiquid && pricePerLiter > 0);
+                const percent = autoCalc
+                  ? isLiquid
+                    ? (ml / 1000) * 100
+                    : (grams / 1000) * 100
+                  : 0;
 
                 return (
                   <div key={i} className="rounded-lg border bg-muted/30 p-3">
@@ -217,7 +237,7 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                       </div>
                     </div>
 
-                    {autoCalc && (
+                    {autoCalc && isSolid && (
                       <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">Preço KG:</span> R$ {pricePerKg.toFixed(2)}
                         {grams > 0 && (
@@ -230,9 +250,22 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                         )}
                       </div>
                     )}
+                    {autoCalc && isLiquid && (
+                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Preço L:</span> R$ {pricePerLiter.toFixed(2)}
+                        {ml > 0 && (
+                          <>
+                            {" • "}
+                            <span className="font-medium text-foreground">{ml}ml</span> ({percent.toFixed(1)}% de 1L)
+                            {" = "}
+                            <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                     {!autoCalc && ing.ingredient_name.trim() && (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        💡 Cadastre o <strong>Preço por KG</strong> deste insumo em "Insumos" para cálculo automático.
+                        💡 Cadastre o <strong>Preço por KG</strong> ou <strong>Preço por Litro</strong> deste insumo em "Insumos" para cálculo automático.
                       </p>
                     )}
                   </div>
