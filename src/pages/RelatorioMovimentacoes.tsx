@@ -59,26 +59,32 @@ const RelatorioMovimentacoes = () => {
     });
   }, [sales, monthStart, monthEnd]);
 
+  const recipeMap = useMemo(() => {
+    return new Map(recipes.map((recipe) => [recipe.id, recipe]));
+  }, [recipes]);
+
   const recipeNames = useMemo(() => {
     return new Map(recipes.map((recipe) => [recipe.id, recipe.name]));
   }, [recipes]);
 
   const dishesReport = useMemo(() => {
-    const map = new Map<string, { name: string; total: number }>();
+    const map = new Map<string, { name: string; total: number; totalCost: number }>();
 
     for (const sale of monthSales) {
-      const name = recipeNames.get(sale.recipe_id) || "—";
+      const recipe = recipeMap.get(sale.recipe_id);
+      const name = recipe?.name || "—";
       const current = map.get(sale.recipe_id);
       map.set(sale.recipe_id, {
         name,
         total: (current?.total || 0) + sale.quantity,
+        totalCost: (current?.totalCost || 0) + (recipe?.total_cost || 0) * sale.quantity,
       });
     }
 
     return Array.from(map.entries())
       .map(([id, value]) => ({ id, ...value }))
       .sort((a, b) => b.total - a.total);
-  }, [monthSales, recipeNames]);
+  }, [monthSales, recipeMap]);
 
   const ingredientsReport = useMemo(() => {
     const map = new Map<string, { name: string; unit: string; total: number }>();
@@ -109,6 +115,11 @@ const RelatorioMovimentacoes = () => {
   const totalDishesSold = useMemo(
     () => monthSales.reduce((sum, sale) => sum + sale.quantity, 0),
     [monthSales]
+  );
+
+  const totalCost = useMemo(
+    () => dishesReport.reduce((sum, d) => sum + d.totalCost, 0),
+    [dishesReport]
   );
 
   const reportRef = useRef<HTMLDivElement>(null);
@@ -206,7 +217,7 @@ const RelatorioMovimentacoes = () => {
           <p className="text-sm capitalize">{monthLabel}</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="print:shadow-none">
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">Pratos vendidos</p>
@@ -223,6 +234,12 @@ const RelatorioMovimentacoes = () => {
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">Tipos de insumos usados</p>
               <p className="mt-1 text-2xl font-bold">{consumedIngredientsCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="print:shadow-none border-primary/30 bg-primary/5">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">Custo total do mês</p>
+              <p className="mt-1 text-2xl font-bold text-primary">R$ {totalCost.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
@@ -245,6 +262,7 @@ const RelatorioMovimentacoes = () => {
                   <TableRow>
                     <TableHead className="py-1.5 text-xs">Prato</TableHead>
                     <TableHead className="py-1.5 text-xs text-right">Quantidade</TableHead>
+                    <TableHead className="py-1.5 text-xs text-right">Custo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -252,11 +270,13 @@ const RelatorioMovimentacoes = () => {
                     <TableRow key={row.id}>
                       <TableCell className="py-1.5 font-medium text-xs break-words">{row.name}</TableCell>
                       <TableCell className="py-1.5 text-right font-semibold text-xs">{row.total}</TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-xs">R$ {row.totalCost.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/30">
                     <TableCell className="py-1.5 font-bold text-xs">Total</TableCell>
                     <TableCell className="py-1.5 text-right font-bold text-xs">{totalDishesSold}</TableCell>
+                    <TableCell className="py-1.5 text-right font-bold text-xs text-primary">R$ {totalCost.toFixed(2)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

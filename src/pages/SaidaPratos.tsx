@@ -20,7 +20,7 @@ import {
   ShoppingBasket,
   ChevronDown,
 } from "lucide-react";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO, subDays } from "date-fns";
 import { useEffect } from "react";
 
 type IngredientConsumption = { name: string; totalWeight: number; unit: string };
@@ -74,9 +74,19 @@ const SaidaPratos = () => {
     }
   };
 
+  // Calculate cost total for a period
+  const calculateCostTotal = (periodSales: DishSale[]) => {
+    let total = 0;
+    for (const sale of periodSales) {
+      const recipe = recipes.find((r) => r.id === sale.recipe_id);
+      if (recipe) total += recipe.total_cost * sale.quantity;
+    }
+    return total;
+  };
+
   // Calculate consumption per recipe
   const calculatePerRecipe = (periodSales: DishSale[]) => {
-    const perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }> = {};
+    const perRecipe: Record<string, { recipeName: string; totalQty: number; totalCost: number; ingredients: Record<string, IngredientConsumption> }> = {};
 
     for (const sale of periodSales) {
       const recipe = recipes.find((r) => r.id === sale.recipe_id);
@@ -84,10 +94,12 @@ const SaidaPratos = () => {
         perRecipe[sale.recipe_id] = {
           recipeName: recipe?.name || "—",
           totalQty: 0,
+          totalCost: 0,
           ingredients: {},
         };
       }
       perRecipe[sale.recipe_id].totalQty += sale.quantity;
+      perRecipe[sale.recipe_id].totalCost += (recipe?.total_cost || 0) * sale.quantity;
 
       const ings = allIngredients[sale.recipe_id] || [];
       for (const ing of ings) {
@@ -125,6 +137,14 @@ const SaidaPratos = () => {
       return isWithinInterval(parseISO(s.date), {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
+      });
+    } catch { return false; }
+  });
+  const biweeklySales = sales.filter((s) => {
+    try {
+      return isWithinInterval(parseISO(s.date), {
+        start: subDays(today, 15),
+        end: today,
       });
     } catch { return false; }
   });
@@ -241,16 +261,20 @@ const SaidaPratos = () => {
             <TabsList className="w-full">
               <TabsTrigger value="day" className="flex-1">Hoje</TabsTrigger>
               <TabsTrigger value="week" className="flex-1">Semana</TabsTrigger>
+              <TabsTrigger value="biweekly" className="flex-1">Quinzena</TabsTrigger>
               <TabsTrigger value="month" className="flex-1">Mês</TabsTrigger>
             </TabsList>
             <TabsContent value="day">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(todaySales)} total={calculateTotal(todaySales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(todaySales)} total={calculateTotal(todaySales)} costTotal={calculateCostTotal(todaySales)} />
             </TabsContent>
             <TabsContent value="week">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(weekSales)} total={calculateTotal(weekSales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(weekSales)} total={calculateTotal(weekSales)} costTotal={calculateCostTotal(weekSales)} />
+            </TabsContent>
+            <TabsContent value="biweekly">
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(biweeklySales)} total={calculateTotal(biweeklySales)} costTotal={calculateCostTotal(biweeklySales)} />
             </TabsContent>
             <TabsContent value="month">
-              <ConsumptionBreakdown perRecipe={calculatePerRecipe(monthSales)} total={calculateTotal(monthSales)} />
+              <ConsumptionBreakdown perRecipe={calculatePerRecipe(monthSales)} total={calculateTotal(monthSales)} costTotal={calculateCostTotal(monthSales)} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -262,9 +286,11 @@ const SaidaPratos = () => {
 function ConsumptionBreakdown({
   perRecipe,
   total,
+  costTotal,
 }: {
-  perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }>;
+  perRecipe: Record<string, { recipeName: string; totalQty: number; totalCost: number; ingredients: Record<string, IngredientConsumption> }>;
   total: IngredientConsumption[];
+  costTotal: number;
 }) {
   const recipeEntries = Object.entries(perRecipe).sort((a, b) => a[1].recipeName.localeCompare(b[1].recipeName));
 
@@ -274,6 +300,12 @@ function ConsumptionBreakdown({
 
   return (
     <div className="mt-3 space-y-4">
+      {/* Cost summary */}
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <p className="text-xs text-muted-foreground mb-1">Custo total do período</p>
+        <p className="text-2xl font-bold text-primary">R$ {costTotal.toFixed(2)}</p>
+      </div>
+
       {/* Per-recipe breakdown */}
       <Accordion type="multiple" className="space-y-2">
         {recipeEntries.map(([recipeId, data]) => (
@@ -283,7 +315,9 @@ function ConsumptionBreakdown({
                 <ChefHat className="h-4 w-4 text-primary shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">{data.recipeName}</p>
-                  <p className="text-xs text-muted-foreground">{data.totalQty} porções vendidas</p>
+                  <p className="text-xs text-muted-foreground">
+                    {data.totalQty} porções — R$ {data.totalCost.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </AccordionTrigger>
