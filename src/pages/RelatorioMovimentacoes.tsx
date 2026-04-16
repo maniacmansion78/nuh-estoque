@@ -134,6 +134,27 @@ const RelatorioMovimentacoes = () => {
     [dishesReport]
   );
 
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetMonth = async () => {
+    if (monthSales.length === 0) return;
+    setResetting(true);
+    try {
+      const ids = monthSales.map((s) => s.id);
+      const { error } = await supabase.from("dish_sales").delete().in("id", ids);
+      if (error) {
+        console.error("Erro ao zerar vendas:", error);
+        toast.error("Erro ao zerar vendas do mês");
+      } else {
+        toast.success("Vendas do mês zeradas com sucesso!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro inesperado");
+    }
+    setResetting(false);
+  };
+
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
