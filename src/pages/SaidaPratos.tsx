@@ -74,9 +74,19 @@ const SaidaPratos = () => {
     }
   };
 
+  // Calculate cost total for a period
+  const calculateCostTotal = (periodSales: DishSale[]) => {
+    let total = 0;
+    for (const sale of periodSales) {
+      const recipe = recipes.find((r) => r.id === sale.recipe_id);
+      if (recipe) total += recipe.total_cost * sale.quantity;
+    }
+    return total;
+  };
+
   // Calculate consumption per recipe
   const calculatePerRecipe = (periodSales: DishSale[]) => {
-    const perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }> = {};
+    const perRecipe: Record<string, { recipeName: string; totalQty: number; totalCost: number; ingredients: Record<string, IngredientConsumption> }> = {};
 
     for (const sale of periodSales) {
       const recipe = recipes.find((r) => r.id === sale.recipe_id);
@@ -84,10 +94,12 @@ const SaidaPratos = () => {
         perRecipe[sale.recipe_id] = {
           recipeName: recipe?.name || "—",
           totalQty: 0,
+          totalCost: 0,
           ingredients: {},
         };
       }
       perRecipe[sale.recipe_id].totalQty += sale.quantity;
+      perRecipe[sale.recipe_id].totalCost += (recipe?.total_cost || 0) * sale.quantity;
 
       const ings = allIngredients[sale.recipe_id] || [];
       for (const ing of ings) {
@@ -125,6 +137,14 @@ const SaidaPratos = () => {
       return isWithinInterval(parseISO(s.date), {
         start: startOfWeek(today, { weekStartsOn: 1 }),
         end: endOfWeek(today, { weekStartsOn: 1 }),
+      });
+    } catch { return false; }
+  });
+  const biweeklySales = sales.filter((s) => {
+    try {
+      return isWithinInterval(parseISO(s.date), {
+        start: subDays(today, 15),
+        end: today,
       });
     } catch { return false; }
   });
