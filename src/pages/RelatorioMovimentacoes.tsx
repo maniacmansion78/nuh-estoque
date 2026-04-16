@@ -217,11 +217,17 @@ const RelatorioMovimentacoes = () => {
           <p className="text-sm capitalize">{monthLabel}</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <Card className="print:shadow-none">
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">Pratos vendidos</p>
               <p className="mt-1 text-2xl font-bold">{totalDishesSold}</p>
+            </CardContent>
+          </Card>
+          <Card className="print:shadow-none border-primary/30 bg-primary/5">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">Custo total do mês</p>
+              <p className="mt-1 text-2xl font-bold text-primary">R$ {totalCost.toFixed(2)}</p>
             </CardContent>
           </Card>
           <Card className="print:shadow-none">
@@ -234,12 +240,6 @@ const RelatorioMovimentacoes = () => {
             <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">Tipos de insumos usados</p>
               <p className="mt-1 text-2xl font-bold">{consumedIngredientsCount}</p>
-            </CardContent>
-          </Card>
-          <Card className="print:shadow-none border-primary/30 bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <p className="text-xs text-muted-foreground">Custo total do mês</p>
-              <p className="mt-1 text-2xl font-bold text-primary">R$ {totalCost.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
