@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
-import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import FichasTecnicas from "@/pages/FichasTecnicas";
 import AlterarSenha from "@/pages/AlterarSenha";
@@ -20,7 +19,6 @@ import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
 import ScriptVenda from "@/pages/ScriptVenda";
-
 import Banners from "@/pages/Banners";
 import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
 import Manual2 from "@/pages/Manual2";
@@ -31,7 +29,7 @@ const queryClient = new QueryClient();
 function ProtectedRoute({ children, adminOnly = false, allowTempPassword = false, allowBlocked = false }: { children: React.ReactNode; adminOnly?: boolean; allowTempPassword?: boolean; allowBlocked?: boolean }) {
   const { user, isAdmin, loading, tempPassword, blocked } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center">Carregando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
   if (blocked && !allowBlocked) return <Navigate to="/conta-bloqueada" replace />;
   if (tempPassword && !allowTempPassword) return <Navigate to="/alterar-senha" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
@@ -44,8 +42,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
-      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
       <Route
         path="/conta-bloqueada"
         element={
