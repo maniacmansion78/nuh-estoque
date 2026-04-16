@@ -28,8 +28,8 @@ faltas e fornecendo dados reais para gestão do restaurante.
 PRINCIPAIS BENEFÍCIOS:
 • Saída automática de insumos ao registrar saída de pratos
 • Registro de fichas técnicas com insumos cadastrados automaticamente
-• Cálculo de valores total dos pratos 
-• Relatórios de consumo mensais, com valores totais, prontos para baixar em pdf ou imprimir
+• Cálculo de valores totais dos pratos 
+• Relatórios de consumo mensal, com valores totais, prontos para baixar em pdf ou imprimir
 • Acesso via navegador (computador, tablet ou celular)
 • Dados seguros na nuvem com backup automático
 
