@@ -220,7 +220,7 @@ const RelatorioMovimentacoes = () => {
             Saída de pratos e consumo de insumos
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button size="lg" className="gap-2" onClick={handleDownloadPDF}>
             <Download className="h-5 w-5" />
             Baixar PDF
@@ -229,6 +229,28 @@ const RelatorioMovimentacoes = () => {
             <Printer className="h-5 w-5" />
             Imprimir
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="lg" variant="destructive" className="gap-2" disabled={monthSales.length === 0 || resetting}>
+                <Trash2 className="h-5 w-5" />
+                Zerar mês
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Zerar vendas de {monthLabel}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação é <strong>definitiva e irreversível</strong>. Todos os {monthSales.length} registros de saída de pratos deste mês serão excluídos permanentemente do sistema, incluindo o Dashboard e a página de Saída de Pratos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetMonth} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Sim, zerar tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
