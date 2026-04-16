@@ -22,6 +22,7 @@ import ScriptVenda from "@/pages/ScriptVenda";
 import Banners from "@/pages/Banners";
 import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
 import Manual2 from "@/pages/Manual2";
+import Proposta from "@/pages/Proposta";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -165,6 +166,7 @@ function AppRoutes() {
       <Route path="/manual2" element={<Manual2 />} />
       <Route path="/script-venda" element={<ScriptVenda />} />
       <Route path="/banners" element={<Banners />} />
+      <Route path="/proposta" element={<Proposta />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
