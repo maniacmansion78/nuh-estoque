@@ -18,6 +18,7 @@ export interface Product {
   created_by: string | null;
   created_at: string;
   price_per_kg?: number;
+  price_per_liter?: number;
 }
 
 export interface ProductForm {
@@ -32,6 +33,7 @@ export interface ProductForm {
   alert_days: number;
   lote: string;
   price_per_kg: number;
+  price_per_liter: number;
 }
 
 export function useProducts() {
@@ -71,6 +73,7 @@ export function useProducts() {
       alert_days: form.alert_days,
       created_by: userId,
       price_per_kg: form.price_per_kg ?? 0,
+      price_per_liter: form.price_per_liter ?? 0,
     } as never);
 
     if (error) {
@@ -99,6 +102,7 @@ export function useProducts() {
         alert_days: form.alert_days,
         lote: form.lote,
         price_per_kg: form.price_per_kg ?? 0,
+        price_per_liter: form.price_per_liter ?? 0,
       } as never)
       .eq("id", id);
     if (error) {

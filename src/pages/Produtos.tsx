@@ -42,6 +42,7 @@ const emptyForm: ProductForm = {
   alert_days: 3,
   lote: "",
   price_per_kg: 0,
+  price_per_liter: 0,
 };
 
 const Produtos = () => {
@@ -82,6 +83,7 @@ const Produtos = () => {
       alert_days: item.alert_days,
       lote: item.lote,
       price_per_kg: item.price_per_kg ?? 0,
+      price_per_liter: item.price_per_liter ?? 0,
     });
     setDialogOpen(true);
   };
@@ -219,6 +221,20 @@ const Produtos = () => {
               />
               <p className="text-xs text-muted-foreground">
                 Usado para calcular automaticamente o custo nas receitas com base nas gramas.
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label>Preço por Litro (R$)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price_per_liter || ""}
+                onChange={(e) => setForm({ ...form, price_per_liter: Number(e.target.value) || 0 })}
+                placeholder="Ex: 12.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Usado para calcular automaticamente o custo de líquidos nas receitas (ml ou L).
               </p>
             </div>
           </div>
