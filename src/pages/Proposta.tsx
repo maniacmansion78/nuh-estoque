@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 export default function Proposta() {
 
   return (
-    <div className="min-h-screen bg-[#111111] text-[#FFD700] font-mono">
+    <div className="min-h-screen bg-[#111111] text-white font-mono">
       <div className="max-w-3xl mx-auto px-4 py-8 whitespace-pre-wrap text-sm leading-relaxed">
 {`================================================================================
                     PROPOSTA COMERCIAL
