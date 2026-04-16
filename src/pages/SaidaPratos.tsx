@@ -286,9 +286,11 @@ const SaidaPratos = () => {
 function ConsumptionBreakdown({
   perRecipe,
   total,
+  costTotal,
 }: {
-  perRecipe: Record<string, { recipeName: string; totalQty: number; ingredients: Record<string, IngredientConsumption> }>;
+  perRecipe: Record<string, { recipeName: string; totalQty: number; totalCost: number; ingredients: Record<string, IngredientConsumption> }>;
   total: IngredientConsumption[];
+  costTotal: number;
 }) {
   const recipeEntries = Object.entries(perRecipe).sort((a, b) => a[1].recipeName.localeCompare(b[1].recipeName));
 
@@ -298,6 +300,12 @@ function ConsumptionBreakdown({
 
   return (
     <div className="mt-3 space-y-4">
+      {/* Cost summary */}
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <p className="text-xs text-muted-foreground mb-1">Custo total do período</p>
+        <p className="text-2xl font-bold text-primary">R$ {costTotal.toFixed(2)}</p>
+      </div>
+
       {/* Per-recipe breakdown */}
       <Accordion type="multiple" className="space-y-2">
         {recipeEntries.map(([recipeId, data]) => (
@@ -307,7 +315,9 @@ function ConsumptionBreakdown({
                 <ChefHat className="h-4 w-4 text-primary shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">{data.recipeName}</p>
-                  <p className="text-xs text-muted-foreground">{data.totalQty} porções vendidas</p>
+                  <p className="text-xs text-muted-foreground">
+                    {data.totalQty} porções — R$ {data.totalCost.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </AccordionTrigger>
