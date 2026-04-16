@@ -207,6 +207,20 @@ const Produtos = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid gap-2">
+              <Label>Preço por KG (R$)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price_per_kg || ""}
+                onChange={(e) => setForm({ ...form, price_per_kg: Number(e.target.value) || 0 })}
+                placeholder="Ex: 50.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Usado para calcular automaticamente o custo nas receitas com base nas gramas.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
