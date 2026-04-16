@@ -20,7 +20,7 @@ import {
   ShoppingBasket,
   ChevronDown,
 } from "lucide-react";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO, subDays } from "date-fns";
 import { useEffect } from "react";
 
 type IngredientConsumption = { name: string; totalWeight: number; unit: string };
