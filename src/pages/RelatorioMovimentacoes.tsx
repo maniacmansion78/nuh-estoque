@@ -59,26 +59,32 @@ const RelatorioMovimentacoes = () => {
     });
   }, [sales, monthStart, monthEnd]);
 
+  const recipeMap = useMemo(() => {
+    return new Map(recipes.map((recipe) => [recipe.id, recipe]));
+  }, [recipes]);
+
   const recipeNames = useMemo(() => {
     return new Map(recipes.map((recipe) => [recipe.id, recipe.name]));
   }, [recipes]);
 
   const dishesReport = useMemo(() => {
-    const map = new Map<string, { name: string; total: number }>();
+    const map = new Map<string, { name: string; total: number; totalCost: number }>();
 
     for (const sale of monthSales) {
-      const name = recipeNames.get(sale.recipe_id) || "—";
+      const recipe = recipeMap.get(sale.recipe_id);
+      const name = recipe?.name || "—";
       const current = map.get(sale.recipe_id);
       map.set(sale.recipe_id, {
         name,
         total: (current?.total || 0) + sale.quantity,
+        totalCost: (current?.totalCost || 0) + (recipe?.total_cost || 0) * sale.quantity,
       });
     }
 
     return Array.from(map.entries())
       .map(([id, value]) => ({ id, ...value }))
       .sort((a, b) => b.total - a.total);
-  }, [monthSales, recipeNames]);
+  }, [monthSales, recipeMap]);
 
   const ingredientsReport = useMemo(() => {
     const map = new Map<string, { name: string; unit: string; total: number }>();
