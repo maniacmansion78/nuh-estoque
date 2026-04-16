@@ -41,6 +41,7 @@ const emptyForm: ProductForm = {
   supplier_id: "s1",
   alert_days: 3,
   lote: "",
+  price_per_kg: 0,
 };
 
 const Produtos = () => {
@@ -80,6 +81,7 @@ const Produtos = () => {
       supplier_id: item.supplier_id,
       alert_days: item.alert_days,
       lote: item.lote,
+      price_per_kg: item.price_per_kg ?? 0,
     });
     setDialogOpen(true);
   };

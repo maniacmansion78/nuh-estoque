@@ -17,6 +17,7 @@ export interface Product {
   lote: string;
   created_by: string | null;
   created_at: string;
+  price_per_kg?: number;
 }
 
 export interface ProductForm {
@@ -30,6 +31,7 @@ export interface ProductForm {
   supplier_id: string;
   alert_days: number;
   lote: string;
+  price_per_kg: number;
 }
 
 export function useProducts() {
@@ -68,7 +70,8 @@ export function useProducts() {
       supplier_id: form.supplier_id,
       alert_days: form.alert_days,
       created_by: userId,
-    });
+      price_per_kg: form.price_per_kg ?? 0,
+    } as never);
 
     if (error) {
       console.error("Erro ao adicionar produto:", error);
@@ -95,7 +98,8 @@ export function useProducts() {
         supplier_id: form.supplier_id,
         alert_days: form.alert_days,
         lote: form.lote,
-      })
+        price_per_kg: form.price_per_kg ?? 0,
+      } as never)
       .eq("id", id);
     if (error) {
       console.error("Erro ao atualizar produto:", error);
