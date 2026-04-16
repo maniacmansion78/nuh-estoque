@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Printer, ChevronLeft, ChevronRight, Download, UtensilsCrossed, ChefHat, Radio } from "lucide-react";
+import { Printer, ChevronLeft, ChevronRight, Download, UtensilsCrossed, ChefHat, Radio, Trash2 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
 import { useDishSales } from "@/hooks/useDishSales";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const RelatorioMovimentacoes = () => {
   const { recipes, loading: recipesLoading } = useRecipes();
