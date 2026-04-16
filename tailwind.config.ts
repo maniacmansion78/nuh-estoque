@@ -58,6 +58,10 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        proposal: {
+          DEFAULT: "hsl(var(--proposal))",
+          foreground: "hsl(var(--proposal-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

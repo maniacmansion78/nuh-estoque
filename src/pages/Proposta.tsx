@@ -1,11 +1,73 @@
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import jsPDF from "jspdf";
 
 export default function Proposta() {
+  const proposalRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = () => {
+    if (!proposalRef.current) return;
+
+    const contentClone = proposalRef.current.cloneNode(true) as HTMLDivElement;
+    contentClone.querySelector("[data-proposal-download]")?.remove();
+
+    const proposalText = contentClone.textContent?.replace(/\n{3,}/g, "\n\n").trim();
+    if (!proposalText) return;
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    const fontSize = 7;
+    const lineHeight = 3.2;
+
+    const paintPage = () => {
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, pageWidth, pageHeight, "F");
+      doc.setFont("courier", "normal");
+      doc.setFontSize(fontSize);
+      doc.setTextColor(255, 255, 255);
+    };
+
+    paintPage();
+
+    let y = margin;
+
+    for (const rawLine of proposalText.split("\n")) {
+      if (rawLine.trim().length === 0) {
+        y += lineHeight;
+      } else {
+        const wrappedLines = doc.splitTextToSize(rawLine, pageWidth - margin * 2) as string[];
+
+        for (const line of wrappedLines) {
+          if (y > pageHeight - margin) {
+            doc.addPage();
+            paintPage();
+            y = margin;
+          }
+
+          doc.text(line, margin, y);
+          y += lineHeight;
+        }
+      }
+
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        paintPage();
+        y = margin;
+      }
+    }
+
+    doc.save("Proposta_NUH_Asian_Food.pdf");
+  };
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white font-mono">
-      <div className="max-w-3xl mx-auto px-4 py-8 whitespace-pre-wrap text-sm leading-relaxed">
+    <div className="min-h-screen bg-proposal text-proposal-foreground font-mono">
+      <div
+        ref={proposalRef}
+        className="max-w-3xl mx-auto px-4 py-8 whitespace-pre-wrap text-sm leading-relaxed"
+      >
 {`================================================================================
                     PROPOSTA COMERCIAL
                SISTEMA DE FICHAS TÉCNICAS
@@ -128,21 +190,15 @@ VENCIMENTO:
 4. COMEÇAR A USAR!
    Sistema no ar em até 24h após pagamento`}
 
-        <div className="text-center my-8">
-          <a
-            href="/Proposta_NUH.pdf"
-            download="Proposta_NUH_Asian_Food.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div data-proposal-download className="text-center my-8">
+          <Button
+            size="lg"
+            onClick={handleDownloadPDF}
+            className="bg-proposal-foreground px-8 text-lg font-bold text-proposal hover:bg-proposal-foreground/90"
           >
-            <Button
-              size="lg"
-              className="bg-[#FFD700] px-8 text-lg font-bold text-[#111111] hover:bg-[#FFD700]/90"
-            >
-              <Download className="mr-2 h-5 w-5" />
-              Baixar Proposta em PDF
-            </Button>
-          </a>
+            <Download className="mr-2 h-5 w-5" />
+            Baixar Proposta em PDF
+          </Button>
         </div>
 
 {`© 2026 Eduardo Sommer Bertão. Todos os direitos reservados.
