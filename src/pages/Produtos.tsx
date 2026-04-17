@@ -245,6 +245,82 @@ const Produtos = () => {
                 Usado para calcular automaticamente o custo de líquidos nas receitas (ml ou L).
               </p>
             </div>
+
+            {/* Fator de Correção */}
+            <div className="grid gap-2 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50/40 p-3 dark:bg-orange-950/10">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.correction_factor_enabled}
+                  onChange={(e) => setForm({ ...form, correction_factor_enabled: e.target.checked })}
+                  className="h-4 w-4 rounded border-primary"
+                />
+                <span className="text-sm font-semibold">Aplicar Fator de Correção</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Use quando o insumo perde peso ou valor após preparo (descongelar, limpar, cozinhar).
+              </p>
+
+              {form.correction_factor_enabled && (
+                <div className="space-y-2 pt-2">
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="cf-type"
+                        checked={form.correction_factor_type === "weight"}
+                        onChange={() => setForm({ ...form, correction_factor_type: "weight" })}
+                      />
+                      Peso (perda)
+                    </label>
+                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="cf-type"
+                        checked={form.correction_factor_type === "price"}
+                        onChange={() => setForm({ ...form, correction_factor_type: "price" })}
+                      />
+                      Preço (acréscimo)
+                    </label>
+                  </div>
+
+                  <div className="grid gap-1">
+                    <Label className="text-xs">Percentual (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.01"
+                      value={form.correction_factor_percent || ""}
+                      onChange={(e) => setForm({ ...form, correction_factor_percent: Number(e.target.value) || 0 })}
+                      placeholder="Ex: 6"
+                    />
+                  </div>
+
+                  <div className="grid gap-1">
+                    <Label className="text-xs">Observação</Label>
+                    <Input
+                      value={form.correction_factor_note}
+                      onChange={(e) => setForm({ ...form, correction_factor_note: e.target.value })}
+                      placeholder="Ex: Perda por descongelamento"
+                    />
+                  </div>
+
+                  {form.correction_factor_percent > 0 && form.price_per_kg > 0 && (
+                    <div className="rounded-md bg-orange-100/60 dark:bg-orange-900/20 px-2 py-1.5 text-xs space-y-0.5">
+                      {form.correction_factor_type === "weight" ? (
+                        <>
+                          <p>Com {form.correction_factor_percent}% de perda: <strong>1kg comprado = {(1000 * (1 - form.correction_factor_percent / 100)).toFixed(0)}g úteis</strong></p>
+                          <p>Custo real por grama: <strong>R$ {(form.price_per_kg / 1000 / (1 - form.correction_factor_percent / 100)).toFixed(4)}</strong> (antes: R$ {(form.price_per_kg / 1000).toFixed(4)})</p>
+                        </>
+                      ) : (
+                        <p>Preço ajustado: <strong>R$ {(form.price_per_kg * (1 + form.correction_factor_percent / 100)).toFixed(2)}/kg</strong> (antes: R$ {form.price_per_kg.toFixed(2)})</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancelar</Button>
