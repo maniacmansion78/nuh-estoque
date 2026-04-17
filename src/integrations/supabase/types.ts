@@ -145,6 +145,10 @@ export type Database = {
         Row: {
           alert_days: number
           category: string
+          correction_factor_enabled: boolean
+          correction_factor_note: string | null
+          correction_factor_percent: number | null
+          correction_factor_type: string | null
           created_at: string
           created_by: string | null
           expiry_date: string
@@ -162,6 +166,10 @@ export type Database = {
         Insert: {
           alert_days?: number
           category?: string
+          correction_factor_enabled?: boolean
+          correction_factor_note?: string | null
+          correction_factor_percent?: number | null
+          correction_factor_type?: string | null
           created_at?: string
           created_by?: string | null
           expiry_date?: string
@@ -179,6 +187,10 @@ export type Database = {
         Update: {
           alert_days?: number
           category?: string
+          correction_factor_enabled?: boolean
+          correction_factor_note?: string | null
+          correction_factor_percent?: number | null
+          correction_factor_type?: string | null
           created_at?: string
           created_by?: string | null
           expiry_date?: string

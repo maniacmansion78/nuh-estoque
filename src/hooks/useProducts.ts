@@ -19,6 +19,10 @@ export interface Product {
   created_at: string;
   price_per_kg?: number;
   price_per_liter?: number;
+  correction_factor_enabled?: boolean;
+  correction_factor_percent?: number | null;
+  correction_factor_type?: "weight" | "price" | null;
+  correction_factor_note?: string | null;
 }
 
 export interface ProductForm {
@@ -34,6 +38,10 @@ export interface ProductForm {
   lote: string;
   price_per_kg: number;
   price_per_liter: number;
+  correction_factor_enabled: boolean;
+  correction_factor_percent: number;
+  correction_factor_type: "weight" | "price";
+  correction_factor_note: string;
 }
 
 export function useProducts() {
@@ -60,6 +68,15 @@ export function useProducts() {
     fetchProducts();
   }, [fetchProducts]);
 
+  const buildPayload = (form: ProductForm) => ({
+    price_per_kg: form.price_per_kg ?? 0,
+    price_per_liter: form.price_per_liter ?? 0,
+    correction_factor_enabled: !!form.correction_factor_enabled,
+    correction_factor_percent: form.correction_factor_enabled ? Number(form.correction_factor_percent) || 0 : null,
+    correction_factor_type: form.correction_factor_enabled ? form.correction_factor_type : null,
+    correction_factor_note: form.correction_factor_enabled ? (form.correction_factor_note || null) : null,
+  });
+
   const addProduct = async (form: ProductForm) => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id || null;
@@ -72,8 +89,7 @@ export function useProducts() {
       supplier_id: form.supplier_id,
       alert_days: form.alert_days,
       created_by: userId,
-      price_per_kg: form.price_per_kg ?? 0,
-      price_per_liter: form.price_per_liter ?? 0,
+      ...buildPayload(form),
     } as never);
 
     if (error) {
@@ -101,8 +117,7 @@ export function useProducts() {
         supplier_id: form.supplier_id,
         alert_days: form.alert_days,
         lote: form.lote,
-        price_per_kg: form.price_per_kg ?? 0,
-        price_per_liter: form.price_per_liter ?? 0,
+        ...buildPayload(form),
       } as never)
       .eq("id", id);
     if (error) {
