@@ -70,32 +70,53 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
     }
   }, [open, initialData]);
 
-  // Lookup price_per_kg & price_per_liter by name (case-insensitive)
+  // Lookup price + correction factor by name (case-insensitive)
   const productByName = useMemo(() => {
-    const map = new Map<string, { kg: number; liter: number }>();
+    const map = new Map<string, {
+      kg: number;
+      liter: number;
+      cfEnabled: boolean;
+      cfPercent: number;
+      cfType: "weight" | "price" | null;
+      cfNote: string;
+    }>();
     products.forEach((p) => {
       map.set(p.name.trim().toLowerCase(), {
         kg: p.price_per_kg ?? 0,
         liter: p.price_per_liter ?? 0,
+        cfEnabled: !!p.correction_factor_enabled,
+        cfPercent: Number(p.correction_factor_percent ?? 0),
+        cfType: (p.correction_factor_type as "weight" | "price" | null) ?? null,
+        cfNote: p.correction_factor_note ?? "",
       });
     });
     return map;
   }, [products]);
 
-  const getPrices = (ingName: string) =>
-    productByName.get(ingName.trim().toLowerCase()) ?? { kg: 0, liter: 0 };
+  const getProductInfo = (ingName: string) =>
+    productByName.get(ingName.trim().toLowerCase()) ?? {
+      kg: 0, liter: 0, cfEnabled: false, cfPercent: 0, cfType: null as "weight" | "price" | null, cfNote: "",
+    };
 
   const computeAutoCost = (ing: NewIngredient): number => {
-    const { kg, liter } = getPrices(ing.ingredient_name);
-    // Liquids
+    const { kg, liter, cfEnabled, cfPercent, cfType } = getProductInfo(ing.ingredient_name);
+    const applyCf = cfEnabled && cfPercent > 0;
+
     if ((ing.unit === "ml" || ing.unit === "L") && liter > 0) {
       const ml = toMl(ing.gross_weight, ing.unit);
-      return Number(((ml / 1000) * liter).toFixed(2));
+      let priceL = liter;
+      let mlComprado = ml;
+      if (applyCf && cfType === "price") priceL = liter * (1 + cfPercent / 100);
+      if (applyCf && cfType === "weight") mlComprado = ml / (1 - cfPercent / 100);
+      return Number(((mlComprado / 1000) * priceL).toFixed(2));
     }
-    // Solids
     if ((ing.unit === "g" || ing.unit === "kg") && kg > 0) {
       const grams = toGrams(ing.gross_weight, ing.unit);
-      return Number(((grams / 1000) * kg).toFixed(2));
+      let priceKg = kg;
+      let gramsComprado = grams;
+      if (applyCf && cfType === "price") priceKg = kg * (1 + cfPercent / 100);
+      if (applyCf && cfType === "weight") gramsComprado = grams / (1 - cfPercent / 100);
+      return Number(((gramsComprado / 1000) * priceKg).toFixed(2));
     }
     return ing.unit_cost;
   };
