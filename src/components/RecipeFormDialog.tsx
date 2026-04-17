@@ -172,24 +172,49 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
 
             <div className="space-y-3">
               {ingredients.map((ing, i) => {
-                const { kg: pricePerKg, liter: pricePerLiter } = getPrices(ing.ingredient_name);
+                const info = getProductInfo(ing.ingredient_name);
+                const { kg: pricePerKg, liter: pricePerLiter, cfEnabled, cfPercent, cfType, cfNote } = info;
                 const isLiquid = ing.unit === "ml" || ing.unit === "L";
                 const isSolid = ing.unit === "g" || ing.unit === "kg";
                 const grams = toGrams(ing.gross_weight, ing.unit);
                 const ml = toMl(ing.gross_weight, ing.unit);
                 const autoCalc = (isSolid && pricePerKg > 0) || (isLiquid && pricePerLiter > 0);
+                const cfActive = cfEnabled && cfPercent > 0 && autoCalc;
                 const percent = autoCalc
                   ? isLiquid
                     ? (ml / 1000) * 100
                     : (grams / 1000) * 100
                   : 0;
+                const gramsComprado = cfActive && cfType === "weight" && grams > 0
+                  ? grams / (1 - cfPercent / 100)
+                  : grams;
+                const mlComprado = cfActive && cfType === "weight" && ml > 0
+                  ? ml / (1 - cfPercent / 100)
+                  : ml;
 
                 return (
-                  <div key={i} className="rounded-lg border bg-muted/30 p-3">
+                  <div key={i} className={`rounded-lg border p-3 ${cfActive ? "border-orange-400 bg-orange-50/30 dark:bg-orange-950/10" : "bg-muted/30"}`}>
                     <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                       <div className="grid gap-2 sm:grid-cols-4">
                         <div>
-                          <Label className="text-xs">Ingrediente</Label>
+                          <Label className="text-xs flex items-center gap-1">
+                            Ingrediente
+                            {cfActive && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-3 w-3 text-orange-500 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-xs">
+                                      <strong>Fator de Correção: {cfPercent}% ({cfType === "weight" ? "perda de peso" : "acréscimo de preço"})</strong>
+                                      {cfNote && <><br />{cfNote}</>}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </Label>
                           <Input
                             list="ingredient-products"
                             value={ing.ingredient_name}
@@ -239,28 +264,48 @@ export default function RecipeFormDialog({ open, onOpenChange, onSave, initialDa
                     </div>
 
                     {autoCalc && isSolid && (
-                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">Preço KG:</span> R$ {pricePerKg.toFixed(2)}
-                        {grams > 0 && (
-                          <>
-                            {" • "}
-                            <span className="font-medium text-foreground">{grams}g</span> ({percent.toFixed(1)}% de 1kg)
-                            {" = "}
-                            <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
-                          </>
+                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground space-y-0.5">
+                        <div>
+                          <span className="font-medium text-foreground">Preço KG:</span> R$ {pricePerKg.toFixed(2)}
+                          {grams > 0 && (
+                            <>
+                              {" • "}
+                              <span className="font-medium text-foreground">{grams}g</span> ({percent.toFixed(1)}% de 1kg)
+                              {" = "}
+                              <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
+                            </>
+                          )}
+                        </div>
+                        {cfActive && grams > 0 && (
+                          <div className="text-orange-700 dark:text-orange-400">
+                            ⚙️ Fator {cfPercent}% ({cfType === "weight" ? "peso" : "preço"}):
+                            {cfType === "weight"
+                              ? <> use {grams}g úteis = compre <strong>{gramsComprado.toFixed(1)}g</strong></>
+                              : <> preço ajustado <strong>R$ {(pricePerKg * (1 + cfPercent / 100)).toFixed(2)}/kg</strong></>}
+                          </div>
                         )}
                       </div>
                     )}
                     {autoCalc && isLiquid && (
-                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">Preço L:</span> R$ {pricePerLiter.toFixed(2)}
-                        {ml > 0 && (
-                          <>
-                            {" • "}
-                            <span className="font-medium text-foreground">{ml}ml</span> ({percent.toFixed(1)}% de 1L)
-                            {" = "}
-                            <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
-                          </>
+                      <div className="mt-2 rounded-md bg-primary/5 px-2 py-1.5 text-xs text-muted-foreground space-y-0.5">
+                        <div>
+                          <span className="font-medium text-foreground">Preço L:</span> R$ {pricePerLiter.toFixed(2)}
+                          {ml > 0 && (
+                            <>
+                              {" • "}
+                              <span className="font-medium text-foreground">{ml}ml</span> ({percent.toFixed(1)}% de 1L)
+                              {" = "}
+                              <span className="font-semibold text-primary">R$ {ing.unit_cost.toFixed(2)}</span>
+                            </>
+                          )}
+                        </div>
+                        {cfActive && ml > 0 && (
+                          <div className="text-orange-700 dark:text-orange-400">
+                            ⚙️ Fator {cfPercent}% ({cfType === "weight" ? "volume" : "preço"}):
+                            {cfType === "weight"
+                              ? <> use {ml}ml úteis = compre <strong>{mlComprado.toFixed(1)}ml</strong></>
+                              : <> preço ajustado <strong>R$ {(pricePerLiter * (1 + cfPercent / 100)).toFixed(2)}/L</strong></>}
+                          </div>
                         )}
                       </div>
                     )}
