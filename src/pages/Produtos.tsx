@@ -43,6 +43,10 @@ const emptyForm: ProductForm = {
   lote: "",
   price_per_kg: 0,
   price_per_liter: 0,
+  correction_factor_enabled: false,
+  correction_factor_percent: 0,
+  correction_factor_type: "weight",
+  correction_factor_note: "",
 };
 
 const Produtos = () => {
@@ -84,6 +88,10 @@ const Produtos = () => {
       lote: item.lote,
       price_per_kg: item.price_per_kg ?? 0,
       price_per_liter: item.price_per_liter ?? 0,
+      correction_factor_enabled: item.correction_factor_enabled ?? false,
+      correction_factor_percent: item.correction_factor_percent ?? 0,
+      correction_factor_type: (item.correction_factor_type as "weight" | "price") ?? "weight",
+      correction_factor_note: item.correction_factor_note ?? "",
     });
     setDialogOpen(true);
   };
