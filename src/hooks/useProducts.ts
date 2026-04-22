@@ -48,24 +48,32 @@ export function useProducts() {
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProducts = useCallback(async () => {
+   const fetchProducts = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar produtos:", error);
-      toast.error("Erro ao carregar produtos");
-    } else {
-      setItems(data as Product[]);
-    }
-    setLoading(false);
+     try {
+       const { data, error } = await supabase
+         .from("products")
+         .select("*")
+         .order("created_at", { ascending: false })
+         .abortSignal(signal || new AbortController().signal);
+ 
+       if (error) {
+         if (error.code !== 'ABORT_ERROR') {
+           console.error("Erro ao buscar produtos:", error);
+           toast.error("Erro ao carregar produtos");
+         }
+       } else {
+         setItems(data as Product[]);
+       }
+     } finally {
+       setLoading(false);
+     }
   }, []);
 
   useEffect(() => {
-    fetchProducts();
+     const controller = new AbortController();
+     fetchProducts(controller.signal);
+     return () => controller.abort();
   }, [fetchProducts]);
 
   const buildPayload = (form: ProductForm) => ({

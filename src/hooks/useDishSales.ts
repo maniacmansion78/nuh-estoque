@@ -15,24 +15,32 @@ export function useDishSales() {
   const [sales, setSales] = useState<DishSale[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchSales = useCallback(async () => {
+   const fetchSales = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("dish_sales")
-      .select("*")
-      .order("date", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar vendas:", error);
-      toast.error("Erro ao carregar vendas");
-    } else {
-      setSales(data as DishSale[]);
-    }
-    setLoading(false);
+     try {
+       const { data, error } = await supabase
+         .from("dish_sales")
+         .select("*")
+         .order("date", { ascending: false })
+         .abortSignal(signal || new AbortController().signal);
+ 
+       if (error) {
+         if (error.code !== 'ABORT_ERROR') {
+           console.error("Erro ao buscar vendas:", error);
+           toast.error("Erro ao carregar vendas");
+         }
+       } else {
+         setSales(data as DishSale[]);
+       }
+     } finally {
+       setLoading(false);
+     }
   }, []);
 
   useEffect(() => {
-    fetchSales();
+     const controller = new AbortController();
+     fetchSales(controller.signal);
+     return () => controller.abort();
   }, [fetchSales]);
 
   // Realtime subscription
