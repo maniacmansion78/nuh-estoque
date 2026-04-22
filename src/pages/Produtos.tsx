@@ -59,10 +59,7 @@ const Produtos = () => {
   const [deletingItem, setDeletingItem] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>({ ...emptyForm });
   const [saving, setSaving] = useState(false);
-   const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 50;
-
-  const { isAdmin } = useAuth();
+   const { isAdmin } = useAuth();
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const filtered = useMemo(() => {
@@ -70,13 +67,6 @@ const Produtos = () => {
        .filter((i) => i.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
    }, [items, debouncedSearch]);
-
-   const paginatedItems = useMemo(() => {
-     const startIndex = (currentPage - 1) * itemsPerPage;
-     return filtered.slice(startIndex, startIndex + itemsPerPage);
-   }, [filtered, currentPage]);
-
-   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
    const openAdd = useCallback(() => {
     setEditingItem(null);
@@ -171,10 +161,7 @@ const Produtos = () => {
            placeholder="Buscar produto..." 
            className="pl-10" 
            value={search} 
-           onChange={(e) => {
-             setSearch(e.target.value);
-             setCurrentPage(1);
-           }} 
+            onChange={(e) => setSearch(e.target.value)}
          />
       </div>
 
@@ -188,53 +175,28 @@ const Produtos = () => {
         </Card>
       ) : (
          <div className="w-full space-y-4">
-           <div className="space-y-2">
-             {paginatedItems.map((item) => (
-            <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
-              <CardContent className="px-3 py-2 sm:px-4 sm:py-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <p className="truncate text-sm font-semibold">{item.name}</p>
-                    <span className="text-xs text-muted-foreground shrink-0">{item.unit}</span>
+          <div className="space-y-2">
+            {filtered.map((item) => (
+              <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
+                <CardContent className="px-3 py-2 sm:px-4 sm:py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="truncate text-sm font-semibold">{item.name}</p>
+                      <span className="text-xs text-muted-foreground shrink-0">{item.unit}</span>
+                    </div>
+                    <div className="flex gap-0.5 shrink-0">
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(item)}>
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-0.5 shrink-0">
-                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(item)}>
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => { setDeletingItem(item); setDeleteDialogOpen(true); }}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-           </div>
-
-           {totalPages > 1 && (
-             <div className="flex items-center justify-center gap-2 py-4">
-               <Button
-                 variant="outline"
-                 size="sm"
-                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                 disabled={currentPage === 1}
-               >
-                 Anterior
-               </Button>
-               <span className="text-sm text-muted-foreground">
-                 Página {currentPage} de {totalPages}
-               </span>
-               <Button
-                 variant="outline"
-                 size="sm"
-                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                 disabled={currentPage === totalPages}
-               >
-                 Próxima
-               </Button>
-             </div>
-           )}
-         </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
       )}
 
       {/* Add/Edit Product Dialog */}
