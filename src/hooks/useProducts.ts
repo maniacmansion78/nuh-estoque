@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,29 +44,21 @@ export interface ProductForm {
   correction_factor_note: string;
 }
 
-export function useProducts() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar produtos:", error);
-      toast.error("Erro ao carregar produtos");
-    } else {
-      setItems(data as Product[]);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+ export function useProducts() {
+   const queryClient = useQueryClient();
+ 
+   const { data: items = [], isLoading: loading, refetch: fetchProducts } = useQuery({
+     queryKey: ["products"],
+     queryFn: async () => {
+       const { data, error } = await supabase
+         .from("products")
+         .select("*")
+         .order("created_at", { ascending: false });
+ 
+       if (error) throw error;
+       return data as Product[];
+     },
+   });
 
   const buildPayload = (form: ProductForm) => ({
     price_per_kg: form.price_per_kg ?? 0,
@@ -77,70 +69,105 @@ export function useProducts() {
     correction_factor_note: form.correction_factor_enabled ? (form.correction_factor_note || null) : null,
   });
 
-  const addProduct = async (form: ProductForm) => {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id || null;
-
-    const { error } = await supabase.from("products").insert({
-      name: form.name,
-      category: form.category,
-      unit: form.unit,
-      min_quantity: form.min_quantity,
-      supplier_id: form.supplier_id,
-      alert_days: form.alert_days,
-      created_by: userId,
-      ...buildPayload(form),
-    } as never);
-
-    if (error) {
-      console.error("Erro ao adicionar produto:", error);
-      toast.error("Erro ao adicionar produto");
-      return false;
-    }
-
-    toast.success("Produto adicionado!");
-    await fetchProducts();
-    return true;
-  };
-
-  const updateProduct = async (id: string, form: ProductForm) => {
-    const { error } = await supabase
-      .from("products")
-      .update({
-        name: form.name,
-        category: form.category,
-        quantity: form.quantity,
-        unit: form.unit,
-        min_quantity: form.min_quantity,
-        price: form.price,
-        expiry_date: new Date(form.expiry_date).toISOString(),
-        supplier_id: form.supplier_id,
-        alert_days: form.alert_days,
-        lote: form.lote,
-        ...buildPayload(form),
-      } as never)
-      .eq("id", id);
-    if (error) {
-      console.error("Erro ao atualizar produto:", error);
-      toast.error("Erro ao atualizar produto");
-      return false;
-    }
-    toast.success("Produto atualizado!");
-    await fetchProducts();
-    return true;
-  };
-
-  const deleteProduct = async (id: string) => {
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) {
-      console.error("Erro ao remover produto:", error);
-      toast.error("Erro ao remover produto");
-      return false;
-    }
-    toast.success("Produto removido!");
-    await fetchProducts();
-    return true;
-  };
-
-  return { items, loading, addProduct, updateProduct, deleteProduct, fetchProducts };
+   const addMutation = useMutation({
+     mutationFn: async (form: ProductForm) => {
+       const { data: userData } = await supabase.auth.getUser();
+       const userId = userData?.user?.id || null;
+ 
+       const { error } = await supabase.from("products").insert({
+         name: form.name,
+         category: form.category,
+         unit: form.unit,
+         min_quantity: form.min_quantity,
+         supplier_id: form.supplier_id,
+         alert_days: form.alert_days,
+         created_by: userId,
+         ...buildPayload(form),
+       } as never);
+ 
+       if (error) throw error;
+     },
+     onSuccess: () => {
+       toast.success("Produto adicionado!");
+       queryClient.invalidateQueries({ queryKey: ["products"] });
+     },
+     onError: (error) => {
+       console.error("Erro ao adicionar produto:", error);
+       toast.error("Erro ao adicionar produto");
+     },
+   });
+ 
+   const updateMutation = useMutation({
+     mutationFn: async ({ id, form }: { id: string; form: ProductForm }) => {
+       const { error } = await supabase
+         .from("products")
+         .update({
+           name: form.name,
+           category: form.category,
+           quantity: form.quantity,
+           unit: form.unit,
+           min_quantity: form.min_quantity,
+           price: form.price,
+           expiry_date: new Date(form.expiry_date).toISOString(),
+           supplier_id: form.supplier_id,
+           alert_days: form.alert_days,
+           lote: form.lote,
+           ...buildPayload(form),
+         } as never)
+         .eq("id", id);
+       if (error) throw error;
+     },
+     onSuccess: () => {
+       toast.success("Produto atualizado!");
+       queryClient.invalidateQueries({ queryKey: ["products"] });
+     },
+     onError: (error) => {
+       console.error("Erro ao atualizar produto:", error);
+       toast.error("Erro ao atualizar produto");
+     },
+   });
+ 
+   const deleteMutation = useMutation({
+     mutationFn: async (id: string) => {
+       const { error } = await supabase.from("products").delete().eq("id", id);
+       if (error) throw error;
+     },
+     onSuccess: () => {
+       toast.success("Produto removido!");
+       queryClient.invalidateQueries({ queryKey: ["products"] });
+     },
+     onError: (error) => {
+       console.error("Erro ao remover produto:", error);
+       toast.error("Erro ao remover produto");
+     },
+   });
+ 
+   const addProduct = async (form: ProductForm) => {
+     try {
+       await addMutation.mutateAsync(form);
+       return true;
+     } catch {
+       return false;
+     }
+   };
+ 
+   const updateProduct = async (id: string, form: ProductForm) => {
+     try {
+       await updateMutation.mutateAsync({ id, form });
+       return true;
+     } catch {
+       return false;
+     }
+   };
+ 
+   const deleteProduct = async (id: string) => {
+     try {
+       await deleteMutation.mutateAsync(id);
+       return true;
+     } catch {
+       return false;
+     }
+   };
+ 
+   return { items, loading, addProduct, updateProduct, deleteProduct, fetchProducts };
 }

@@ -1,9 +1,10 @@
-import { useProducts } from "@/hooks/useProducts";
-import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
-import { useDishSales } from "@/hooks/useDishSales";
-import { NaoConformidades } from "@/components/NaoConformidades";
-import { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+ import { useProducts } from "@/hooks/useProducts";
+ import { useRecipes, RecipeIngredient } from "@/hooks/useRecipes";
+ import { useDishSales } from "@/hooks/useDishSales";
+ import { NaoConformidades } from "@/components/NaoConformidades";
+ import { useMemo } from "react";
+ import { supabase } from "@/integrations/supabase/client";
+ import { useQuery } from "@tanstack/react-query";
 import { Package, UtensilsCrossed, ChefHat, BarChart3, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,28 +17,23 @@ import { ptBR } from "date-fns/locale";
 
 
 const Dashboard = () => {
-  const { items, loading } = useProducts();
-  const { recipes, loading: recipesLoading } = useRecipes();
-  const { sales, loading: salesLoading } = useDishSales();
-  const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
-  const [loadingIngredients, setLoadingIngredients] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      setLoadingIngredients(true);
-      const { data, error } = await supabase.from("recipe_ingredients").select("*");
-      if (!error && data) {
-        const grouped: Record<string, RecipeIngredient[]> = {};
-        for (const ing of data as RecipeIngredient[]) {
-          if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
-          grouped[ing.recipe_id].push(ing);
-        }
-        setAllIngredients(grouped);
-      }
-      setLoadingIngredients(false);
-    };
-    load();
-  }, []);
+   const { items, loading: productsLoading } = useProducts();
+   const { recipes, loading: recipesLoading } = useRecipes();
+   const { sales, loading: salesLoading } = useDishSales();
+ 
+   const { data: allIngredients = {}, isLoading: loadingIngredients } = useQuery({
+     queryKey: ["recipe_ingredients_grouped"],
+     queryFn: async () => {
+       const { data, error } = await supabase.from("recipe_ingredients").select("*");
+       if (error) throw error;
+       const grouped: Record<string, RecipeIngredient[]> = {};
+       for (const ing of data as RecipeIngredient[]) {
+         if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
+         grouped[ing.recipe_id].push(ing);
+       }
+       return grouped;
+     },
+   });
 
   const totalItems = items.length;
 
@@ -192,10 +188,10 @@ const Dashboard = () => {
               <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", stat.bg)}>
                 <stat.icon className={cn("h-6 w-6", stat.color)} />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-                {loading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
-              </div>
+               <div className="min-w-0 flex-1">
+                 <p className="text-sm text-muted-foreground truncate">{stat.title}</p>
+                 {productsLoading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold truncate">{stat.value}</p>}
+               </div>
             </CardContent>
           </Card>
         ))}
