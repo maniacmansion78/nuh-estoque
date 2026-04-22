@@ -22,105 +22,111 @@ const Dashboard = () => {
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoadingIngredients(true);
-      const { data, error } = await supabase.from("recipe_ingredients").select("*");
-      if (!error && data) {
-        const grouped: Record<string, RecipeIngredient[]> = {};
-        for (const ing of data as RecipeIngredient[]) {
-          if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
-          grouped[ing.recipe_id].push(ing);
-        }
-        setAllIngredients(grouped);
-      }
-      setLoadingIngredients(false);
-    };
-    load();
-  }, []);
+   useEffect(() => {
+     const controller = new AbortController();
+     const load = async () => {
+       setLoadingIngredients(true);
+       try {
+         const { data, error } = await supabase
+           .from("recipe_ingredients")
+           .select("*")
+           .abortSignal(controller.signal);
+ 
+         if (!error && data) {
+           const grouped: Record<string, RecipeIngredient[]> = {};
+           for (const ing of data as RecipeIngredient[]) {
+             if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
+             grouped[ing.recipe_id].push(ing);
+           }
+           setAllIngredients(grouped);
+         }
+       } catch (err: any) {
+         if (err.name !== 'AbortError') console.error(err);
+       } finally {
+         setLoadingIngredients(false);
+       }
+     };
+     load();
+     return () => controller.abort();
+   }, []);
 
-  const totalItems = items.length;
-
-  // Use Brasília timezone (America/Sao_Paulo) for "today" reference
-  const nowBrasilia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-  const todayStr = `${nowBrasilia.getFullYear()}-${String(nowBrasilia.getMonth() + 1).padStart(2, "0")}-${String(nowBrasilia.getDate()).padStart(2, "0")}`;
-
-  // Helper: compute date strings for period starts using simple arithmetic to avoid timezone drift
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dateToStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-  // Week start (Monday) — getDay: 0=Sun..6=Sat
-  const dayOfWeek = nowBrasilia.getDay();
-  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const weekStart = new Date(nowBrasilia);
-  weekStart.setDate(weekStart.getDate() - diffToMonday);
-  const weekStartStr = dateToStr(weekStart);
-
-  // Biweekly (14 days back)
-  const biweeklyStart = new Date(nowBrasilia);
-  biweeklyStart.setDate(biweeklyStart.getDate() - 14);
-  const biweeklyStartStr = dateToStr(biweeklyStart);
-
-  // Month start
-  const monthStartStr = `${nowBrasilia.getFullYear()}-${pad(nowBrasilia.getMonth() + 1)}-01`;
-
-  // Keep dashboard periods aligned with the stored sale date format (yyyy-MM-dd)
-  const filterByDateRange = (startDate: string, endDate: string) =>
-    sales.filter((sale) => sale.date >= startDate && sale.date <= endDate);
-
-  const todaySales = sales.filter((sale) => sale.date === todayStr);
-  const weekSales = filterByDateRange(weekStartStr, todayStr);
-  const biweeklySales = filterByDateRange(biweeklyStartStr, todayStr);
-  const monthSales = filterByDateRange(monthStartStr, todayStr);
-
-  const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
-
-  const statsCards = [
-    { title: "Pratos Vendidos (Mês)", value: sumQty(monthSales), icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
-    { title: "Fichas Técnicas", value: recipes.length, icon: ChefHat, color: "text-primary", bg: "bg-accent" },
-    { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
-  ];
-
-  // Build report: qty per recipe for each period
-  const buildByRecipe = (filtered: typeof sales) => {
-    const map: Record<string, { name: string; qty: number }> = {};
-    for (const sale of filtered) {
-      if (!map[sale.recipe_id]) {
-        map[sale.recipe_id] = {
-          name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
-          qty: 0,
-        };
-      }
-      map[sale.recipe_id].qty += sale.quantity;
-    }
-    return Object.entries(map).sort((a, b) => b[1].qty - a[1].qty);
-  };
-
-  // Build ingredient consumption for a period
-  const buildIngredientConsumption = (filtered: typeof sales) => {
-    const map: Record<string, { name: string; unit: string; total: number }> = {};
-    for (const sale of filtered) {
-      const ings = allIngredients[sale.recipe_id] || [];
-      for (const ing of ings) {
-        const key = ing.ingredient_name;
-        if (!map[key]) {
-          map[key] = { name: ing.ingredient_name, unit: ing.unit, total: 0 };
-        }
-        map[key].total += ing.gross_weight * sale.quantity;
-      }
-    }
-    return Object.values(map)
-      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
-      .map((i) => ({ ...i, total: Math.round(i.total * 100) / 100 }));
-  };
-
-  const reportPeriods = useMemo(() => [
-    { label: "Hoje", dishes: buildByRecipe(todaySales), ingredients: buildIngredientConsumption(todaySales), total: sumQty(todaySales) },
-    { label: "Semana", dishes: buildByRecipe(weekSales), ingredients: buildIngredientConsumption(weekSales), total: sumQty(weekSales) },
-    { label: "Quinzena", dishes: buildByRecipe(biweeklySales), ingredients: buildIngredientConsumption(biweeklySales), total: sumQty(biweeklySales) },
-    { label: format(nowBrasilia, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [sales, recipes, allIngredients]);
+   const nowBrasilia = useMemo(() => new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })), []);
+   const todayStr = useMemo(() => `${nowBrasilia.getFullYear()}-${String(nowBrasilia.getMonth() + 1).padStart(2, "0")}-${String(nowBrasilia.getDate()).padStart(2, "0")}`, [nowBrasilia]);
+ 
+   const reportPeriods = useMemo(() => {
+     const pad = (n: number) => String(n).padStart(2, "0");
+     const dateToStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+ 
+     const dayOfWeek = nowBrasilia.getDay();
+     const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+     const weekStart = new Date(nowBrasilia);
+     weekStart.setDate(weekStart.getDate() - diffToMonday);
+     const weekStartStr = dateToStr(weekStart);
+ 
+     const biweeklyStart = new Date(nowBrasilia);
+     biweeklyStart.setDate(biweeklyStart.getDate() - 14);
+     const biweeklyStartStr = dateToStr(biweeklyStart);
+ 
+     const monthStartStr = `${nowBrasilia.getFullYear()}-${pad(nowBrasilia.getMonth() + 1)}-01`;
+ 
+     const filterByDateRange = (startDate: string, endDate: string) =>
+       sales.filter((sale) => sale.date >= startDate && sale.date <= endDate);
+ 
+     const todaySales = sales.filter((sale) => sale.date === todayStr);
+     const weekSales = filterByDateRange(weekStartStr, todayStr);
+     const biweeklySales = filterByDateRange(biweeklyStartStr, todayStr);
+     const monthSales = filterByDateRange(monthStartStr, todayStr);
+ 
+     const sumQty = (arr: typeof sales) => arr.reduce((sum, sale) => sum + sale.quantity, 0);
+ 
+     const buildByRecipe = (filtered: typeof sales) => {
+       const map: Record<string, { name: string; qty: number }> = {};
+       for (const sale of filtered) {
+         if (!map[sale.recipe_id]) {
+           map[sale.recipe_id] = {
+             name: recipes.find((r) => r.id === sale.recipe_id)?.name || "—",
+             qty: 0,
+           };
+         }
+         map[sale.recipe_id].qty += sale.quantity;
+       }
+       return Object.entries(map).sort((a, b) => b[1].qty - a[1].qty);
+     };
+ 
+     const buildIngredientConsumption = (filtered: typeof sales) => {
+       const map: Record<string, { name: string; unit: string; total: number }> = {};
+       for (const sale of filtered) {
+         const ings = allIngredients[sale.recipe_id] || [];
+         for (const ing of ings) {
+           const key = ing.ingredient_name;
+           if (!map[key]) {
+             map[key] = { name: ing.ingredient_name, unit: ing.unit, total: 0 };
+           }
+           map[key].total += ing.gross_weight * sale.quantity;
+         }
+       }
+       return Object.values(map)
+         .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+         .map((i) => ({ ...i, total: Math.round(i.total * 100) / 100 }));
+     };
+ 
+     return [
+       { label: "Hoje", dishes: buildByRecipe(todaySales), ingredients: buildIngredientConsumption(todaySales), total: sumQty(todaySales) },
+       { label: "Semana", dishes: buildByRecipe(weekSales), ingredients: buildIngredientConsumption(weekSales), total: sumQty(weekSales) },
+       { label: "Quinzena", dishes: buildByRecipe(biweeklySales), ingredients: buildIngredientConsumption(biweeklySales), total: sumQty(biweeklySales) },
+       { label: format(nowBrasilia, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
+     ];
+   }, [sales, recipes, allIngredients, nowBrasilia, todayStr]);
+ 
+   const statsCards = useMemo(() => {
+     const totalItems = items.length;
+     const monthTotal = reportPeriods[3]?.total || 0;
+     return [
+       { title: "Pratos Vendidos (Mês)", value: monthTotal, icon: UtensilsCrossed, color: "text-primary", bg: "bg-accent" },
+       { title: "Fichas Técnicas", value: recipes.length, icon: ChefHat, color: "text-primary", bg: "bg-accent" },
+       { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
+     ];
+   }, [items.length, recipes.length, reportPeriods]);
 
   // Build daily logs: group sales by date, showing each dish sold that day
   const dailyLogs = useMemo(() => {

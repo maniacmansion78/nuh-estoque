@@ -38,25 +38,34 @@ const RelatorioMovimentacoes = () => {
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
 
-  useEffect(() => {
-    const loadIngredients = async () => {
-      setLoadingIngredients(true);
-      const { data, error } = await supabase.from("recipe_ingredients").select("*");
-
-      if (!error && data) {
-        const grouped: Record<string, RecipeIngredient[]> = {};
-        for (const ingredient of data as RecipeIngredient[]) {
-          if (!grouped[ingredient.recipe_id]) grouped[ingredient.recipe_id] = [];
-          grouped[ingredient.recipe_id].push(ingredient);
-        }
-        setAllIngredients(grouped);
-      }
-
-      setLoadingIngredients(false);
-    };
-
-    loadIngredients();
-  }, []);
+   useEffect(() => {
+     const controller = new AbortController();
+     const loadIngredients = async () => {
+       setLoadingIngredients(true);
+       try {
+         const { data, error } = await supabase
+           .from("recipe_ingredients")
+           .select("*")
+           .abortSignal(controller.signal);
+ 
+         if (!error && data) {
+           const grouped: Record<string, RecipeIngredient[]> = {};
+           for (const ingredient of data as RecipeIngredient[]) {
+             if (!grouped[ingredient.recipe_id]) grouped[ingredient.recipe_id] = [];
+             grouped[ingredient.recipe_id].push(ingredient);
+           }
+           setAllIngredients(grouped);
+         }
+       } catch (err: any) {
+         if (err.name !== 'AbortError') console.error(err);
+       } finally {
+         setLoadingIngredients(false);
+       }
+     };
+ 
+     loadIngredients();
+     return () => controller.abort();
+   }, []);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+ import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Search,
@@ -26,7 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
+ import { useProducts, type Product, type ProductForm } from "@/hooks/useProducts";
+ import { useDebounce } from "@/hooks/useDebounce";
 
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -51,29 +52,39 @@ const emptyForm: ProductForm = {
 
 const Produtos = () => {
   const [search, setSearch] = useState("");
+   const debouncedSearch = useDebounce(search, 300);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Product | null>(null);
   const [deletingItem, setDeletingItem] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+   const [currentPage, setCurrentPage] = useState(1);
+   const itemsPerPage = 50;
 
   const { isAdmin } = useAuth();
   const { items, loading, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const filtered = useMemo(() => {
     return items
-      .filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
+       .filter((i) => i.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  }, [items, search]);
+   }, [items, debouncedSearch]);
 
-  const openAdd = () => {
+   const paginatedItems = useMemo(() => {
+     const startIndex = (currentPage - 1) * itemsPerPage;
+     return filtered.slice(startIndex, startIndex + itemsPerPage);
+   }, [filtered, currentPage]);
+
+   const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+   const openAdd = useCallback(() => {
     setEditingItem(null);
     setForm({ ...emptyForm, expiry_date: new Date().toISOString().split("T")[0] });
     setDialogOpen(true);
-  };
+   }, []);
 
-  const openEdit = (item: Product) => {
+   const openEdit = useCallback((item: Product) => {
     setEditingItem(item);
     setForm({
       name: item.name,
@@ -94,7 +105,7 @@ const Produtos = () => {
       correction_factor_note: item.correction_factor_note ?? "",
     });
     setDialogOpen(true);
-  };
+   }, []);
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -154,9 +165,17 @@ const Produtos = () => {
         </div>
       </div>
 
-      <div className="relative">
+       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Buscar produto..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+         <Input 
+           placeholder="Buscar produto..." 
+           className="pl-10" 
+           value={search} 
+           onChange={(e) => {
+             setSearch(e.target.value);
+             setCurrentPage(1);
+           }} 
+         />
       </div>
 
       {filtered.length === 0 ? (
@@ -168,8 +187,9 @@ const Produtos = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="w-full space-y-2">
-          {filtered.map((item) => (
+         <div className="w-full space-y-4">
+           <div className="space-y-2">
+             {paginatedItems.map((item) => (
             <Card key={item.id} className="w-full max-w-none group transition-shadow hover:shadow-md">
               <CardContent className="px-3 py-2 sm:px-4 sm:py-2.5">
                 <div className="flex items-center justify-between gap-2">
@@ -189,7 +209,32 @@ const Produtos = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+           </div>
+
+           {totalPages > 1 && (
+             <div className="flex items-center justify-center gap-2 py-4">
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                 disabled={currentPage === 1}
+               >
+                 Anterior
+               </Button>
+               <span className="text-sm text-muted-foreground">
+                 Página {currentPage} de {totalPages}
+               </span>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                 disabled={currentPage === totalPages}
+               >
+                 Próxima
+               </Button>
+             </div>
+           )}
+         </div>
       )}
 
       {/* Add/Edit Product Dialog */}

@@ -56,7 +56,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-          <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
+           <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" loading="lazy" width="36" height="36" />
           <div>
             <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">NUH</h1>
             <p className="text-[8px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
@@ -122,7 +122,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2 lg:hidden">
-            <img src={logoNuh} alt="NUH" className="h-7 w-7 rounded-md object-cover" />
+             <img src={logoNuh} alt="NUH" className="h-7 w-7 rounded-md object-cover" loading="lazy" width="28" height="28" />
             <span className="font-bold">NUH</span>
           </div>
           <div className="flex-1" />

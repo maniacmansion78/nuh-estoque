@@ -43,20 +43,26 @@ export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRecipes = useCallback(async () => {
+   const fetchRecipes = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("recipes")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error("Erro ao buscar receitas:", error);
-      toast.error("Erro ao carregar receitas");
-    } else {
-      setRecipes(data as Recipe[]);
-    }
-    setLoading(false);
+     try {
+       const { data, error } = await supabase
+         .from("recipes")
+         .select("*")
+         .order("name")
+         .abortSignal(signal || new AbortController().signal);
+ 
+       if (error) {
+         if (error.code !== 'ABORT_ERROR') {
+           console.error("Erro ao buscar receitas:", error);
+           toast.error("Erro ao carregar receitas");
+         }
+       } else {
+         setRecipes(data as Recipe[]);
+       }
+     } finally {
+       setLoading(false);
+     }
   }, []);
 
   const fetchRecipeWithIngredients = useCallback(async (recipeId: string) => {
@@ -216,7 +222,9 @@ export function useRecipes() {
   };
 
   useEffect(() => {
-    fetchRecipes();
+     const controller = new AbortController();
+     fetchRecipes(controller.signal);
+     return () => controller.abort();
   }, [fetchRecipes]);
 
   return {

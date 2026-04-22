@@ -48,7 +48,7 @@ const Login = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="flex flex-col items-center gap-3 pb-2">
-          <img src={logoNuh} alt="NUH Logo" className="h-20 w-20 rounded-full object-cover" />
+           <img src={logoNuh} alt="NUH Logo" className="h-20 w-20 rounded-full object-cover" loading="lazy" width="80" height="80" />
           <div className="text-center">
             <h1 className="text-2xl font-bold">NUH</h1>
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
