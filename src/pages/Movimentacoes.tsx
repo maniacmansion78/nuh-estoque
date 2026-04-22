@@ -46,9 +46,11 @@ interface BatchInfo {
 }
 
 const Movimentacoes = () => {
-  const { items: dbProducts, loading: productsLoading, fetchProducts } = useProducts();
-  const { items: dbMovements, loading: movementsLoading, addMovement, updateMovement, deleteMovement } = useMovements();
-  const { isAdmin, movementPermission } = useAuth();
+   const { items: dbProducts, loading: productsLoading, fetchProducts } = useProducts();
+   const { items: dbMovements, loading: movementsLoading, addMovement, updateMovement, deleteMovement } = useMovements();
+   const { isAdmin, movementPermission } = useAuth();
+   const [currentPage, setCurrentPage] = useState(1);
+   const productsPerPage = 10;
 
   const allProducts = useMemo(() => {
     return dbProducts.map((p) => ({
@@ -107,17 +109,22 @@ const Movimentacoes = () => {
   }, [form.product_id, form.type, dbMovements]);
 
   // Group movements by product, newest first
-  const groupedByProduct = useMemo(() => {
-    const groups: Record<string, typeof dbMovements> = {};
-    for (const mov of dbMovements) {
-      if (!groups[mov.product_id]) groups[mov.product_id] = [];
-      groups[mov.product_id].push(mov);
-    }
-    for (const key of Object.keys(groups)) {
-      groups[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }
-    return groups;
-  }, [dbMovements]);
+   const groupedByProduct = useMemo(() => {
+     const groups: Record<string, typeof dbMovements> = {};
+     for (const mov of dbMovements) {
+       if (!groups[mov.product_id]) groups[mov.product_id] = [];
+       groups[mov.product_id].push(mov);
+     }
+     return groups;
+   }, [dbMovements]);
+ 
+   const paginatedProductIds = useMemo(() => {
+     const ids = Object.keys(groupedByProduct);
+     const startIndex = (currentPage - 1) * productsPerPage;
+     return ids.slice(startIndex, startIndex + productsPerPage);
+   }, [groupedByProduct, currentPage]);
+ 
+   const totalPages = Math.ceil(Object.keys(groupedByProduct).length / productsPerPage);
 
   const normalizeImportedName = (value: string) =>
     value
@@ -392,7 +399,7 @@ const Movimentacoes = () => {
         </div>
       </div>
 
-      {dbMovements.length === 0 ? (
+       {Object.keys(groupedByProduct).length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <ArrowLeftRight className="mb-4 h-16 w-16 text-muted-foreground/30" />
@@ -400,15 +407,18 @@ const Movimentacoes = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="w-full space-y-6">
-          {Object.entries(groupedByProduct).map(([productId, movs]) => {
-            const ing = allProducts.find((i) => i.id === productId);
-            if (!ing) return null;
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const newEntries = movs.filter((m) => new Date(m.date) >= today);
-            const previousEntries = movs.filter((m) => new Date(m.date) < today);
+         <div className="w-full space-y-8">
+           <div className="space-y-6">
+             {paginatedProductIds.map((productId) => {
+               const movs = groupedByProduct[productId];
+               const ing = allProducts.find((i) => i.id === productId);
+               if (!ing) return null;
+ 
+               const sortedMovs = [...movs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+               const today = new Date();
+               today.setHours(0, 0, 0, 0);
+               const newEntries = sortedMovs.filter((m) => new Date(m.date) >= today);
+               const previousEntries = sortedMovs.filter((m) => new Date(m.date) < today).slice(0, 10);
 
             return (
               <div key={productId}>
@@ -491,9 +501,35 @@ const Movimentacoes = () => {
                   ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
+                 </div>
+               );
+             })}
+           </div>
+ 
+           {totalPages > 1 && (
+             <div className="flex items-center justify-center gap-2 py-4">
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                 disabled={currentPage === 1}
+               >
+                 Anterior
+               </Button>
+               <span className="text-sm text-muted-foreground">
+                 Página {currentPage} de {totalPages}
+               </span>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                 disabled={currentPage === totalPages}
+               >
+                 Próxima
+               </Button>
+             </div>
+           )}
+         </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
