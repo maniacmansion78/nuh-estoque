@@ -196,8 +196,9 @@ const Produtos = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-      )}
+           </div>
+         </div>
+       )}
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
