@@ -465,45 +465,43 @@ const Movimentacoes = () => {
                     </Card>
                   ))}
 
-                  {previousEntries.map((mov) => (
-                    <Card key={mov.id} className="w-full">
-                      <CardContent className="px-3 py-2">
-                        <div className="flex items-center justify-between gap-1.5 mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <Badge
-                              variant={mov.type === "in" ? "default" : "destructive"}
-                              className={cn("gap-0.5 text-[9px] px-1 py-0.5 sm:text-[10px] sm:px-1.5", mov.type === "in" && "bg-success/10 text-success")}
-                            >
-                              {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Ent</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saí</>}
-                            </Badge>
-                            <span className="text-[9px] text-muted-foreground sm:text-[10px]">
-                              {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                          {isAdmin && (
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={() => openEditDialog(mov)}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive" onClick={() => deleteMovement(mov.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
-                          <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
-                          <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
-                          <span><span className="text-muted-foreground">Lote:</span> <strong>{mov.lote || "—"}</strong></span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                   {previousEntries.map((mov) => (
+                     <Card key={mov.id} className="w-full">
+                       <CardContent className="px-3 py-2">
+                         <div className="flex items-center justify-between gap-1.5 mb-1">
+                           <div className="flex items-center gap-1.5">
+                             <Badge
+                               className={cn("gap-0.5 text-[9px] px-1 py-0.5 sm:text-[10px] sm:px-1.5", mov.type === "in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}
+                             >
+                               {mov.type === "in" ? <><ArrowUpRight className="h-2.5 w-2.5" />Ent</> : <><ArrowDownRight className="h-2.5 w-2.5" />Saí</>}
+                             </Badge>
+                             <span className="text-[9px] text-muted-foreground sm:text-[10px]">
+                               {format(new Date(mov.date), "dd/MM HH:mm", { locale: ptBR })}
+                             </span>
+                           </div>
+                           {isAdmin && (
+                             <div className="flex items-center gap-0.5 shrink-0">
+                               <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={() => openEditDialog(mov)}>
+                                 <Pencil className="h-3 w-3" />
+                               </Button>
+                               <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive" onClick={() => deleteMovement(mov.id)}>
+                                 <Trash2 className="h-3 w-3" />
+                               </Button>
+                             </div>
+                           )}
+                         </div>
+                         <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs">
+                           <span><span className="text-muted-foreground">Qtd:</span> <strong>{mov.quantity} {ing.unit}</strong></span>
+                           <span><span className="text-muted-foreground">Val:</span> <strong>{mov.expiry_date ? format(new Date(mov.expiry_date), "dd/MM/yy", { locale: ptBR }) : "—"}</strong></span>
+                           <span><span className="text-muted-foreground">Lote:</span> <strong>{mov.lote || "—"}</strong></span>
+                         </div>
+                       </CardContent>
+                     </Card>
+                   ))}
                  </div>
-               );
-             })}
+               </div>
+             );
+           })}
            </div>
  
            {totalPages > 1 && (
