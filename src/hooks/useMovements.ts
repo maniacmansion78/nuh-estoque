@@ -18,24 +18,32 @@ export function useMovements() {
   const [items, setItems] = useState<DbMovement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchMovements = useCallback(async () => {
+   const fetchMovements = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("movements")
-      .select("*")
-      .order("date", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar movimentações:", error);
-      toast.error("Erro ao carregar movimentações");
-    } else {
-      setItems(data as DbMovement[]);
-    }
-    setLoading(false);
+     try {
+       const { data, error } = await supabase
+         .from("movements")
+         .select("*")
+         .order("date", { ascending: false })
+         .abortSignal(signal || new AbortController().signal);
+ 
+       if (error) {
+         if (error.code !== 'ABORT_ERROR') {
+           console.error("Erro ao buscar movimentações:", error);
+           toast.error("Erro ao carregar movimentações");
+         }
+       } else {
+         setItems(data as DbMovement[]);
+       }
+     } finally {
+       setLoading(false);
+     }
   }, []);
 
   useEffect(() => {
-    fetchMovements();
+     const controller = new AbortController();
+     fetchMovements(controller.signal);
+     return () => controller.abort();
   }, [fetchMovements]);
 
   const addMovement = async (movement: {
