@@ -1,4 +1,4 @@
- import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -11,80 +11,92 @@ export interface DishSale {
   created_at: string;
 }
 
- export function useDishSales() {
-   const queryClient = useQueryClient();
- 
-   const { data: sales = [], isLoading: loading, refetch: fetchSales } = useQuery({
-     queryKey: ["dish_sales"],
-     queryFn: async () => {
-       const { data, error } = await supabase
-         .from("dish_sales")
-         .select("*")
-         .order("date", { ascending: false });
- 
-       if (error) throw error;
-       return data as DishSale[];
-     },
-   });
+export function useDishSales() {
+  const [sales, setSales] = useState<DishSale[]>([]);
+  const [loading, setLoading] = useState(true);
 
-   const addMutation = useMutation({
-     mutationFn: async ({ recipeId, quantity, date }: { recipeId: string; quantity: number; date?: string }) => {
-       const { data: userData } = await supabase.auth.getUser();
-       if (!userData?.user?.id) throw new Error("Not logged in");
- 
-       const saleDate = date || (() => { const n = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; })();
- 
-       const { error } = await supabase.from("dish_sales").insert({
-         recipe_id: recipeId,
-         quantity,
-         date: saleDate,
-         user_id: userData.user.id,
-       });
- 
-       if (error) throw error;
-     },
-     onSuccess: () => {
-       toast.success("Venda registrada!");
-       queryClient.invalidateQueries({ queryKey: ["dish_sales"] });
-     },
-     onError: (error) => {
-       console.error("Erro ao registrar venda:", error);
-       toast.error("Erro ao registrar venda");
-     },
-   });
- 
-   const deleteMutation = useMutation({
-     mutationFn: async (id: string) => {
-       const { error } = await supabase.from("dish_sales").delete().eq("id", id);
-       if (error) throw error;
-     },
-     onSuccess: () => {
-       toast.success("Venda removida!");
-       queryClient.invalidateQueries({ queryKey: ["dish_sales"] });
-     },
-     onError: (error) => {
-       console.error("Erro ao remover venda:", error);
-       toast.error("Erro ao remover venda");
-     },
-   });
- 
-   const addSale = async (recipeId: string, quantity: number, date?: string) => {
-     try {
-       await addMutation.mutateAsync({ recipeId, quantity, date });
-       return true;
-     } catch {
-       return false;
-     }
-   };
- 
-   const deleteSale = async (id: string) => {
-     try {
-       await deleteMutation.mutateAsync(id);
-       return true;
-     } catch {
-       return false;
-     }
-   };
- 
-   return { sales, loading, addSale, deleteSale, fetchSales };
+  const fetchSales = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("dish_sales")
+      .select("*")
+      .order("date", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar vendas:", error);
+      toast.error("Erro ao carregar vendas");
+    } else {
+      setSales(data as DishSale[]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchSales();
+  }, [fetchSales]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("dish_sales-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "dish_sales" },
+        () => {
+          fetchSales();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSales]);
+
+  const addSale = async (recipeId: string, quantity: number, date?: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user?.id) {
+      toast.error("Você precisa estar logado");
+      return false;
+    }
+
+    const saleDate = date || (() => { const n = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; })();
+
+    const { data, error } = await supabase
+      .from("dish_sales")
+      .insert({
+        recipe_id: recipeId,
+        quantity,
+        date: saleDate,
+        user_id: userData.user.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Erro ao registrar venda:", error);
+      toast.error("Erro ao registrar venda");
+      return false;
+    }
+
+    if (data) {
+      setSales((prev) => [data as DishSale, ...prev]);
+    }
+
+    toast.success("Venda registrada!");
+    return true;
+  };
+
+  const deleteSale = async (id: string) => {
+    const { error } = await supabase.from("dish_sales").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao remover venda:", error);
+      toast.error("Erro ao remover venda");
+      return false;
+    }
+    toast.success("Venda removida!");
+    return true;
+  };
+
+  return { sales, loading, addSale, deleteSale, fetchSales };
 }

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,130 +15,115 @@ export interface DbMovement {
 }
 
 export function useMovements() {
-  const queryClient = useQueryClient();
+  const [items, setItems] = useState<DbMovement[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data: items = [], isLoading: loading, refetch: fetchMovements } = useQuery({
-    queryKey: ["movements"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("movements")
-        .select("*")
-        .order("date", { ascending: false });
+  const fetchMovements = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("movements")
+      .select("*")
+      .order("date", { ascending: false });
 
-      if (error) throw error;
-      return data as DbMovement[];
-    },
-  });
+    if (error) {
+      console.error("Erro ao buscar movimentações:", error);
+      toast.error("Erro ao carregar movimentações");
+    } else {
+      setItems(data as DbMovement[]);
+    }
+    setLoading(false);
+  }, []);
 
-  const addMutation = useMutation({
-    mutationFn: async (movement: {
-      product_id: string;
-      type: "in" | "out";
-      quantity: number;
-      expiry_date?: string | null;
-      lote?: string;
-    }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user?.id) throw new Error("Not logged in");
+  useEffect(() => {
+    fetchMovements();
+  }, [fetchMovements]);
 
-      const { error } = await supabase.from("movements").insert({
-        product_id: movement.product_id,
-        type: movement.type,
-        quantity: movement.quantity,
-        expiry_date: movement.expiry_date || null,
-        lote: movement.lote || "",
-        user_id: userData.user.id,
-      });
+  const addMovement = async (movement: {
+    product_id: string;
+    type: "in" | "out";
+    quantity: number;
+    expiry_date?: string | null;
+    lote?: string;
+  }) => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user?.id) {
+      toast.error("Você precisa estar logado");
+      return false;
+    }
 
-      if (error) throw error;
+    const { error } = await supabase.from("movements").insert({
+      product_id: movement.product_id,
+      type: movement.type,
+      quantity: movement.quantity,
+      expiry_date: movement.expiry_date || null,
+      lote: movement.lote || "",
+      user_id: userData.user.id,
+    });
 
-      // Update product quantity
-      const { data: product } = await supabase
-        .from("products")
-        .select("quantity")
-        .eq("id", movement.product_id)
-        .single();
+    if (error) {
+      console.error("Erro ao registrar movimentação:", error);
+      toast.error("Erro ao registrar movimentação");
+      return false;
+    }
 
-      if (product) {
-        const currentQty = Number(product.quantity);
-        const newQty = movement.type === "in"
-          ? Math.round((currentQty + movement.quantity) * 100) / 100
-          : Math.round((currentQty - movement.quantity) * 100) / 100;
+    // Update product quantity
+    const { data: product } = await supabase
+      .from("products")
+      .select("quantity")
+      .eq("id", movement.product_id)
+      .single();
 
+    if (product) {
+      const currentQty = Number(product.quantity);
+      const newQty = movement.type === "in"
+        ? Math.round((currentQty + movement.quantity) * 100) / 100
+        : Math.round((currentQty - movement.quantity) * 100) / 100;
+
+      {
         const finalQty = Math.max(0, newQty);
         const { error: updError } = await supabase
           .from("products")
           .update({ quantity: finalQty })
           .eq("id", movement.product_id);
 
-        if (updError) console.error("Erro ao atualizar quantidade:", updError);
+        if (updError) {
+          console.error("Erro ao atualizar quantidade:", updError);
+        }
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["movements"] });
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-    onError: (error) => {
-      console.error("Erro ao registrar movimentação:", error);
-      toast.error("Erro ao registrar movimentação");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      const { error } = await supabase.from("movements").update(updates).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Movimentação atualizada!");
-      queryClient.invalidateQueries({ queryKey: ["movements"] });
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar movimentação:", error);
-      toast.error("Erro ao atualizar movimentação");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("movements").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Movimentação removida!");
-      queryClient.invalidateQueries({ queryKey: ["movements"] });
-    },
-    onError: (error) => {
-      console.error("Erro ao remover movimentação:", error);
-      toast.error("Erro ao remover movimentação");
-    },
-  });
-
-  const addMovement = async (m: any) => {
-    try {
-      await addMutation.mutateAsync(m);
-      return true;
-    } catch {
-      return false;
     }
+    await fetchMovements();
+    return true;
   };
 
-  const updateMovement = async (id: string, updates: any) => {
-    try {
-      await updateMutation.mutateAsync({ id, updates });
-      return true;
-    } catch {
+  const updateMovement = async (
+    id: string,
+    updates: { quantity?: number; expiry_date?: string | null; lote?: string }
+  ) => {
+    const { error } = await supabase
+      .from("movements")
+      .update(updates)
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao atualizar movimentação:", error);
+      toast.error("Erro ao atualizar movimentação");
       return false;
     }
+    toast.success("Movimentação atualizada!");
+    await fetchMovements();
+    return true;
   };
 
   const deleteMovement = async (id: string) => {
-    try {
-      await deleteMutation.mutateAsync(id);
-      return true;
-    } catch {
+    const { error } = await supabase.from("movements").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao remover movimentação:", error);
+      toast.error("Erro ao remover movimentação");
       return false;
     }
+    toast.success("Movimentação removida!");
+    await fetchMovements();
+    return true;
   };
 
   return { items, loading, addMovement, updateMovement, deleteMovement, fetchMovements };

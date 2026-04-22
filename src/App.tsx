@@ -1,49 +1,31 @@
- import { lazy, Suspense } from "react";
- import { Toaster } from "@/components/ui/toaster";
- import { Toaster as Sonner } from "@/components/ui/sonner";
- import { TooltipProvider } from "@/components/ui/tooltip";
- import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
- import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
- import { AuthProvider, useAuth } from "@/contexts/AuthContext";
- import { AppLayout } from "@/components/AppLayout";
- 
- // Lazy load pages for better performance
- const Dashboard = lazy(() => import("@/pages/Dashboard"));
- const FichasTecnicas = lazy(() => import("@/pages/FichasTecnicas"));
- const AlterarSenha = lazy(() => import("@/pages/AlterarSenha"));
- const ContaBloqueada = lazy(() => import("@/pages/ContaBloqueada"));
- const Produtos = lazy(() => import("@/pages/Produtos"));
- const Fornecedores = lazy(() => import("@/pages/Fornecedores"));
- const Movimentacoes = lazy(() => import("@/pages/Movimentacoes"));
- const SaidaPratos = lazy(() => import("@/pages/SaidaPratos"));
- const RelatorioMovimentacoes = lazy(() => import("@/pages/RelatorioMovimentacoes"));
- const Funcionarios = lazy(() => import("@/pages/Funcionarios"));
- const NaoConformidadesPage = lazy(() => import("@/pages/NaoConformidades"));
- const Manual = lazy(() => import("@/pages/Manual"));
- const Login = lazy(() => import("@/pages/Login"));
- const ScriptVenda = lazy(() => import("@/pages/ScriptVenda"));
- const Banners = lazy(() => import("@/pages/Banners"));
- const FichasTecnicasInfo = lazy(() => import("@/pages/FichasTecnicasInfo"));
- const Manual2 = lazy(() => import("@/pages/Manual2"));
- const Proposta = lazy(() => import("@/pages/Proposta"));
- const NotFound = lazy(() => import("./pages/NotFound"));
- 
- const queryClient = new QueryClient({
-   defaultOptions: {
-     queries: {
-       staleTime: 1000 * 60 * 5, // 5 minutes
-       gcTime: 1000 * 60 * 30, // 30 minutes
-       retry: 1,
-       refetchOnWindowFocus: false,
-     },
-   },
- });
- 
- const PageLoader = () => (
-   <div className="flex min-h-[60vh] items-center justify-center">
-     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-   </div>
- );
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
+import Dashboard from "@/pages/Dashboard";
+import FichasTecnicas from "@/pages/FichasTecnicas";
+import AlterarSenha from "@/pages/AlterarSenha";
+import ContaBloqueada from "@/pages/ContaBloqueada";
+import Produtos from "@/pages/Produtos";
+import Fornecedores from "@/pages/Fornecedores";
+import Movimentacoes from "@/pages/Movimentacoes";
+import SaidaPratos from "@/pages/SaidaPratos";
+import RelatorioMovimentacoes from "@/pages/RelatorioMovimentacoes";
+import Funcionarios from "@/pages/Funcionarios";
+import NaoConformidadesPage from "@/pages/NaoConformidades";
+import Manual from "@/pages/Manual";
+import Login from "@/pages/Login";
+import ScriptVenda from "@/pages/ScriptVenda";
+import Banners from "@/pages/Banners";
+import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
+import Manual2 from "@/pages/Manual2";
+import Proposta from "@/pages/Proposta";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, adminOnly = false, allowTempPassword = false, allowBlocked = false }: { children: React.ReactNode; adminOnly?: boolean; allowTempPassword?: boolean; allowBlocked?: boolean }) {
   const { user, isAdmin, loading, tempPassword, blocked } = useAuth();
