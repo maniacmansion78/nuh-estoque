@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -39,25 +39,21 @@ export interface RecipeForm {
   ingredients: NewIngredient[];
 }
 
-export function useRecipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchRecipes = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("recipes")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error("Erro ao buscar receitas:", error);
-      toast.error("Erro ao carregar receitas");
-    } else {
-      setRecipes(data as Recipe[]);
-    }
-    setLoading(false);
-  }, []);
+ export function useRecipes() {
+   const queryClient = useQueryClient();
+ 
+   const { data: recipes = [], isLoading: loading, refetch: fetchRecipes } = useQuery({
+     queryKey: ["recipes"],
+     queryFn: async () => {
+       const { data, error } = await supabase
+         .from("recipes")
+         .select("*")
+         .order("name");
+ 
+       if (error) throw error;
+       return data as Recipe[];
+     },
+   });
 
   const fetchRecipeWithIngredients = useCallback(async (recipeId: string) => {
     const { data: ingredients, error } = await supabase
@@ -93,58 +89,52 @@ export function useRecipes() {
     }
   };
 
-  const addRecipe = async (form: RecipeForm) => {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id || null;
-
-    const totalCost = form.ingredients.reduce((sum, ing) => sum + ing.unit_cost, 0);
-
-    const { data: recipe, error: recipeError } = await supabase
-      .from("recipes")
-      .insert({
-        name: form.name.trim(),
-        category: form.category,
-        portions: form.portions,
-        total_cost: totalCost,
-        created_by: userId,
-      })
-      .select()
-      .single();
-
-    if (recipeError || !recipe) {
-      console.error("Erro ao criar receita:", recipeError);
-      toast.error("Erro ao criar receita");
-      return false;
-    }
-
-    if (form.ingredients.length > 0) {
-      const rows = form.ingredients.map((ing) => ({
-        recipe_id: recipe.id,
-        ingredient_name: ing.ingredient_name.trim(),
-        gross_weight: ing.gross_weight,
-        correction_factor: 1,
-        net_weight: ing.gross_weight,
-        unit_cost: ing.unit_cost,
-        ingredient_cost: ing.unit_cost,
-        unit: ing.unit,
-      }));
-
-      const { error: ingError } = await supabase.from("recipe_ingredients").insert(rows);
-      if (ingError) {
-        console.error("Erro ao inserir ingredientes:", ingError);
-        toast.error("Receita criada, mas houve erro ao salvar ingredientes");
-        await fetchRecipes();
-        return false;
-      }
-    }
-
-    // Ensure ingredients also exist as products (insumos)
-    await ensureProductsExist(form.ingredients, userId);
-
-    toast.success("Receita cadastrada com sucesso!");
-    await fetchRecipes();
-    return true;
-  };
+   const addMutation = useMutation({
+     mutationFn: async (form: RecipeForm) => {
+       const { data: userData } = await supabase.auth.getUser();
+       const userId = userData?.user?.id || null;
+       const totalCost = form.ingredients.reduce((sum, ing) => sum + ing.unit_cost, 0);
+ 
+       const { data: recipe, error: recipeError } = await supabase
+         .from("recipes")
+         .insert({
+           name: form.name.trim(),
+           category: form.category,
+           portions: form.portions,
+           total_cost: totalCost,
+           created_by: userId,
+         })
+         .select()
+         .single();
+ 
+       if (recipeError || !recipe) throw recipeError || new Error("Recipe not created");
+ 
+       if (form.ingredients.length > 0) {
+         const rows = form.ingredients.map((ing) => ({
+           recipe_id: recipe.id,
+           ingredient_name: ing.ingredient_name.trim(),
+           gross_weight: ing.gross_weight,
+           correction_factor: 1,
+           net_weight: ing.gross_weight,
+           unit_cost: ing.unit_cost,
+           ingredient_cost: ing.unit_cost,
+           unit: ing.unit,
+         }));
+ 
+         const { error: ingError } = await supabase.from("recipe_ingredients").insert(rows);
+         if (ingError) throw ingError;
+       }
+       await ensureProductsExist(form.ingredients, userId);
+     },
+     onSuccess: () => {
+       toast.success("Receita cadastrada com sucesso!");
+       queryClient.invalidateQueries({ queryKey: ["recipes"] });
+     },
+     onError: (error) => {
+       console.error("Erro ao criar receita:", error);
+       toast.error("Erro ao criar receita");
+     },
+   });
 
   const updateRecipe = async (id: string, form: RecipeForm) => {
     const totalCost = form.ingredients.reduce((sum, ing) => sum + ing.unit_cost, 0);
