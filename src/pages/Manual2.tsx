@@ -119,7 +119,7 @@ export default function Manual2() {
       <nav className="sticky top-0 z-50 border-b border-border bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-3">
-            <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" />
+             <img src={logoNuh} alt="NUH Logo" className="h-9 w-9 rounded-lg object-cover" loading="lazy" width="36" height="36" />
             <span className="text-xl font-bold">NUH</span>
           </Link>
           <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadPDF}>
@@ -200,7 +200,7 @@ export default function Manual2() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center">
           <div className="flex items-center gap-2">
-            <img src={logoNuh} alt="NUH" className="h-8 w-8 rounded-lg object-cover" />
+             <img src={logoNuh} alt="NUH" className="h-8 w-8 rounded-lg object-cover" loading="lazy" width="32" height="32" />
             <span className="text-lg font-bold">NUH</span>
           </div>
           <p className="text-xs text-muted-foreground">
