@@ -188,10 +188,10 @@ const Dashboard = () => {
               <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", stat.bg)}>
                 <stat.icon className={cn("h-6 w-6", stat.color)} />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-                {loading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold">{stat.value}</p>}
-              </div>
+               <div className="min-w-0 flex-1">
+                 <p className="text-sm text-muted-foreground truncate">{stat.title}</p>
+                 {productsLoading || recipesLoading ? <Skeleton className="mt-1 h-8 w-12" /> : <p className="text-2xl font-bold truncate">{stat.value}</p>}
+               </div>
             </CardContent>
           </Card>
         ))}
