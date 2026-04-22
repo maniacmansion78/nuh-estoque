@@ -22,22 +22,33 @@ const Dashboard = () => {
   const [allIngredients, setAllIngredients] = useState<Record<string, RecipeIngredient[]>>({});
   const [loadingIngredients, setLoadingIngredients] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoadingIngredients(true);
-      const { data, error } = await supabase.from("recipe_ingredients").select("*");
-      if (!error && data) {
-        const grouped: Record<string, RecipeIngredient[]> = {};
-        for (const ing of data as RecipeIngredient[]) {
-          if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
-          grouped[ing.recipe_id].push(ing);
-        }
-        setAllIngredients(grouped);
-      }
-      setLoadingIngredients(false);
-    };
-    load();
-  }, []);
+   useEffect(() => {
+     const controller = new AbortController();
+     const load = async () => {
+       setLoadingIngredients(true);
+       try {
+         const { data, error } = await supabase
+           .from("recipe_ingredients")
+           .select("*")
+           .abortSignal(controller.signal);
+ 
+         if (!error && data) {
+           const grouped: Record<string, RecipeIngredient[]> = {};
+           for (const ing of data as RecipeIngredient[]) {
+             if (!grouped[ing.recipe_id]) grouped[ing.recipe_id] = [];
+             grouped[ing.recipe_id].push(ing);
+           }
+           setAllIngredients(grouped);
+         }
+       } catch (err: any) {
+         if (err.name !== 'AbortError') console.error(err);
+       } finally {
+         setLoadingIngredients(false);
+       }
+     };
+     load();
+     return () => controller.abort();
+   }, []);
 
    const nowBrasilia = useMemo(() => new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })), []);
    const todayStr = useMemo(() => `${nowBrasilia.getFullYear()}-${String(nowBrasilia.getMonth() + 1).padStart(2, "0")}-${String(nowBrasilia.getDate()).padStart(2, "0")}`, [nowBrasilia]);
@@ -116,12 +127,6 @@ const Dashboard = () => {
        { title: "Total de Insumos", value: totalItems, icon: Package, color: "text-primary", bg: "bg-accent" },
      ];
    }, [items.length, recipes.length, reportPeriods]);
-    { label: "Hoje", dishes: buildByRecipe(todaySales), ingredients: buildIngredientConsumption(todaySales), total: sumQty(todaySales) },
-    { label: "Semana", dishes: buildByRecipe(weekSales), ingredients: buildIngredientConsumption(weekSales), total: sumQty(weekSales) },
-    { label: "Quinzena", dishes: buildByRecipe(biweeklySales), ingredients: buildIngredientConsumption(biweeklySales), total: sumQty(biweeklySales) },
-    { label: format(nowBrasilia, "MMMM", { locale: ptBR }), dishes: buildByRecipe(monthSales), ingredients: buildIngredientConsumption(monthSales), total: sumQty(monthSales) },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [sales, recipes, allIngredients]);
 
   // Build daily logs: group sales by date, showing each dish sold that day
   const dailyLogs = useMemo(() => {
