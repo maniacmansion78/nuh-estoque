@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,29 +44,21 @@ export interface ProductForm {
   correction_factor_note: string;
 }
 
-export function useProducts() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar produtos:", error);
-      toast.error("Erro ao carregar produtos");
-    } else {
-      setItems(data as Product[]);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+ export function useProducts() {
+   const queryClient = useQueryClient();
+ 
+   const { data: items = [], isLoading: loading, refetch: fetchProducts } = useQuery({
+     queryKey: ["products"],
+     queryFn: async () => {
+       const { data, error } = await supabase
+         .from("products")
+         .select("*")
+         .order("created_at", { ascending: false });
+ 
+       if (error) throw error;
+       return data as Product[];
+     },
+   });
 
   const buildPayload = (form: ProductForm) => ({
     price_per_kg: form.price_per_kg ?? 0,
@@ -77,31 +69,35 @@ export function useProducts() {
     correction_factor_note: form.correction_factor_enabled ? (form.correction_factor_note || null) : null,
   });
 
-  const addProduct = async (form: ProductForm) => {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id || null;
-
-    const { error } = await supabase.from("products").insert({
-      name: form.name,
-      category: form.category,
-      unit: form.unit,
-      min_quantity: form.min_quantity,
-      supplier_id: form.supplier_id,
-      alert_days: form.alert_days,
-      created_by: userId,
-      ...buildPayload(form),
-    } as never);
-
-    if (error) {
-      console.error("Erro ao adicionar produto:", error);
-      toast.error("Erro ao adicionar produto");
-      return false;
-    }
-
-    toast.success("Produto adicionado!");
-    await fetchProducts();
-    return true;
-  };
+   const addMutation = useMutation({
+     mutationFn: async (form: ProductForm) => {
+       const { data: userData } = await supabase.auth.getUser();
+       const userId = userData?.user?.id || null;
+ 
+       const { error } = await supabase.from("products").insert({
+         name: form.name,
+         category: form.category,
+         unit: form.unit,
+         min_quantity: form.min_quantity,
+         supplier_id: form.supplier_id,
+         alert_days: form.alert_days,
+         created_by: userId,
+         ...buildPayload(form),
+       } as never);
+ 
+       if (error) throw error;
+     },
+     onSuccess: () => {
+       toast.success("Produto adicionado!");
+       queryClient.invalidateQueries({ queryKey: ["products"] });
+     },
+     onError: (error) => {
+       console.error("Erro ao adicionar produto:", error);
+       toast.error("Erro ao adicionar produto");
+     },
+   });
+ 
+   const addProduct = (form: ProductForm) => addMutation.mutateAsync(form);
 
   const updateProduct = async (id: string, form: ProductForm) => {
     const { error } = await supabase
