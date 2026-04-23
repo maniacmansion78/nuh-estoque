@@ -18,6 +18,7 @@ import Funcionarios from "@/pages/Funcionarios";
 import NaoConformidadesPage from "@/pages/NaoConformidades";
 import Manual from "@/pages/Manual";
 import Login from "@/pages/Login";
+import Landing from "@/pages/Landing";
 import ScriptVenda from "@/pages/ScriptVenda";
 import Banners from "@/pages/Banners";
 import FichasTecnicasInfo from "@/pages/FichasTecnicasInfo";
@@ -43,7 +44,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/login" element={<Navigate to="/" replace />} />
       <Route
         path="/conta-bloqueada"
